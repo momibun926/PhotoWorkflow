@@ -1,0 +1,186 @@
+2026-08-11 11:53:43,300 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\photo_workflow\config.json
+2026-08-11 11:53:43,302 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 11:53:43,302 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 11:53:43,302 [INFO] ExifToolを実行中...
+2026-08-11 11:53:43,852 [INFO]     1 directories scanned
+2026-08-11 11:53:43,852 [INFO]     0 image files read
+2026-08-11 11:53:55,674 [INFO] --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-11 11:53:55,674 [INFO] JPEGファイル (0 件) のコピーを開始します...
+2026-08-11 11:53:55,677 [INFO] NEFファイル (0 件) のコピーを開始します...
+2026-08-11 11:53:55,677 [INFO] 元ファイル (0 件) をゴミ箱へ移動します...
+2026-08-11 12:03:53,838 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\photo_workflow\config.json
+2026-08-11 12:03:53,838 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:03:53,839 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:03:53,839 [INFO] ExifToolを実行中...
+2026-08-11 12:03:54,922 [INFO]     1 directories scanned
+2026-08-11 12:03:54,922 [INFO]     0 image files updated
+2026-08-11 12:03:54,922 [INFO]    10 image files unchanged
+2026-08-11 12:03:54,922 [WARNING] ExifTool 警告/エラー詳細:
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1114_0000508.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1114_0000508.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1115_0000509.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1115_0000509.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1116_0000510.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1116_0000510.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1117_0000511.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1117_0000511.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1118_0000512.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1118_0000512.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1119_0000513.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1119_0000513.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1255_0000636.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1255_0000636.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1256_0000637.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1256_0000637.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1257_0000638.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1257_0000638.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1258_0000639.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1258_0000639.JPG
+2026-08-11 12:04:04,908 [INFO] --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-11 12:04:04,909 [INFO] JPEGファイル (10 件) のコピーを開始します...
+2026-08-11 12:04:04,917 [INFO]  [1/10] Copied JPEG: Z50_1114_0000508.JPG
+2026-08-11 12:04:04,923 [INFO]  [2/10] Copied JPEG: Z50_1115_0000509.JPG
+2026-08-11 12:04:04,929 [INFO]  [3/10] Copied JPEG: Z50_1116_0000510.JPG
+2026-08-11 12:04:04,936 [INFO]  [4/10] Copied JPEG: Z50_1117_0000511.JPG
+2026-08-11 12:04:04,942 [INFO]  [5/10] Copied JPEG: Z50_1118_0000512.JPG
+2026-08-11 12:04:04,951 [INFO]  [6/10] Copied JPEG: Z50_1119_0000513.JPG
+2026-08-11 12:04:04,957 [INFO]  [7/10] Copied JPEG: Z50_1255_0000636.JPG
+2026-08-11 12:04:04,963 [INFO]  [8/10] Copied JPEG: Z50_1256_0000637.JPG
+2026-08-11 12:04:04,970 [INFO]  [9/10] Copied JPEG: Z50_1257_0000638.JPG
+2026-08-11 12:04:04,976 [INFO]  [10/10] Copied JPEG: Z50_1258_0000639.JPG
+2026-08-11 12:04:04,976 [INFO] NEFファイル (0 件) のコピーを開始します...
+2026-08-11 12:04:04,977 [INFO] 元ファイル (10 件) をゴミ箱へ移動します...
+2026-08-11 12:04:05,032 [INFO]  Trash: Z50_1114_0000508.JPG
+2026-08-11 12:04:05,197 [INFO]  Trash: Z50_1115_0000509.JPG
+2026-08-11 12:04:05,338 [INFO]  Trash: Z50_1116_0000510.JPG
+2026-08-11 12:04:05,490 [INFO]  Trash: Z50_1117_0000511.JPG
+2026-08-11 12:04:05,625 [INFO]  Trash: Z50_1118_0000512.JPG
+2026-08-11 12:04:05,761 [INFO]  Trash: Z50_1119_0000513.JPG
+2026-08-11 12:04:05,898 [INFO]  Trash: Z50_1255_0000636.JPG
+2026-08-11 12:04:05,930 [INFO]  Trash: Z50_1256_0000637.JPG
+2026-08-11 12:04:05,963 [INFO]  Trash: Z50_1257_0000638.JPG
+2026-08-11 12:04:05,995 [INFO]  Trash: Z50_1258_0000639.JPG
+2026-08-11 12:30:25,355 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:30:25,357 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:30:25,357 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:30:25,357 [INFO] ExifToolを実行中...
+2026-08-11 12:30:25,917 [INFO]     1 directories scanned
+2026-08-11 12:30:25,917 [INFO]     0 image files read
+2026-08-11 12:31:20,171 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:31:20,172 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:31:20,172 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:31:20,172 [INFO] ExifToolを実行中...
+2026-08-11 12:31:20,709 [INFO]     1 directories scanned
+2026-08-11 12:31:20,709 [INFO]     0 image files read
+2026-08-11 12:42:29,360 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:42:29,361 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:42:29,361 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:42:29,361 [INFO] ExifToolを実行中...
+2026-08-11 12:42:29,902 [INFO]     1 directories scanned
+2026-08-11 12:42:29,902 [INFO]     0 image files read
+2026-08-11 12:42:39,726 [WARNING] 手動GPS付与プログラムが見つかりませんでした: C:\SHARE\APPL\PhotoWorkflow\modules\manual_gps_tagger.py
+2026-08-11 12:43:12,068 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:43:12,069 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:43:12,069 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:43:12,069 [INFO] ExifToolを実行中...
+2026-08-11 12:43:12,613 [INFO]     1 directories scanned
+2026-08-11 12:43:12,613 [INFO]     0 image files read
+2026-08-11 12:43:24,460 [INFO] 手動GPS付与ツールを起動: C:\SHARE\APPL\PhotoWorkflow\modules\manual_gps_tagger.py
+2026-08-11 12:43:35,913 [INFO] --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-11 12:43:35,914 [INFO] JPEGファイル (0 件) のコピーを開始します...
+2026-08-11 12:43:35,914 [INFO] NEFファイル (0 件) のコピーを開始します...
+2026-08-11 12:43:35,914 [INFO] 元ファイル (0 件) をゴミ箱へ移動します...
+2026-08-11 12:48:31,688 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:48:31,689 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:48:31,689 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:48:31,689 [INFO] ExifToolを実行中...
+2026-08-11 12:48:33,118 [INFO]     1 directories scanned
+2026-08-11 12:48:33,118 [INFO]     4 image files updated
+2026-08-11 12:48:33,118 [INFO]     6 image files unchanged
+2026-08-11 12:48:33,118 [WARNING] ExifTool 警告/エラー詳細:
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1114_0000508.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1114_0000508.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1115_0000509.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1115_0000509.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1116_0000510.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1116_0000510.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1117_0000511.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1117_0000511.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1118_0000512.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1118_0000512.JPG
+Warning: Time is too far before track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_1119_0000513.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_1119_0000513.JPG
+2026-08-11 12:48:51,370 [WARNING] 手動GPS付与プログラムが見つかりませんでした: C:\SHARE\APPL\PhotoWorkflow\modules\gps_manual_tagger.py
+2026-08-11 12:49:09,973 [INFO] --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-11 12:49:09,974 [INFO] JPEGファイル (6 件) のコピーを開始します...
+2026-08-11 12:49:09,982 [INFO]  [1/6] Copied JPEG: Z50_1114_0000508.JPG
+2026-08-11 12:49:09,989 [INFO]  [2/6] Copied JPEG: Z50_1115_0000509.JPG
+2026-08-11 12:49:09,995 [INFO]  [3/6] Copied JPEG: Z50_1116_0000510.JPG
+2026-08-11 12:49:10,002 [INFO]  [4/6] Copied JPEG: Z50_1117_0000511.JPG
+2026-08-11 12:49:10,008 [INFO]  [5/6] Copied JPEG: Z50_1118_0000512.JPG
+2026-08-11 12:49:10,017 [INFO]  [6/6] Copied JPEG: Z50_1119_0000513.JPG
+2026-08-11 12:49:10,017 [INFO] NEFファイル (4 件) のコピーを開始します...
+2026-08-11 12:49:10,424 [INFO]  [1/4] Copied NEF: Z50_1662_0001028.NEF -> 20260811
+2026-08-11 12:49:10,433 [INFO]  [2/4] Copied NEF: Z50_1664_0001030.NEF -> 20260718
+2026-08-11 12:49:10,441 [INFO]  [3/4] Copied NEF: Z50_1665_0001031.NEF -> 20260811
+2026-08-11 12:49:10,450 [INFO]  [4/4] Copied NEF: Z50_1669_0001035.NEF -> 20260718
+2026-08-11 12:49:10,450 [INFO] 元ファイル (10 件) をゴミ箱へ移動します...
+2026-08-11 12:49:10,496 [INFO]  Trash: Z50_1114_0000508.JPG
+2026-08-11 12:49:10,843 [INFO]  Trash: Z50_1115_0000509.JPG
+2026-08-11 12:49:10,966 [INFO]  Trash: Z50_1116_0000510.JPG
+2026-08-11 12:49:11,091 [INFO]  Trash: Z50_1117_0000511.JPG
+2026-08-11 12:49:11,212 [INFO]  Trash: Z50_1118_0000512.JPG
+2026-08-11 12:49:11,330 [INFO]  Trash: Z50_1119_0000513.JPG
+2026-08-11 12:49:11,452 [INFO]  Trash: Z50_1662_0001028.NEF
+2026-08-11 12:49:11,571 [INFO]  Trash: Z50_1664_0001030.NEF
+2026-08-11 12:49:11,691 [INFO]  Trash: Z50_1665_0001031.NEF
+2026-08-11 12:49:11,811 [INFO]  Trash: Z50_1669_0001035.NEF
+2026-08-11 12:53:20,730 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:53:20,731 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:53:20,731 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:53:20,731 [INFO] ExifToolを実行中...
+2026-08-11 12:53:21,303 [INFO]     1 directories scanned
+2026-08-11 12:53:21,303 [INFO]     0 image files read
+2026-08-11 12:54:26,609 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:54:26,610 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:54:26,610 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:54:26,610 [INFO] ExifToolを実行中...
+2026-08-11 12:54:27,172 [INFO]     1 directories scanned
+2026-08-11 12:54:27,172 [INFO]     0 image files read
+2026-08-11 12:54:33,235 [INFO] 手動GPS付与ツールを起動: C:\SHARE\APPL\PhotoWorkflow\modules\manual_gps_tagger.py
+2026-08-11 12:54:40,989 [INFO] --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-11 12:54:40,989 [INFO] JPEGファイル (0 件) のコピーを開始します...
+2026-08-11 12:54:40,989 [INFO] NEFファイル (0 件) のコピーを開始します...
+2026-08-11 12:54:40,990 [INFO] 元ファイル (0 件) をゴミ箱へ移動します...
+2026-08-11 12:56:08,884 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:56:08,884 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:56:08,885 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:56:08,885 [INFO] ExifToolを実行中...
+2026-08-11 12:56:09,434 [INFO]     1 directories scanned
+2026-08-11 12:56:09,434 [INFO]     0 image files read
+2026-08-11 12:56:09,434 [ERROR] GPS情報の書き込み中に例外が発生しました: name 'sprint' is not defined
+Traceback (most recent call last):
+  File "C:\SHARE\APPL\PhotoWorkflow\modules\gps_tagger.py", line 80, in apply_gps_tags
+    sprint("\n")
+    ^^^^^^
+NameError: name 'sprint' is not defined. Did you mean: 'print'?
+2026-08-11 12:57:06,614 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 12:57:06,615 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 12:57:06,615 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 12:57:06,615 [INFO] ExifToolを実行中...
+2026-08-11 12:57:07,170 [INFO]     1 directories scanned
+2026-08-11 12:57:07,170 [INFO]     0 image files read
+2026-08-11 12:57:47,571 [INFO] --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-11 12:57:47,572 [INFO] JPEGファイル (0 件) のコピーを開始します...
+2026-08-11 12:57:47,572 [INFO] NEFファイル (0 件) のコピーを開始します...
+2026-08-11 12:57:47,572 [INFO] 元ファイル (0 件) をゴミ箱へ移動します...
+2026-08-11 13:01:02,725 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 13:01:02,726 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 13:01:02,726 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 13:01:02,726 [INFO] ExifToolを実行中...
+2026-08-11 13:01:03,269 [INFO]     1 directories scanned
+2026-08-11 13:01:03,269 [INFO]     0 image files read
+2026-08-11 13:01:09,695 [INFO] --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-11 13:01:09,695 [INFO] JPEGファイル (0 件) のコピーを開始します...
+2026-08-11 13:01:09,695 [INFO] NEFファイル (0 件) のコピーを開始します...
+2026-08-11 13:01:09,695 [INFO] 元ファイル (0 件) をゴミ箱へ移動します...

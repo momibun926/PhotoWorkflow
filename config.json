@@ -1,0 +1,12 @@
+{
+  "directories": {
+    "base": "C:\\SHARE\\Photo",
+    "from_camera": "C:\\SHARE\\Photo\\from_camera",
+    "to_amazon_jpeg": "C:\\SHARE\\Photo\\to_amazon\\jpeg",
+    "to_note": "C:\\SHARE\\Photo\\to_note"
+  },
+  "external_tools": {
+    "flame_script": "C:\\SHARE\\APPL\\NikonPhotoFrame\\Flame.py",
+    "flame_config": "standard.yaml"
+  }
+}

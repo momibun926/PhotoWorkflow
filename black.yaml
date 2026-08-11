@@ -1,0 +1,41 @@
+# フォント設定
+fonts:
+  # システムにインストールされているフォント名、またはパスを指定
+  bold: ["SofiaSans-Regular.ttfss"]
+  regular: ["SofiaSans-Light.ttf"]
+  
+  # サイズ指定のタイプ ("px" または "ratio")
+  size_type: "px"
+  # px指定ならピクセル数、ratio指定なら長辺に対する割合（例: 0.02）
+  main_size: 100
+  sub_size: 65
+
+# 色設定 (HEX形式)
+colors:
+  bg: "#222222"
+  main: "#ffffff"
+  sub: "#eeeeee"
+
+# 余白設定（画像長辺に対する割合）
+ratios:
+  bottom_margin: 0.070
+  side_margin: 0.000
+
+# レイアウトテンプレート
+# {変数名} の部分はメタデータから自動置換されます
+layout:
+  top: "{camera}   {lens}"
+  bottom: "{focal_length}mm   |   f{f_number}  {shutter}  ISO {iso}   |   {exposure_bias}EV   |   {exposure_mode}   |   {picture_control}"
+  # 行間のピクセル数 (size_typeに関わらずpxで指定すると微調整しやすいです)
+  line_spacing_px: 150
+  # 下部余白の上端から 1行目(top) までの距離の割合（値を小さくすると上に移動します）
+  # 例: 0.35 -> 0.20 や 0.25 に変更することで位置が上になります
+  top_padding_ratio: 0.20
+  # 行間（ピクセル）
+  line_spacing_px: 140
+
+# 出力設定
+output:
+  prefix: "Frame_"
+  dir_name: "processed_photos_black"
+  quality: 100
