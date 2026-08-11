@@ -1,0 +1,25 @@
+# ビルド出力フォルダ (コンパイルされた exe や dll)
+[Bb]in/
+[Oo]bj/
+obj/*
+
+# 公開（Publish）用フォルダ
+publish/
+
+# Visual Studio / VS Code の一時設定ファイル
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Python のキャッシュファイル
+modules\__pycache__
+
+# ログファイル
+*.log
+
+# OS固有のファイル
+Thumbs.db
+.DS_Store
