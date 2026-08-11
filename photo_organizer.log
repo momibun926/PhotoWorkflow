@@ -190,3 +190,9 @@ NameError: name 'sprint' is not defined. Did you mean: 'print'?
 2026-08-11 13:13:03,652 [INFO] ExifToolを実行中...
 2026-08-11 13:13:04,192 [INFO]     1 directories scanned
 2026-08-11 13:13:04,192 [INFO]     0 image files read
+2026-08-11 13:17:36,940 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-11 13:17:36,941 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-11 13:17:36,941 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-11 13:17:36,941 [INFO] ExifToolを実行中...
+2026-08-11 13:17:37,477 [INFO]     1 directories scanned
+2026-08-11 13:17:37,477 [INFO]     0 image files read
