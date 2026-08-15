@@ -23,9 +23,6 @@ ratios:
 
 # レイアウトテンプレート
 # {変数名} の部分はメタデータから自動置換されます
-# レイアウトテンプレート
-# {変数名} の部分はメタデータから自動置換されます
-layout:
 layout:
   top: "{camera}   {lens}"
   bottom: "{focal_length}mm  |  f{f_number}  {shutter}  ISO {iso}  |  {exposure_bias}EV  |  {exposure_mode}  |  {picture_control}  |  {white_balance} {color_temperature}"

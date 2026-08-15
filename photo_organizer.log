@@ -859,3 +859,132 @@ Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C
 Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.NEF
 2026-08-15 17:36:08,078 [INFO] 手動GPS付与ツールを起動: C:\SHARE\APPL\PhotoWorkflow\modules\manual_gps_tagger.py
 2026-08-15 17:36:28,719 [ERROR] 手動GPS付与ツールの起動エラー: Command '['C:\\Users\\hajim\\AppData\\Local\\Programs\\Python\\Python314\\python.exe', 'C:\\SHARE\\APPL\\PhotoWorkflow\\modules\\manual_gps_tagger.py']' returned non-zero exit status 3221226505.
+2026-08-15 21:26:48 [INFO] __main__: ==================================================
+2026-08-15 21:26:48 [INFO] __main__: 写真整理ワークフロープログラムを開始します
+2026-08-15 21:26:48 [INFO] __main__: ==================================================
+2026-08-15 21:26:48 [INFO] modules.config_manager: 設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-15 21:26:48 [INFO] __main__: ファイル分類開始
+2026-08-15 21:26:48 [INFO] modules.photo_copier: ファイル分類完了: JPEG=0, RAW=0, GPX=1
+2026-08-15 21:26:48 [INFO] __main__: STEP 1: GPS 書き込み開始
+2026-08-15 21:26:48 [INFO] modules.gps_tagger: --- STEP 1: GPS位置情報の書き込み ---
+2026-08-15 21:26:48 [INFO] modules.gps_tagger: 1 件の GPX ファイルを検出しました
+2026-08-15 21:26:48 [INFO] modules.gps_tagger: ExifTool コマンド実行中...
+2026-08-15 21:26:50 [INFO] modules.gps_tagger:     1 directories scanned
+2026-08-15 21:26:50 [INFO] modules.gps_tagger:     0 image files read
+2026-08-15 21:26:50 [INFO] modules.gps_tagger: GPS タグ書き込み完了: 更新=0, 変更なし=0
+2026-08-15 21:27:15 [INFO] __main__: 手動GPS付与ツール: スキップ
+2026-08-15 21:27:22 [INFO] __main__: ユーザー選択: N
+2026-08-15 21:27:22 [INFO] __main__: STEP 2: 写真整理・コピー開始
+2026-08-15 21:27:22 [INFO] modules.photo_copier: --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-15 21:27:22 [INFO] modules.photo_copier: 出力ディレクトリ作成完了
+2026-08-15 21:27:22 [INFO] modules.photo_copier: JPEG ファイル (0 件) のコピーを開始
+2026-08-15 21:27:22 [INFO] modules.photo_copier: RAW ファイル (0 件) のコピーを開始
+2026-08-15 21:27:22 [INFO] modules.photo_copier: 元ファイル (0 件) をゴミ箱へ移動開始
+2026-08-15 21:27:22 [INFO] modules.photo_copier: STEP 2 完了: JPEG=0, RAW=0, Trash=0/0
+2026-08-15 21:27:27 [INFO] __main__: ユーザー選択: N
+2026-08-15 21:27:27 [INFO] __main__: STEP 3: フレーム付与処理開始
+2026-08-15 21:27:27 [INFO] modules.config_manager: YAML設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-15 21:27:27 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-15 21:27:27 [INFO] modules.frame_processor: ImageProcessor 初期化完了: config=C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-15 21:27:27 [WARNING] modules.frame_processor: 有効な画像ファイルが見つかりません: C:\SHARE\Photo\to_note
+2026-08-15 21:27:27 [INFO] __main__: すべてのワークフロー工程が正常に完了しました
+2026-08-15 21:29:07 [INFO] __main__: ==================================================
+2026-08-15 21:29:07 [INFO] __main__: プログラムを終了します
+2026-08-15 21:29:07 [INFO] __main__: ==================================================
+2026-08-15 21:29:09 [INFO] __main__: ==================================================
+2026-08-15 21:29:09 [INFO] __main__: 写真整理ワークフロープログラムを開始します
+2026-08-15 21:29:09 [INFO] __main__: ==================================================
+2026-08-15 21:29:09 [INFO] modules.config_manager: 設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-15 21:29:09 [INFO] __main__: ファイル分類開始
+2026-08-15 21:29:09 [INFO] modules.photo_copier: ファイル分類完了: JPEG=3, RAW=3, GPX=1
+2026-08-15 21:29:09 [INFO] __main__: STEP 1: GPS 書き込み開始
+2026-08-15 21:29:09 [INFO] modules.gps_tagger: --- STEP 1: GPS位置情報の書き込み ---
+2026-08-15 21:29:09 [INFO] modules.gps_tagger: 1 件の GPX ファイルを検出しました
+2026-08-15 21:29:09 [INFO] modules.gps_tagger: ExifTool コマンド実行中...
+2026-08-15 21:29:11 [INFO] modules.gps_tagger:     1 directories scanned
+2026-08-15 21:29:11 [INFO] modules.gps_tagger:     6 image files updated
+2026-08-15 21:29:11 [INFO] modules.gps_tagger: GPS タグ書き込み完了: 更新=6, 変更なし=0
+2026-08-15 21:29:19 [INFO] __main__: 手動GPS付与ツール: 起動
+2026-08-15 21:29:19 [INFO] __main__: 手動GPS付与ツールを起動: C:\SHARE\APPL\PhotoWorkflow\modules\manual_gps_tagger.py
+2026-08-15 21:29:38 [INFO] __main__: 手動GPS付与ツール終了: 正常
+2026-08-15 21:29:38 [INFO] __main__: 手動GPS付与後のファイル再分類
+2026-08-15 21:29:38 [INFO] modules.photo_copier: ファイル分類完了: JPEG=3, RAW=3, GPX=1
+2026-08-15 21:29:54 [INFO] __main__: ユーザー選択: S
+2026-08-15 21:29:54 [INFO] __main__: STEP 2 をスキップ
+2026-08-15 21:30:07 [INFO] __main__: ユーザー選択: A
+2026-08-15 21:30:07 [INFO] __main__: ユーザーが STEP 3 で中止
+2026-08-15 21:30:09 [INFO] __main__: ==================================================
+2026-08-15 21:30:09 [INFO] __main__: プログラムを終了します
+2026-08-15 21:30:09 [INFO] __main__: ==================================================
+2026-08-15 21:30:11 [INFO] __main__: ==================================================
+2026-08-15 21:30:11 [INFO] __main__: 写真整理ワークフロープログラムを開始します
+2026-08-15 21:30:11 [INFO] __main__: ==================================================
+2026-08-15 21:30:11 [INFO] modules.config_manager: 設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-15 21:30:11 [INFO] __main__: ファイル分類開始
+2026-08-15 21:30:11 [INFO] modules.photo_copier: ファイル分類完了: JPEG=3, RAW=3, GPX=1
+2026-08-15 21:30:11 [INFO] __main__: STEP 1: GPS 書き込み開始
+2026-08-15 21:30:11 [INFO] modules.gps_tagger: --- STEP 1: GPS位置情報の書き込み ---
+2026-08-15 21:30:11 [INFO] modules.gps_tagger: 1 件の GPX ファイルを検出しました
+2026-08-15 21:30:11 [INFO] modules.gps_tagger: ExifTool コマンド実行中...
+2026-08-15 21:30:12 [INFO] modules.gps_tagger:     1 directories scanned
+2026-08-15 21:30:12 [INFO] modules.gps_tagger:     6 image files updated
+2026-08-15 21:30:12 [INFO] modules.gps_tagger: GPS タグ書き込み完了: 更新=6, 変更なし=0
+2026-08-15 21:30:16 [INFO] __main__: 手動GPS付与ツール: スキップ
+2026-08-15 21:30:19 [INFO] __main__: ユーザー選択: N
+2026-08-15 21:30:19 [INFO] __main__: STEP 2: 写真整理・コピー開始
+2026-08-15 21:30:19 [INFO] modules.photo_copier: --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-15 21:30:19 [INFO] modules.photo_copier: 出力ディレクトリ作成完了
+2026-08-15 21:30:19 [INFO] modules.photo_copier: JPEG ファイル (3 件) のコピーを開始
+2026-08-15 21:30:19 [INFO] modules.photo_copier: RAW ファイル (3 件) のコピーを開始
+2026-08-15 21:30:19 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-15 21:30:19 [WARNING] modules.exif_utils: ファイル Z50_2291_0001625.NEF の撮影日が取得できず、更新日時を使用: 20260815
+2026-08-15 21:30:19 [WARNING] modules.exif_utils: ファイル Z50_2294_0001628.NEF の撮影日が取得できず、更新日時を使用: 20260815
+2026-08-15 21:30:19 [INFO] modules.photo_copier: 元ファイル (6 件) をゴミ箱へ移動開始
+2026-08-15 21:30:19 [INFO] modules.photo_copier: STEP 2 完了: JPEG=3, RAW=3, Trash=6/6
+2026-08-15 21:30:48 [INFO] __main__: ユーザー選択: N
+2026-08-15 21:30:48 [INFO] __main__: STEP 3: フレーム付与処理開始
+2026-08-15 21:30:48 [INFO] modules.config_manager: YAML設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-15 21:30:48 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-15 21:30:48 [INFO] modules.frame_processor: ImageProcessor 初期化完了: config=C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-15 21:30:48 [INFO] modules.frame_processor: メタデータ一括取得開始: 3 ファイル
+2026-08-15 21:30:49 [INFO] modules.frame_processor: 画像処理完了: Z50_2291_0001625.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2291_0001625.jpg
+2026-08-15 21:30:49 [INFO] modules.frame_processor: 画像処理完了: Z50_2294_0001628.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2294_0001628.jpg
+2026-08-15 21:30:50 [INFO] modules.frame_processor: 画像処理完了: Z50_2295_0001629.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2295_0001629.jpg
+2026-08-15 21:30:50 [INFO] modules.frame_processor: 画像処理完了: 3/3 ファイル
+2026-08-15 21:30:50 [INFO] __main__: すべてのワークフロー工程が正常に完了しました
+2026-08-15 21:35:09 [INFO] __main__: ==================================================
+2026-08-15 21:35:09 [INFO] __main__: 写真整理ワークフロープログラムを開始します
+2026-08-15 21:35:09 [INFO] __main__: ==================================================
+2026-08-15 21:35:09 [INFO] modules.config_manager: 設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-15 21:35:09 [INFO] __main__: ファイル分類開始
+2026-08-15 21:35:09 [INFO] modules.photo_copier: ファイル分類完了: JPEG=3, RAW=3, GPX=1
+2026-08-15 21:35:09 [INFO] __main__: STEP 1: GPS 書き込み開始
+2026-08-15 21:35:09 [INFO] modules.gps_tagger: --- STEP 1: GPS位置情報の書き込み ---
+2026-08-15 21:35:09 [INFO] modules.gps_tagger: 1 件の GPX ファイルを検出しました
+2026-08-15 21:35:09 [INFO] modules.gps_tagger: ExifTool コマンド実行中...
+2026-08-15 21:35:10 [INFO] modules.gps_tagger:     1 directories scanned
+2026-08-15 21:35:10 [INFO] modules.gps_tagger:     6 image files updated
+2026-08-15 21:35:10 [INFO] modules.gps_tagger: GPS タグ書き込み完了: 更新=6, 変更なし=0
+2026-08-15 21:35:19 [INFO] __main__: 手動GPS付与ツール: スキップ
+2026-08-15 21:35:22 [INFO] __main__: ユーザー選択: N
+2026-08-15 21:35:22 [INFO] __main__: STEP 2: 写真整理・コピー開始
+2026-08-15 21:35:22 [INFO] modules.photo_copier: --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-15 21:35:22 [INFO] modules.photo_copier: 出力ディレクトリ作成完了
+2026-08-15 21:35:22 [INFO] modules.photo_copier: JPEG ファイル (3 件) のコピーを開始
+2026-08-15 21:35:22 [INFO] modules.photo_copier: RAW ファイル (3 件) のコピーを開始
+2026-08-15 21:35:22 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-15 21:35:22 [WARNING] modules.exif_utils: ファイル Z50_2291_0001625.NEF の撮影日が取得できず、更新日時を使用: 20260815
+2026-08-15 21:35:22 [WARNING] modules.exif_utils: ファイル Z50_2294_0001628.NEF の撮影日が取得できず、更新日時を使用: 20260815
+2026-08-15 21:35:22 [INFO] modules.photo_copier: 元ファイル (6 件) をゴミ箱へ移動開始
+2026-08-15 21:35:22 [INFO] modules.photo_copier: STEP 2 完了: JPEG=3, RAW=3, Trash=6/6
+2026-08-15 21:35:28 [INFO] __main__: ユーザー選択: N
+2026-08-15 21:35:28 [INFO] __main__: STEP 3: フレーム付与処理開始
+2026-08-15 21:35:28 [INFO] modules.config_manager: YAML設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-15 21:35:28 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-15 21:35:28 [INFO] modules.frame_processor: ImageProcessor 初期化完了: config=C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-15 21:35:28 [INFO] modules.frame_processor: メタデータ一括取得開始: 3 ファイル
+2026-08-15 21:35:29 [INFO] modules.frame_processor: 画像処理完了: Z50_2291_0001625.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2291_0001625.jpg
+2026-08-15 21:35:29 [INFO] modules.frame_processor: 画像処理完了: Z50_2294_0001628.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2294_0001628.jpg
+2026-08-15 21:35:30 [INFO] modules.frame_processor: 画像処理完了: Z50_2295_0001629.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2295_0001629.jpg
+2026-08-15 21:35:30 [INFO] modules.frame_processor: 画像処理完了: 3/3 ファイル
+2026-08-15 21:35:30 [INFO] __main__: すべてのワークフロー工程が正常に完了しました

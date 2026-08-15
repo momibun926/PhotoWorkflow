@@ -1,24 +1,45 @@
+"""手動GPS付与用GUIツール。
+
+PyQt6 を使用した対話的なGPS座標付与インターフェース。
+RAW ファイルのサムネイル表示とExif情報の編集が可能。
+"""
+
+import logging
 import sys
 import os
 import json
+import subprocess
+from typing import Optional, Dict, Any
+from pathlib import Path
+
 import rawpy
 import configparser
-import subprocess
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QListWidget, QListWidgetItem, QPushButton, 
-                             QLabel, QSplitter, QAbstractItemView, QFileDialog, QFrame,
-                             QProgressBar, QMessageBox, QDialog, QMenuBar)
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QListWidget, QListWidgetItem, QPushButton, QLabel, QSplitter,
+    QAbstractItemView, QFileDialog, QFrame, QProgressBar, QMessageBox,
+    QDialog, QMenuBar
+)
 from PyQt6.QtGui import QPixmap, QImage, QTransform, QIcon, QPainter, QColor, QAction
 from PyQt6.QtCore import Qt, QUrl, pyqtSlot, QObject, QSize, QTimer, QThread, pyqtSignal
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
 
-# --- JSON設定の読み込みと書式フォーマット関数 ---
-def load_app_config():
+# ロギング設定
+logger = logging.getLogger(__name__)
+
+# --- 設定の読み込み ---
+def load_app_config() -> Dict[str, Any]:
+    """アプリケーション設定の読み込み。"""
     path = "config.json"
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+                logger.info("アプリケーション設定を読み込みました")
+                return config
+    except Exception as e:
+        logger.warning("設定ファイルの読み込みに失敗: %s", e)
     return {}
 
 APP_CONFIG = load_app_config()
@@ -26,100 +47,166 @@ EXIFTOOL = APP_CONFIG.get("external_tools", {}).get("exiftool", "exiftool")
 INIT_DIR = APP_CONFIG.get("directories", {}).get("from_camera", r"C:\SHARE\Photo\from_camera")
 
 def format_technical_terms(text: str) -> str:
-    """カメラ・レンズ名の表記を補正する"""
-    if not text: return ""
-    text = text.replace("Z50_2", "Z50II").replace("Z50 2", "Z50II").replace("Z50ii", "Z50II")
-    text = text.replace("dx", "DX").replace("vr", "VR")
+    """カメラ・レンズ名の表記を補正。"""
+    if not text:
+        return ""
+    text = (
+        text.replace("Z50_2", "Z50II")
+        .replace("Z50 2", "Z50II")
+        .replace("Z50ii", "Z50II")
+        .replace("dx", "DX")
+        .replace("vr", "VR")
+    )
     return text
 
-def get_creation_flags():
-    """Windows環境でサブプロセス実行時にコンソール画面を出さないフラグ"""
+def get_creation_flags() -> int:
+    """Windows環境でサブプロセス実行時にコンソール画面を出さないフラグを返す。"""
     return subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
 
 # --- 設定管理クラス ---
 class ConfigManager:
-    def __init__(self):
-        self.api_key = ""
+    """API キーなどのローカル設定を管理。"""
+    
+    def __init__(self) -> None:
+        self.api_key: str = ""
         self.load()
 
-    def load(self):
-        config = configparser.ConfigParser()
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')
-        if os.path.exists(path):
-            config.read(path, encoding='utf-8')
-            self.api_key = config.get('GOOGLE_MAPS', 'API_KEY', fallback="")
+    def load(self) -> None:
+        """設定ファイルから API キーを読み込み。"""
+        try:
+            config = configparser.ConfigParser()
+            path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')
+            if os.path.exists(path):
+                config.read(path, encoding='utf-8')
+                self.api_key = config.get('GOOGLE_MAPS', 'API_KEY', fallback="")
+                logger.debug("設定ファイルから API キーを読み込みました")
+        except Exception as e:
+            logger.warning("設定ファイルの読み込みエラー: %s", e)
 
 # --- バックグラウンド処理（読み込み）用スレッド ---
 class LoadWorker(QThread):
-    progress = pyqtSignal(int, int, str, object, bool) 
-
+    """ファイルリストを読み込むバックグラウンドスレッド。"""
+    
+    progress = pyqtSignal(int, int, str, object, bool)
     finished = pyqtSignal(int)
 
-    def __init__(self, directory, thumb_size):
+    def __init__(self, directory: str, thumb_size: int) -> None:
         super().__init__()
         self.directory = directory
         self.thumb_size = thumb_size
         self._is_running = True
+        logger.info("LoadWorker 初期化: directory=%s, thumb_size=%d", directory, thumb_size)
 
-    def run(self):
-        valid_exts = ('.nef', '.jpg', '.jpeg')
-        files = sorted([f for f in os.listdir(self.directory) if f.lower().endswith(valid_exts)])
-        total = len(files)
-        
-        # フォルダ単位で一括してメタデータを取得（ボトルネックの解消）
-        meta_dict = self.batch_read_exif(self.directory)
-        
-        for i, f in enumerate(files):
-            if not self._is_running: break
-            full_path = os.path.join(self.directory, f)
-            norm_path = os.path.normpath(full_path)
-            
-            meta = meta_dict.get(norm_path, {})
-            lat = meta.get('lat')
-            lng = meta.get('lng')
-            orientation = meta.get('orientation', 1)
-            
-            # スレッドセーフ確保のため QImage で読み込み
-            qimg = self.load_thumbnail(full_path, orientation)
-            self.progress.emit(i + 1, total, f, qimg, lat is not None)
-            
-        self.finished.emit(total)
+    def run(self) -> None:
+        """スレッド実行メイン処理。"""
+        try:
+            valid_exts = ('.nef', '.jpg', '.jpeg')
+            files = sorted([
+                f for f in os.listdir(self.directory)
+                if f.lower().endswith(valid_exts)
+            ])
+            total = len(files)
 
-    def stop(self):
+            if total == 0:
+                logger.warning("有効なファイルが見つかりません: %s", self.directory)
+                self.finished.emit(0)
+                return
+
+            # フォルダ単位で一括してメタデータを取得
+            meta_dict = self.batch_read_exif(self.directory)
+
+            for i, f in enumerate(files):
+                if not self._is_running:
+                    logger.info("ユーザーが中止")
+                    break
+                
+                full_path = os.path.join(self.directory, f)
+                norm_path = os.path.normpath(full_path)
+
+                meta = meta_dict.get(norm_path, {})
+                lat = meta.get('lat')
+                lng = meta.get('lng')
+                orientation = meta.get('orientation', 1)
+
+                try:
+                    qimg = self.load_thumbnail(full_path, orientation)
+                    self.progress.emit(i + 1, total, f, qimg, lat is not None)
+                except Exception as e:
+                    logger.error("サムネイル読み込みエラー (%s): %s", f, e)
+                    self.progress.emit(i + 1, total, f, None, False)
+
+            self.finished.emit(total)
+        except Exception as e:
+            logger.error("LoadWorker エラー: %s", e, exc_info=True)
+            self.finished.emit(0)
+
+    def stop(self) -> None:
+        """スレッドを停止。"""
         self._is_running = False
+        logger.debug("LoadWorker 停止要求")
 
-    def batch_read_exif(self, directory):
+    def batch_read_exif(self, directory: str) -> Dict[str, Dict[str, Any]]:
+        """ExifTool を使用してメタデータを一括取得。"""
         cmd = [EXIFTOOL, '-j', '-n', '-Orientation', '-GPSLatitude', '-GPSLongitude', directory]
-        res = subprocess.run(cmd, capture_output=True, text=True, creationflags=get_creation_flags())
-        meta_dict = {}
-        if res.stdout:
-            try:
-                data = json.loads(res.stdout)
-                for item in data:
-                    path = os.path.normpath(item.get('SourceFile', ''))
-                    meta_dict[path] = {
-                        'orientation': item.get('Orientation', 1),
-                        'lat': item.get('GPSLatitude'),
-                        'lng': item.get('GPSLongitude')
-                    }
-            except: pass
+        meta_dict: Dict[str, Dict[str, Any]] = {}
+        
+        try:
+            res = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                creationflags=get_creation_flags(),
+                timeout=30
+            )
+            
+            if res.returncode != 0 and not res.stdout:
+                logger.warning("ExifTool 実行エラー: %s", res.stderr)
+                return meta_dict
+            
+            if res.stdout:
+                try:
+                    data = json.loads(res.stdout)
+                    for item in data:
+                        path = os.path.normpath(item.get('SourceFile', ''))
+                        meta_dict[path] = {
+                            'orientation': item.get('Orientation', 1),
+                            'lat': item.get('GPSLatitude'),
+                            'lng': item.get('GPSLongitude')
+                        }
+                    logger.debug("ExifTool 実行完了: %d ファイル", len(meta_dict))
+                except json.JSONDecodeError as e:
+                    logger.error("JSON デコードエラー: %s", e)
+        except subprocess.TimeoutExpired:
+            logger.error("ExifTool がタイムアウト")
+        except Exception as e:
+            logger.error("batch_read_exif エラー: %s", e)
+        
         return meta_dict
 
-    def load_thumbnail(self, path, orientation):
+    def load_thumbnail(self, path: str, orientation: int) -> Optional[QImage]:
+        """ファイルのサムネイルを読み込み。"""
         is_nef = path.lower().endswith('.nef')
-        qimg = None
-        if is_nef:
-            qimg = self.extract_thumb_fast(path)
-        else:
-            qimg = QImage(path)
+        qimg: Optional[QImage] = None
+        
+        try:
+            if is_nef:
+                qimg = self.extract_thumb_fast(path)
+            else:
+                qimg = QImage(path)
 
-        if qimg and not qimg.isNull():
-            qimg = self.apply_rotation(qimg, orientation)
-            return qimg.scaled(self.thumb_size, self.thumb_size, 
-                            Qt.AspectRatioMode.KeepAspectRatio, 
-                            Qt.TransformationMode.SmoothTransformation)
-        if is_nef:
-            return self.extract_thumb_fallback(path)
+            if qimg and not qimg.isNull():
+                qimg = self.apply_rotation(qimg, orientation)
+                return qimg.scaled(
+                    self.thumb_size, self.thumb_size,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation
+                )
+            
+            if is_nef:
+                return self.extract_thumb_fallback(path)
+        except Exception as e:
+            logger.error("サムネイル読み込みエラー (%s): %s", os.path.basename(path), e)
+        
         return None
 
     def apply_rotation(self, qimg, orientation):
@@ -134,46 +221,87 @@ class LoadWorker(QThread):
         elif orientation == 7: transform.rotate(270).scale(-1, 1)
         return qimg.transformed(transform, Qt.TransformationMode.SmoothTransformation)
 
-    def extract_thumb_fast(self, path):
+    def extract_thumb_fast(self, path: str) -> Optional[QImage]:
+        """ExifTool でプレビュー画像を抽出。"""
         try:
             cmd = [EXIFTOOL, '-b', '-PreviewImage', path]
-            res = subprocess.run(cmd, capture_output=True, creationflags=get_creation_flags())
+            res = subprocess.run(cmd, capture_output=True, creationflags=get_creation_flags(), timeout=5)
             if res.stdout:
                 qimg = QImage.fromData(res.stdout)
                 if not qimg.isNull():
                     return qimg
-        except: pass
+        except subprocess.TimeoutExpired:
+            logger.debug("サムネイル抽出タイムアウト: %s", path)
+        except Exception as e:
+            logger.debug("サムネイル抽出失敗 (Fast): %s", e)
         return None
 
-    def extract_thumb_fallback(self, path):
+    def extract_thumb_fallback(self, path: str) -> Optional[QImage]:
+        """rawpy でサムネイルを抽出（フォールバック）。"""
         try:
             with rawpy.imread(path) as raw:
                 thumb = raw.extract_thumb()
                 if thumb.format == rawpy.ThumbFormat.JPEG:
                     return QImage.fromData(thumb.data)
-        except: return None
+        except Exception as e:
+            logger.debug("サムネイル抽出失敗 (Fallback): %s", e)
+        return None
 
 # --- バックグラウンド処理（書き込み）用スレッド ---
 class WriteWorker(QThread):
+    """GPS座標をファイルに書き込むバックグラウンドスレッド。"""
+    
     progress = pyqtSignal(int, int, str)
     finished = pyqtSignal()
 
-    def __init__(self, items_data, lat, lng):
+    def __init__(self, items_data, lat: float, lng: float) -> None:
         super().__init__()
-        self.items_data = items_data 
-        self.lat, self.lng = lat, lng
+        self.items_data = items_data
+        self.lat = lat
+        self.lng = lng
+        logger.info("WriteWorker 初期化: %d ファイル, lat=%.6f, lng=%.6f",
+                   len(items_data), lat, lng)
 
-    def run(self):
+    def run(self) -> None:
+        """スレッド実行メイン処理。"""
         total = len(self.items_data)
+        success_count = 0
+        
         for i, (path, _) in enumerate(self.items_data):
-            current = i + 1
-            filename = os.path.basename(path)
-            self.progress.emit(current, total, filename)
-            cmd = [EXIFTOOL, f"-GPSLatitude={self.lat}", f"-GPSLongitude={self.lng}",
-                   "-GPSLatitudeRef=N" if self.lat >= 0 else "-GPSLatitudeRef=S",
-                   "-GPSLongitudeRef=E" if self.lng >= 0 else "-GPSLongitudeRef=W",
-                   "-overwrite_original", path]
-            subprocess.run(cmd, capture_output=True, creationflags=get_creation_flags())
+            try:
+                current = i + 1
+                filename = os.path.basename(path)
+                self.progress.emit(current, total, filename)
+
+                cmd = [
+                    EXIFTOOL,
+                    f"-GPSLatitude={self.lat}",
+                    f"-GPSLongitude={self.lng}",
+                    "-GPSLatitudeRef=N" if self.lat >= 0 else "-GPSLatitudeRef=S",
+                    "-GPSLongitudeRef=E" if self.lng >= 0 else "-GPSLongitudeRef=W",
+                    "-overwrite_original",
+                    path
+                ]
+                
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    creationflags=get_creation_flags(),
+                    timeout=10
+                )
+                
+                if result.returncode == 0:
+                    success_count += 1
+                    logger.debug("GPS書き込み成功: %s", filename)
+                else:
+                    logger.warning("GPS書き込み失敗: %s (exitcode=%d)", filename, result.returncode)
+                    
+            except subprocess.TimeoutExpired:
+                logger.error("GPS書き込みタイムアウト: %s", os.path.basename(path))
+            except Exception as e:
+                logger.error("GPS書き込みエラー (%s): %s", os.path.basename(path), e)
+
+        logger.info("GPS書き込み完了: %d/%d ファイル", success_count, total)
         self.finished.emit()
 
 # --- プレビュー表示用ダイアログ ---
@@ -581,7 +709,27 @@ class NefGpsTool(QMainWindow):
         """)
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    ex = NefGpsTool()
-    ex.show()
-    sys.exit(app.exec())
+    try:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S"
+        )
+        logger.info("=" * 50)
+        logger.info("手動GPS付与ツールを開始します")
+        logger.info("=" * 50)
+        
+        app = QApplication(sys.argv)
+        ex = NefGpsTool()
+        ex.show()
+        exit_code = app.exec()
+        
+        logger.info("=" * 50)
+        logger.info("手動GPS付与ツールを終了します")
+        logger.info("=" * 50)
+        sys.exit(exit_code)
+        
+    except Exception as e:
+        logger.critical("予期しないエラーが発生しました", exc_info=True)
+        print(f"\n[エラー] {e}")
+        sys.exit(1)
