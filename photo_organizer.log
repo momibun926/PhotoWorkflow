@@ -196,3 +196,576 @@ NameError: name 'sprint' is not defined. Did you mean: 'print'?
 2026-08-11 13:17:36,941 [INFO] ExifToolを実行中...
 2026-08-11 13:17:37,477 [INFO]     1 directories scanned
 2026-08-11 13:17:37,477 [INFO]     0 image files read
+2026-08-15 13:50:08,700 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-15 13:50:08,729 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-15 13:50:08,729 [INFO] 3 件のGPXファイルを検出しました。
+2026-08-15 13:50:08,729 [INFO] ExifToolを実行中...
+2026-08-15 13:50:17,092 [INFO]     1 directories scanned
+2026-08-15 13:50:17,092 [INFO]     0 image files updated
+2026-08-15 13:50:17,092 [INFO]   118 image files unchanged
+2026-08-15 13:50:17,092 [WARNING] ExifTool 警告/エラー詳細:
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2291_0001625.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2291_0001625.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2291_0001625.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2291_0001625.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2292_0001626.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2292_0001626.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2292_0001626.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2292_0001626.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2293_0001627.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2293_0001627.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2293_0001627.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2293_0001627.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2294_0001628.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2294_0001628.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2294_0001628.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2294_0001628.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2295_0001629.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2295_0001629.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2295_0001629.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2295_0001629.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2296_0001630.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2296_0001630.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2296_0001630.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2296_0001630.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2297_0001631.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2297_0001631.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2297_0001631.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2297_0001631.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2298_0001632.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2298_0001632.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2298_0001632.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2298_0001632.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2300_0001633.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2300_0001633.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2300_0001633.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2300_0001633.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2301_0001634.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2301_0001634.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2301_0001634.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2301_0001634.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2303_0001635.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2303_0001635.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2303_0001635.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2303_0001635.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2307_0001636.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2307_0001636.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2307_0001636.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2307_0001636.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2309_0001637.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2309_0001637.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2309_0001637.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2309_0001637.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2310_0001638.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2310_0001638.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2310_0001638.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2310_0001638.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2311_0001639.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2311_0001639.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2311_0001639.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2311_0001639.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2312_0001640.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2312_0001640.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2312_0001640.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2312_0001640.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2314_0001641.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2314_0001641.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2314_0001641.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2314_0001641.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2315_0001642.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2315_0001642.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2315_0001642.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2315_0001642.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2316_0001643.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2316_0001643.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2316_0001643.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2316_0001643.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2317_0001644.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2317_0001644.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2317_0001644.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2317_0001644.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2318_0001645.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2318_0001645.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2318_0001645.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2318_0001645.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2319_0001646.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2319_0001646.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2319_0001646.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2319_0001646.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2320_0001647.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2320_0001647.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2320_0001647.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2320_0001647.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2321_0001648.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2321_0001648.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2321_0001648.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2321_0001648.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2322_0001649.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2322_0001649.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2322_0001649.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2322_0001649.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2323_0001650.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2323_0001650.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2323_0001650.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2323_0001650.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2324_0001651.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2324_0001651.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2324_0001651.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2324_0001651.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2325_0001652.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2325_0001652.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2325_0001652.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2325_0001652.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2326_0001653.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2326_0001653.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2326_0001653.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2326_0001653.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2327_0001654.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2327_0001654.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2327_0001654.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2327_0001654.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2328_0001655.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2328_0001655.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2328_0001655.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2328_0001655.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2329_0001656.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2329_0001656.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2329_0001656.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2329_0001656.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2330_0001657.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2330_0001657.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2330_0001657.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2330_0001657.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2331_0001658.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2331_0001658.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2331_0001658.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2331_0001658.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2332_0001659.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2332_0001659.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2332_0001659.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2332_0001659.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2333_0001660.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2333_0001660.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2333_0001660.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2333_0001660.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2334_0001661.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2334_0001661.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2334_0001661.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2334_0001661.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2335_0001662.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2335_0001662.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2335_0001662.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2335_0001662.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2336_0001663.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2336_0001663.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2336_0001663.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2336_0001663.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2337_0001664.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2337_0001664.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2337_0001664.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2337_0001664.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2338_0001665.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2338_0001665.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2338_0001665.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2338_0001665.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2339_0001666.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2339_0001666.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2339_0001666.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2339_0001666.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2340_0001667.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2340_0001667.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2340_0001667.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2340_0001667.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2341_0001668.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2341_0001668.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2341_0001668.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2341_0001668.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2342_0001669.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2342_0001669.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2342_0001669.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2342_0001669.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2343_0001670.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2343_0001670.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2343_0001670.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2343_0001670.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2344_0001671.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2344_0001671.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2344_0001671.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2344_0001671.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2345_0001672.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2345_0001672.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2345_0001672.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2345_0001672.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2346_0001673.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2346_0001673.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2346_0001673.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2346_0001673.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2347_0001674.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2347_0001674.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2347_0001674.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2347_0001674.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2348_0001675.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2348_0001675.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2348_0001675.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2348_0001675.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2349_0001676.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2349_0001676.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2349_0001676.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2349_0001676.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2350_0001677.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2350_0001677.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2350_0001677.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2350_0001677.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2351_0001678.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2351_0001678.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2351_0001678.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2351_0001678.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2352_0001679.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2352_0001679.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2352_0001679.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2352_0001679.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2353_0001680.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2353_0001680.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2353_0001680.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2353_0001680.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2354_0001681.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2354_0001681.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2354_0001681.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2354_0001681.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2355_0001682.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2355_0001682.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2355_0001682.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2355_0001682.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2356_0001683.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2356_0001683.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.NEF
+2026-08-15 13:51:12,508 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-15 13:51:12,515 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-15 13:51:12,515 [INFO] 4 件のGPXファイルを検出しました。
+2026-08-15 13:51:12,515 [INFO] ExifToolを実行中...
+2026-08-15 13:51:23,818 [INFO]     1 directories scanned
+2026-08-15 13:51:23,818 [INFO]    78 image files updated
+2026-08-15 13:51:23,819 [INFO]    40 image files unchanged
+2026-08-15 13:51:23,819 [WARNING] ExifTool 警告/エラー詳細:
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2337_0001664.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2337_0001664.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2337_0001664.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2337_0001664.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2338_0001665.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2338_0001665.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2338_0001665.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2338_0001665.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2339_0001666.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2339_0001666.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2339_0001666.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2339_0001666.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2340_0001667.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2340_0001667.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2340_0001667.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2340_0001667.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2341_0001668.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2341_0001668.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2341_0001668.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2341_0001668.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2342_0001669.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2342_0001669.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2342_0001669.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2342_0001669.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2343_0001670.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2343_0001670.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2343_0001670.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2343_0001670.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2344_0001671.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2344_0001671.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2344_0001671.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2344_0001671.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2345_0001672.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2345_0001672.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2345_0001672.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2345_0001672.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2346_0001673.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2346_0001673.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2346_0001673.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2346_0001673.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2347_0001674.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2347_0001674.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2347_0001674.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2347_0001674.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2348_0001675.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2348_0001675.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2348_0001675.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2348_0001675.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2349_0001676.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2349_0001676.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2349_0001676.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2349_0001676.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2350_0001677.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2350_0001677.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2350_0001677.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2350_0001677.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2351_0001678.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2351_0001678.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2351_0001678.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2351_0001678.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2352_0001679.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2352_0001679.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2352_0001679.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2352_0001679.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2353_0001680.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2353_0001680.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2353_0001680.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2353_0001680.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2354_0001681.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2354_0001681.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2354_0001681.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2354_0001681.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2355_0001682.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2355_0001682.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2355_0001682.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2355_0001682.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2356_0001683.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2356_0001683.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.NEF
+2026-08-15 13:51:41,294 [INFO] 手動GPS付与ツールを起動: C:\SHARE\APPL\PhotoWorkflow\modules\manual_gps_tagger.py
+2026-08-15 13:58:28,845 [INFO] --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-15 13:58:28,846 [INFO] JPEGファイル (59 件) のコピーを開始します...
+2026-08-15 13:58:28,854 [INFO]  [1/59] Copied JPEG: Z50_2291_0001625.JPG
+2026-08-15 13:58:28,860 [INFO]  [2/59] Copied JPEG: Z50_2292_0001626.JPG
+2026-08-15 13:58:28,868 [INFO]  [3/59] Copied JPEG: Z50_2293_0001627.JPG
+2026-08-15 13:58:28,876 [INFO]  [4/59] Copied JPEG: Z50_2294_0001628.JPG
+2026-08-15 13:58:28,885 [INFO]  [5/59] Copied JPEG: Z50_2295_0001629.JPG
+2026-08-15 13:58:28,893 [INFO]  [6/59] Copied JPEG: Z50_2296_0001630.JPG
+2026-08-15 13:58:28,903 [INFO]  [7/59] Copied JPEG: Z50_2297_0001631.JPG
+2026-08-15 13:58:28,913 [INFO]  [8/59] Copied JPEG: Z50_2298_0001632.JPG
+2026-08-15 13:58:28,921 [INFO]  [9/59] Copied JPEG: Z50_2300_0001633.JPG
+2026-08-15 13:58:28,931 [INFO]  [10/59] Copied JPEG: Z50_2301_0001634.JPG
+2026-08-15 13:58:28,937 [INFO]  [11/59] Copied JPEG: Z50_2303_0001635.JPG
+2026-08-15 13:58:28,945 [INFO]  [12/59] Copied JPEG: Z50_2307_0001636.JPG
+2026-08-15 13:58:28,951 [INFO]  [13/59] Copied JPEG: Z50_2309_0001637.JPG
+2026-08-15 13:58:28,959 [INFO]  [14/59] Copied JPEG: Z50_2310_0001638.JPG
+2026-08-15 13:58:28,968 [INFO]  [15/59] Copied JPEG: Z50_2311_0001639.JPG
+2026-08-15 13:58:28,976 [INFO]  [16/59] Copied JPEG: Z50_2312_0001640.JPG
+2026-08-15 13:58:28,984 [INFO]  [17/59] Copied JPEG: Z50_2314_0001641.JPG
+2026-08-15 13:58:28,993 [INFO]  [18/59] Copied JPEG: Z50_2315_0001642.JPG
+2026-08-15 13:58:29,000 [INFO]  [19/59] Copied JPEG: Z50_2316_0001643.JPG
+2026-08-15 13:58:29,009 [INFO]  [20/59] Copied JPEG: Z50_2317_0001644.JPG
+2026-08-15 13:58:29,017 [INFO]  [21/59] Copied JPEG: Z50_2318_0001645.JPG
+2026-08-15 13:58:29,027 [INFO]  [22/59] Copied JPEG: Z50_2319_0001646.JPG
+2026-08-15 13:58:29,036 [INFO]  [23/59] Copied JPEG: Z50_2320_0001647.JPG
+2026-08-15 13:58:29,043 [INFO]  [24/59] Copied JPEG: Z50_2321_0001648.JPG
+2026-08-15 13:58:29,049 [INFO]  [25/59] Copied JPEG: Z50_2322_0001649.JPG
+2026-08-15 13:58:29,056 [INFO]  [26/59] Copied JPEG: Z50_2323_0001650.JPG
+2026-08-15 13:58:29,064 [INFO]  [27/59] Copied JPEG: Z50_2324_0001651.JPG
+2026-08-15 13:58:29,071 [INFO]  [28/59] Copied JPEG: Z50_2325_0001652.JPG
+2026-08-15 13:58:29,080 [INFO]  [29/59] Copied JPEG: Z50_2326_0001653.JPG
+2026-08-15 13:58:29,090 [INFO]  [30/59] Copied JPEG: Z50_2327_0001654.JPG
+2026-08-15 13:58:29,098 [INFO]  [31/59] Copied JPEG: Z50_2328_0001655.JPG
+2026-08-15 13:58:29,105 [INFO]  [32/59] Copied JPEG: Z50_2329_0001656.JPG
+2026-08-15 13:58:29,113 [INFO]  [33/59] Copied JPEG: Z50_2330_0001657.JPG
+2026-08-15 13:58:29,119 [INFO]  [34/59] Copied JPEG: Z50_2331_0001658.JPG
+2026-08-15 13:58:29,129 [INFO]  [35/59] Copied JPEG: Z50_2332_0001659.JPG
+2026-08-15 13:58:29,136 [INFO]  [36/59] Copied JPEG: Z50_2333_0001660.JPG
+2026-08-15 13:58:29,143 [INFO]  [37/59] Copied JPEG: Z50_2334_0001661.JPG
+2026-08-15 13:58:29,149 [INFO]  [38/59] Copied JPEG: Z50_2335_0001662.JPG
+2026-08-15 13:58:29,156 [INFO]  [39/59] Copied JPEG: Z50_2336_0001663.JPG
+2026-08-15 13:58:29,163 [INFO]  [40/59] Copied JPEG: Z50_2337_0001664.JPG
+2026-08-15 13:58:29,171 [INFO]  [41/59] Copied JPEG: Z50_2338_0001665.JPG
+2026-08-15 13:58:29,180 [INFO]  [42/59] Copied JPEG: Z50_2339_0001666.JPG
+2026-08-15 13:58:29,188 [INFO]  [43/59] Copied JPEG: Z50_2340_0001667.JPG
+2026-08-15 13:58:29,194 [INFO]  [44/59] Copied JPEG: Z50_2341_0001668.JPG
+2026-08-15 13:58:29,200 [INFO]  [45/59] Copied JPEG: Z50_2342_0001669.JPG
+2026-08-15 13:58:29,207 [INFO]  [46/59] Copied JPEG: Z50_2343_0001670.JPG
+2026-08-15 13:58:29,215 [INFO]  [47/59] Copied JPEG: Z50_2344_0001671.JPG
+2026-08-15 13:58:29,223 [INFO]  [48/59] Copied JPEG: Z50_2345_0001672.JPG
+2026-08-15 13:58:29,232 [INFO]  [49/59] Copied JPEG: Z50_2346_0001673.JPG
+2026-08-15 13:58:29,241 [INFO]  [50/59] Copied JPEG: Z50_2347_0001674.JPG
+2026-08-15 13:58:29,253 [INFO]  [51/59] Copied JPEG: Z50_2348_0001675.JPG
+2026-08-15 13:58:29,264 [INFO]  [52/59] Copied JPEG: Z50_2349_0001676.JPG
+2026-08-15 13:58:29,272 [INFO]  [53/59] Copied JPEG: Z50_2350_0001677.JPG
+2026-08-15 13:58:29,282 [INFO]  [54/59] Copied JPEG: Z50_2351_0001678.JPG
+2026-08-15 13:58:29,291 [INFO]  [55/59] Copied JPEG: Z50_2352_0001679.JPG
+2026-08-15 13:58:29,303 [INFO]  [56/59] Copied JPEG: Z50_2353_0001680.JPG
+2026-08-15 13:58:29,310 [INFO]  [57/59] Copied JPEG: Z50_2354_0001681.JPG
+2026-08-15 13:58:29,319 [INFO]  [58/59] Copied JPEG: Z50_2355_0001682.JPG
+2026-08-15 13:58:29,326 [INFO]  [59/59] Copied JPEG: Z50_2356_0001683.JPG
+2026-08-15 13:58:29,326 [INFO] NEFファイル (59 件) のコピーを開始します...
+2026-08-15 13:58:31,110 [INFO]  [1/59] Copied NEF: Z50_2291_0001625.NEF -> 20260815
+2026-08-15 13:58:31,119 [INFO]  [2/59] Copied NEF: Z50_2292_0001626.NEF -> 20260815
+2026-08-15 13:58:31,129 [INFO]  [3/59] Copied NEF: Z50_2293_0001627.NEF -> 20260815
+2026-08-15 13:58:31,139 [INFO]  [4/59] Copied NEF: Z50_2294_0001628.NEF -> 20260815
+2026-08-15 13:58:31,149 [INFO]  [5/59] Copied NEF: Z50_2295_0001629.NEF -> 20260815
+2026-08-15 13:58:31,158 [INFO]  [6/59] Copied NEF: Z50_2296_0001630.NEF -> 20260815
+2026-08-15 13:58:31,168 [INFO]  [7/59] Copied NEF: Z50_2297_0001631.NEF -> 20260815
+2026-08-15 13:58:31,178 [INFO]  [8/59] Copied NEF: Z50_2298_0001632.NEF -> 20260815
+2026-08-15 13:58:31,188 [INFO]  [9/59] Copied NEF: Z50_2300_0001633.NEF -> 20260815
+2026-08-15 13:58:31,198 [INFO]  [10/59] Copied NEF: Z50_2301_0001634.NEF -> 20260815
+2026-08-15 13:58:31,206 [INFO]  [11/59] Copied NEF: Z50_2303_0001635.NEF -> 20260815
+2026-08-15 13:58:31,215 [INFO]  [12/59] Copied NEF: Z50_2307_0001636.NEF -> 20260815
+2026-08-15 13:58:31,224 [INFO]  [13/59] Copied NEF: Z50_2309_0001637.NEF -> 20260815
+2026-08-15 13:58:31,234 [INFO]  [14/59] Copied NEF: Z50_2310_0001638.NEF -> 20260815
+2026-08-15 13:58:31,243 [INFO]  [15/59] Copied NEF: Z50_2311_0001639.NEF -> 20260815
+2026-08-15 13:58:31,253 [INFO]  [16/59] Copied NEF: Z50_2312_0001640.NEF -> 20260815
+2026-08-15 13:58:31,262 [INFO]  [17/59] Copied NEF: Z50_2314_0001641.NEF -> 20260815
+2026-08-15 13:58:31,272 [INFO]  [18/59] Copied NEF: Z50_2315_0001642.NEF -> 20260815
+2026-08-15 13:58:31,282 [INFO]  [19/59] Copied NEF: Z50_2316_0001643.NEF -> 20260815
+2026-08-15 13:58:31,294 [INFO]  [20/59] Copied NEF: Z50_2317_0001644.NEF -> 20260815
+2026-08-15 13:58:31,305 [INFO]  [21/59] Copied NEF: Z50_2318_0001645.NEF -> 20260815
+2026-08-15 13:58:31,316 [INFO]  [22/59] Copied NEF: Z50_2319_0001646.NEF -> 20260815
+2026-08-15 13:58:31,327 [INFO]  [23/59] Copied NEF: Z50_2320_0001647.NEF -> 20260815
+2026-08-15 13:58:31,339 [INFO]  [24/59] Copied NEF: Z50_2321_0001648.NEF -> 20260815
+2026-08-15 13:58:31,355 [INFO]  [25/59] Copied NEF: Z50_2322_0001649.NEF -> 20260815
+2026-08-15 13:58:31,371 [INFO]  [26/59] Copied NEF: Z50_2323_0001650.NEF -> 20260815
+2026-08-15 13:58:31,380 [INFO]  [27/59] Copied NEF: Z50_2324_0001651.NEF -> 20260815
+2026-08-15 13:58:31,389 [INFO]  [28/59] Copied NEF: Z50_2325_0001652.NEF -> 20260815
+2026-08-15 13:58:31,399 [INFO]  [29/59] Copied NEF: Z50_2326_0001653.NEF -> 20260815
+2026-08-15 13:58:31,409 [INFO]  [30/59] Copied NEF: Z50_2327_0001654.NEF -> 20260815
+2026-08-15 13:58:31,420 [INFO]  [31/59] Copied NEF: Z50_2328_0001655.NEF -> 20260815
+2026-08-15 13:58:31,430 [INFO]  [32/59] Copied NEF: Z50_2329_0001656.NEF -> 20260815
+2026-08-15 13:58:31,439 [INFO]  [33/59] Copied NEF: Z50_2330_0001657.NEF -> 20260815
+2026-08-15 13:58:31,449 [INFO]  [34/59] Copied NEF: Z50_2331_0001658.NEF -> 20260815
+2026-08-15 13:58:31,460 [INFO]  [35/59] Copied NEF: Z50_2332_0001659.NEF -> 20260815
+2026-08-15 13:58:31,470 [INFO]  [36/59] Copied NEF: Z50_2333_0001660.NEF -> 20260815
+2026-08-15 13:58:31,480 [INFO]  [37/59] Copied NEF: Z50_2334_0001661.NEF -> 20260815
+2026-08-15 13:58:31,489 [INFO]  [38/59] Copied NEF: Z50_2335_0001662.NEF -> 20260815
+2026-08-15 13:58:31,497 [INFO]  [39/59] Copied NEF: Z50_2336_0001663.NEF -> 20260815
+2026-08-15 13:58:31,508 [INFO]  [40/59] Copied NEF: Z50_2337_0001664.NEF -> 20260815
+2026-08-15 13:58:31,517 [INFO]  [41/59] Copied NEF: Z50_2338_0001665.NEF -> 20260815
+2026-08-15 13:58:31,527 [INFO]  [42/59] Copied NEF: Z50_2339_0001666.NEF -> 20260815
+2026-08-15 13:58:31,536 [INFO]  [43/59] Copied NEF: Z50_2340_0001667.NEF -> 20260815
+2026-08-15 13:58:31,545 [INFO]  [44/59] Copied NEF: Z50_2341_0001668.NEF -> 20260815
+2026-08-15 13:58:31,554 [INFO]  [45/59] Copied NEF: Z50_2342_0001669.NEF -> 20260815
+2026-08-15 13:58:31,563 [INFO]  [46/59] Copied NEF: Z50_2343_0001670.NEF -> 20260815
+2026-08-15 13:58:31,573 [INFO]  [47/59] Copied NEF: Z50_2344_0001671.NEF -> 20260815
+2026-08-15 13:58:31,582 [INFO]  [48/59] Copied NEF: Z50_2345_0001672.NEF -> 20260815
+2026-08-15 13:58:31,591 [INFO]  [49/59] Copied NEF: Z50_2346_0001673.NEF -> 20260815
+2026-08-15 13:58:31,600 [INFO]  [50/59] Copied NEF: Z50_2347_0001674.NEF -> 20260815
+2026-08-15 13:58:31,612 [INFO]  [51/59] Copied NEF: Z50_2348_0001675.NEF -> 20260815
+2026-08-15 13:58:31,621 [INFO]  [52/59] Copied NEF: Z50_2349_0001676.NEF -> 20260815
+2026-08-15 13:58:31,631 [INFO]  [53/59] Copied NEF: Z50_2350_0001677.NEF -> 20260815
+2026-08-15 13:58:31,644 [INFO]  [54/59] Copied NEF: Z50_2351_0001678.NEF -> 20260815
+2026-08-15 13:58:31,655 [INFO]  [55/59] Copied NEF: Z50_2352_0001679.NEF -> 20260815
+2026-08-15 13:58:31,670 [INFO]  [56/59] Copied NEF: Z50_2353_0001680.NEF -> 20260815
+2026-08-15 13:58:31,684 [INFO]  [57/59] Copied NEF: Z50_2354_0001681.NEF -> 20260815
+2026-08-15 13:58:31,697 [INFO]  [58/59] Copied NEF: Z50_2355_0001682.NEF -> 20260815
+2026-08-15 13:58:31,837 [INFO]  [59/59] Copied NEF: Z50_2356_0001683.NEF -> 20260815
+2026-08-15 13:58:31,837 [INFO] 元ファイル (118 件) をゴミ箱へ移動します...
+2026-08-15 13:58:32,311 [INFO]  Trash: Z50_2291_0001625.JPG
+2026-08-15 13:58:32,889 [INFO]  Trash: Z50_2292_0001626.JPG
+2026-08-15 13:58:32,934 [INFO]  Trash: Z50_2293_0001627.JPG
+2026-08-15 13:58:32,965 [INFO]  Trash: Z50_2294_0001628.JPG
+2026-08-15 13:58:33,014 [INFO]  Trash: Z50_2295_0001629.JPG
+2026-08-15 13:58:33,032 [INFO]  Trash: Z50_2296_0001630.JPG
+2026-08-15 13:58:33,083 [INFO]  Trash: Z50_2297_0001631.JPG
+2026-08-15 13:58:33,096 [INFO]  Trash: Z50_2298_0001632.JPG
+2026-08-15 13:58:33,137 [INFO]  Trash: Z50_2300_0001633.JPG
+2026-08-15 13:58:33,163 [INFO]  Trash: Z50_2301_0001634.JPG
+2026-08-15 13:58:33,188 [INFO]  Trash: Z50_2303_0001635.JPG
+2026-08-15 13:58:33,228 [INFO]  Trash: Z50_2307_0001636.JPG
+2026-08-15 13:58:33,254 [INFO]  Trash: Z50_2309_0001637.JPG
+2026-08-15 13:58:33,270 [INFO]  Trash: Z50_2310_0001638.JPG
+2026-08-15 13:58:33,308 [INFO]  Trash: Z50_2311_0001639.JPG
+2026-08-15 13:58:33,323 [INFO]  Trash: Z50_2312_0001640.JPG
+2026-08-15 13:58:33,349 [INFO]  Trash: Z50_2314_0001641.JPG
+2026-08-15 13:58:33,365 [INFO]  Trash: Z50_2315_0001642.JPG
+2026-08-15 13:58:33,381 [INFO]  Trash: Z50_2316_0001643.JPG
+2026-08-15 13:58:33,397 [INFO]  Trash: Z50_2317_0001644.JPG
+2026-08-15 13:58:33,420 [INFO]  Trash: Z50_2318_0001645.JPG
+2026-08-15 13:58:33,435 [INFO]  Trash: Z50_2319_0001646.JPG
+2026-08-15 13:58:33,451 [INFO]  Trash: Z50_2320_0001647.JPG
+2026-08-15 13:58:33,467 [INFO]  Trash: Z50_2321_0001648.JPG
+2026-08-15 13:58:33,505 [INFO]  Trash: Z50_2322_0001649.JPG
+2026-08-15 13:58:33,521 [INFO]  Trash: Z50_2323_0001650.JPG
+2026-08-15 13:58:33,539 [INFO]  Trash: Z50_2324_0001651.JPG
+2026-08-15 13:58:33,559 [INFO]  Trash: Z50_2325_0001652.JPG
+2026-08-15 13:58:33,591 [INFO]  Trash: Z50_2326_0001653.JPG
+2026-08-15 13:58:33,610 [INFO]  Trash: Z50_2327_0001654.JPG
+2026-08-15 13:58:33,627 [INFO]  Trash: Z50_2328_0001655.JPG
+2026-08-15 13:58:33,643 [INFO]  Trash: Z50_2329_0001656.JPG
+2026-08-15 13:58:33,660 [INFO]  Trash: Z50_2330_0001657.JPG
+2026-08-15 13:58:33,677 [INFO]  Trash: Z50_2331_0001658.JPG
+2026-08-15 13:58:33,693 [INFO]  Trash: Z50_2332_0001659.JPG
+2026-08-15 13:58:33,722 [INFO]  Trash: Z50_2333_0001660.JPG
+2026-08-15 13:58:33,738 [INFO]  Trash: Z50_2334_0001661.JPG
+2026-08-15 13:58:33,754 [INFO]  Trash: Z50_2335_0001662.JPG
+2026-08-15 13:58:33,776 [INFO]  Trash: Z50_2336_0001663.JPG
+2026-08-15 13:58:33,791 [INFO]  Trash: Z50_2337_0001664.JPG
+2026-08-15 13:58:33,807 [INFO]  Trash: Z50_2338_0001665.JPG
+2026-08-15 13:58:33,841 [INFO]  Trash: Z50_2339_0001666.JPG
+2026-08-15 13:58:33,881 [INFO]  Trash: Z50_2340_0001667.JPG
+2026-08-15 13:58:33,909 [INFO]  Trash: Z50_2341_0001668.JPG
+2026-08-15 13:58:33,924 [INFO]  Trash: Z50_2342_0001669.JPG
+2026-08-15 13:58:33,941 [INFO]  Trash: Z50_2343_0001670.JPG
+2026-08-15 13:58:33,957 [INFO]  Trash: Z50_2344_0001671.JPG
+2026-08-15 13:58:33,975 [INFO]  Trash: Z50_2345_0001672.JPG
+2026-08-15 13:58:33,991 [INFO]  Trash: Z50_2346_0001673.JPG
+2026-08-15 13:58:34,007 [INFO]  Trash: Z50_2347_0001674.JPG
+2026-08-15 13:58:34,024 [INFO]  Trash: Z50_2348_0001675.JPG
+2026-08-15 13:58:34,043 [INFO]  Trash: Z50_2349_0001676.JPG
+2026-08-15 13:58:34,060 [INFO]  Trash: Z50_2350_0001677.JPG
+2026-08-15 13:58:34,076 [INFO]  Trash: Z50_2351_0001678.JPG
+2026-08-15 13:58:34,092 [INFO]  Trash: Z50_2352_0001679.JPG
+2026-08-15 13:58:34,108 [INFO]  Trash: Z50_2353_0001680.JPG
+2026-08-15 13:58:34,124 [INFO]  Trash: Z50_2354_0001681.JPG
+2026-08-15 13:58:34,146 [INFO]  Trash: Z50_2355_0001682.JPG
+2026-08-15 13:58:34,161 [INFO]  Trash: Z50_2356_0001683.JPG
+2026-08-15 13:58:34,196 [INFO]  Trash: Z50_2291_0001625.NEF
+2026-08-15 13:58:34,211 [INFO]  Trash: Z50_2292_0001626.NEF
+2026-08-15 13:58:34,226 [INFO]  Trash: Z50_2293_0001627.NEF
+2026-08-15 13:58:34,242 [INFO]  Trash: Z50_2294_0001628.NEF
+2026-08-15 13:58:34,257 [INFO]  Trash: Z50_2295_0001629.NEF
+2026-08-15 13:58:34,273 [INFO]  Trash: Z50_2296_0001630.NEF
+2026-08-15 13:58:34,290 [INFO]  Trash: Z50_2297_0001631.NEF
+2026-08-15 13:58:34,306 [INFO]  Trash: Z50_2298_0001632.NEF
+2026-08-15 13:58:34,340 [INFO]  Trash: Z50_2300_0001633.NEF
+2026-08-15 13:58:34,355 [INFO]  Trash: Z50_2301_0001634.NEF
+2026-08-15 13:58:34,371 [INFO]  Trash: Z50_2303_0001635.NEF
+2026-08-15 13:58:34,445 [INFO]  Trash: Z50_2307_0001636.NEF
+2026-08-15 13:58:34,458 [INFO]  Trash: Z50_2309_0001637.NEF
+2026-08-15 13:58:34,472 [INFO]  Trash: Z50_2310_0001638.NEF
+2026-08-15 13:58:34,490 [INFO]  Trash: Z50_2311_0001639.NEF
+2026-08-15 13:58:34,507 [INFO]  Trash: Z50_2312_0001640.NEF
+2026-08-15 13:58:34,528 [INFO]  Trash: Z50_2314_0001641.NEF
+2026-08-15 13:58:34,547 [INFO]  Trash: Z50_2315_0001642.NEF
+2026-08-15 13:58:34,564 [INFO]  Trash: Z50_2316_0001643.NEF
+2026-08-15 13:58:34,581 [INFO]  Trash: Z50_2317_0001644.NEF
+2026-08-15 13:58:34,598 [INFO]  Trash: Z50_2318_0001645.NEF
+2026-08-15 13:58:34,614 [INFO]  Trash: Z50_2319_0001646.NEF
+2026-08-15 13:58:34,630 [INFO]  Trash: Z50_2320_0001647.NEF
+2026-08-15 13:58:34,646 [INFO]  Trash: Z50_2321_0001648.NEF
+2026-08-15 13:58:34,662 [INFO]  Trash: Z50_2322_0001649.NEF
+2026-08-15 13:58:34,678 [INFO]  Trash: Z50_2323_0001650.NEF
+2026-08-15 13:58:34,703 [INFO]  Trash: Z50_2324_0001651.NEF
+2026-08-15 13:58:34,718 [INFO]  Trash: Z50_2325_0001652.NEF
+2026-08-15 13:58:34,733 [INFO]  Trash: Z50_2326_0001653.NEF
+2026-08-15 13:58:34,748 [INFO]  Trash: Z50_2327_0001654.NEF
+2026-08-15 13:58:34,763 [INFO]  Trash: Z50_2328_0001655.NEF
+2026-08-15 13:58:34,778 [INFO]  Trash: Z50_2329_0001656.NEF
+2026-08-15 13:58:34,794 [INFO]  Trash: Z50_2330_0001657.NEF
+2026-08-15 13:58:34,810 [INFO]  Trash: Z50_2331_0001658.NEF
+2026-08-15 13:58:34,825 [INFO]  Trash: Z50_2332_0001659.NEF
+2026-08-15 13:58:34,846 [INFO]  Trash: Z50_2333_0001660.NEF
+2026-08-15 13:58:34,865 [INFO]  Trash: Z50_2334_0001661.NEF
+2026-08-15 13:58:34,881 [INFO]  Trash: Z50_2335_0001662.NEF
+2026-08-15 13:58:34,897 [INFO]  Trash: Z50_2336_0001663.NEF
+2026-08-15 13:58:34,927 [INFO]  Trash: Z50_2337_0001664.NEF
+2026-08-15 13:58:34,942 [INFO]  Trash: Z50_2338_0001665.NEF
+2026-08-15 13:58:34,957 [INFO]  Trash: Z50_2339_0001666.NEF
+2026-08-15 13:58:34,975 [INFO]  Trash: Z50_2340_0001667.NEF
+2026-08-15 13:58:34,991 [INFO]  Trash: Z50_2341_0001668.NEF
+2026-08-15 13:58:35,010 [INFO]  Trash: Z50_2342_0001669.NEF
+2026-08-15 13:58:35,026 [INFO]  Trash: Z50_2343_0001670.NEF
+2026-08-15 13:58:35,042 [INFO]  Trash: Z50_2344_0001671.NEF
+2026-08-15 13:58:35,058 [INFO]  Trash: Z50_2345_0001672.NEF
+2026-08-15 13:58:35,073 [INFO]  Trash: Z50_2346_0001673.NEF
+2026-08-15 13:58:35,089 [INFO]  Trash: Z50_2347_0001674.NEF
+2026-08-15 13:58:35,104 [INFO]  Trash: Z50_2348_0001675.NEF
+2026-08-15 13:58:35,120 [INFO]  Trash: Z50_2349_0001676.NEF
+2026-08-15 13:58:35,136 [INFO]  Trash: Z50_2350_0001677.NEF
+2026-08-15 13:58:35,162 [INFO]  Trash: Z50_2351_0001678.NEF
+2026-08-15 13:58:35,177 [INFO]  Trash: Z50_2352_0001679.NEF
+2026-08-15 13:58:35,194 [INFO]  Trash: Z50_2353_0001680.NEF
+2026-08-15 13:58:35,209 [INFO]  Trash: Z50_2354_0001681.NEF
+2026-08-15 13:58:35,237 [INFO]  Trash: Z50_2355_0001682.NEF
+2026-08-15 13:58:35,253 [INFO]  Trash: Z50_2356_0001683.NEF
