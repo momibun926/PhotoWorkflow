@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 import rawpy
 import configparser
 import subprocess
@@ -11,6 +12,29 @@ from PyQt6.QtGui import QPixmap, QImage, QTransform, QIcon, QPainter, QColor, QA
 from PyQt6.QtCore import Qt, QUrl, pyqtSlot, QObject, QSize, QTimer, QThread, pyqtSignal
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
+
+# --- JSON設定の読み込みと書式フォーマット関数 ---
+def load_app_config():
+    path = "config.json"
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+APP_CONFIG = load_app_config()
+EXIFTOOL = APP_CONFIG.get("external_tools", {}).get("exiftool", "exiftool")
+INIT_DIR = APP_CONFIG.get("directories", {}).get("from_camera", r"C:\SHARE\Photo\from_camera")
+
+def format_technical_terms(text: str) -> str:
+    """カメラ・レンズ名の表記を補正する"""
+    if not text: return ""
+    text = text.replace("Z50_2", "Z50II").replace("Z50 2", "Z50II").replace("Z50ii", "Z50II")
+    text = text.replace("dx", "DX").replace("vr", "VR")
+    return text
+
+def get_creation_flags():
+    """Windows環境でサブプロセス実行時にコンソール画面を出さないフラグ"""
+    return subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
 
 # --- 設定管理クラス ---
 class ConfigManager:
@@ -28,6 +52,7 @@ class ConfigManager:
 # --- バックグラウンド処理（読み込み）用スレッド ---
 class LoadWorker(QThread):
     progress = pyqtSignal(int, int, str, object, bool) 
+
     finished = pyqtSignal(int)
 
     def __init__(self, directory, thumb_size):
@@ -41,62 +66,64 @@ class LoadWorker(QThread):
         files = sorted([f for f in os.listdir(self.directory) if f.lower().endswith(valid_exts)])
         total = len(files)
         
+        # フォルダ単位で一括してメタデータを取得（ボトルネックの解消）
+        meta_dict = self.batch_read_exif(self.directory)
+        
         for i, f in enumerate(files):
             if not self._is_running: break
             full_path = os.path.join(self.directory, f)
-            lat, lng = self.get_gps(full_path)
-            orientation = self.get_orientation(full_path)
+            norm_path = os.path.normpath(full_path)
             
-            pix = self.load_thumbnail(full_path, orientation)
-            self.progress.emit(i + 1, total, f, pix, lat is not None)
+            meta = meta_dict.get(norm_path, {})
+            lat = meta.get('lat')
+            lng = meta.get('lng')
+            orientation = meta.get('orientation', 1)
+            
+            # スレッドセーフ確保のため QImage で読み込み
+            qimg = self.load_thumbnail(full_path, orientation)
+            self.progress.emit(i + 1, total, f, qimg, lat is not None)
+            
         self.finished.emit(total)
 
     def stop(self):
         self._is_running = False
 
+    def batch_read_exif(self, directory):
+        cmd = [EXIFTOOL, '-j', '-n', '-Orientation', '-GPSLatitude', '-GPSLongitude', directory]
+        res = subprocess.run(cmd, capture_output=True, text=True, creationflags=get_creation_flags())
+        meta_dict = {}
+        if res.stdout:
+            try:
+                data = json.loads(res.stdout)
+                for item in data:
+                    path = os.path.normpath(item.get('SourceFile', ''))
+                    meta_dict[path] = {
+                        'orientation': item.get('Orientation', 1),
+                        'lat': item.get('GPSLatitude'),
+                        'lng': item.get('GPSLongitude')
+                    }
+            except: pass
+        return meta_dict
+
     def load_thumbnail(self, path, orientation):
         is_nef = path.lower().endswith('.nef')
-        pix = None
+        qimg = None
         if is_nef:
-            pix = self.extract_thumb_fast(path)
+            qimg = self.extract_thumb_fast(path)
         else:
-            pix = QPixmap(path)
+            qimg = QImage(path)
 
-        if pix and not pix.isNull():
-            pix = self.apply_rotation(pix, orientation)
-            return pix.scaled(self.thumb_size, self.thumb_size, 
+        if qimg and not qimg.isNull():
+            qimg = self.apply_rotation(qimg, orientation)
+            return qimg.scaled(self.thumb_size, self.thumb_size, 
                             Qt.AspectRatioMode.KeepAspectRatio, 
                             Qt.TransformationMode.SmoothTransformation)
         if is_nef:
             return self.extract_thumb_fallback(path)
         return None
 
-    def get_orientation(self, path):
-        try:
-            cmd = ['exiftool', '-Orientation', '-n', '-S', path]
-            res = subprocess.run(cmd, capture_output=True, text=True).stdout
-            if 'Orientation:' in res:
-                return int(res.split(': ')[1])
-        except: pass
-        return 1
-
-    def get_gps(self, path):
-        try:
-            cmd = ['exiftool', '-GPSLatitude', '-GPSLongitude', '-n', '-S', '-f', path]
-            res = subprocess.run(cmd, capture_output=True, text=True).stdout
-            lat = lng = None
-            for line in res.splitlines():
-                if 'GPSLatitude:' in line:
-                    val = line.split(': ')[1]
-                    if val != '-': lat = float(val)
-                if 'GPSLongitude:' in line:
-                    val = line.split(': ')[1]
-                    if val != '-': lng = float(val)
-            return lat, lng
-        except: return None, None
-
-    def apply_rotation(self, pix, orientation):
-        if orientation <= 1: return pix
+    def apply_rotation(self, qimg, orientation):
+        if orientation <= 1: return qimg
         transform = QTransform()
         if orientation == 3: transform.rotate(180)
         elif orientation == 6: transform.rotate(90)
@@ -105,16 +132,16 @@ class LoadWorker(QThread):
         elif orientation == 4: transform.scale(1, -1)
         elif orientation == 5: transform.rotate(90).scale(-1, 1)
         elif orientation == 7: transform.rotate(270).scale(-1, 1)
-        return pix.transformed(transform, Qt.TransformationMode.SmoothTransformation)
+        return qimg.transformed(transform, Qt.TransformationMode.SmoothTransformation)
 
     def extract_thumb_fast(self, path):
         try:
-            cmd = ['exiftool', '-b', '-PreviewImage', path]
-            res = subprocess.run(cmd, capture_output=True)
+            cmd = [EXIFTOOL, '-b', '-PreviewImage', path]
+            res = subprocess.run(cmd, capture_output=True, creationflags=get_creation_flags())
             if res.stdout:
                 qimg = QImage.fromData(res.stdout)
                 if not qimg.isNull():
-                    return QPixmap.fromImage(qimg)
+                    return qimg
         except: pass
         return None
 
@@ -123,8 +150,7 @@ class LoadWorker(QThread):
             with rawpy.imread(path) as raw:
                 thumb = raw.extract_thumb()
                 if thumb.format == rawpy.ThumbFormat.JPEG:
-                    qimg = QImage.fromData(thumb.data)
-                    return QPixmap.fromImage(qimg)
+                    return QImage.fromData(thumb.data)
         except: return None
 
 # --- バックグラウンド処理（書き込み）用スレッド ---
@@ -143,11 +169,11 @@ class WriteWorker(QThread):
             current = i + 1
             filename = os.path.basename(path)
             self.progress.emit(current, total, filename)
-            cmd = ['exiftool', f"-GPSLatitude={self.lat}", f"-GPSLongitude={self.lng}",
+            cmd = [EXIFTOOL, f"-GPSLatitude={self.lat}", f"-GPSLongitude={self.lng}",
                    "-GPSLatitudeRef=N" if self.lat >= 0 else "-GPSLatitudeRef=S",
                    "-GPSLongitudeRef=E" if self.lng >= 0 else "-GPSLongitudeRef=W",
                    "-overwrite_original", path]
-            subprocess.run(cmd, capture_output=True)
+            subprocess.run(cmd, capture_output=True, creationflags=get_creation_flags())
         self.finished.emit()
 
 # --- プレビュー表示用ダイアログ ---
@@ -186,14 +212,15 @@ class PreviewDialog(QDialog):
         try:
             tags = ['-Model', '-LensID', '-LensModel', '-ExposureTime', '-FNumber', 
                     '-ISO', '-FocalLength', '-DateTimeOriginal', '-ImageSize']
-            cmd = ['exiftool', '-S'] + tags + [path]
-            res = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8').stdout
+            cmd = [EXIFTOOL, '-S'] + tags + [path]
+            res = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', creationflags=get_creation_flags()).stdout
             lines = res.strip().split('\n')
             formatted_text = ""
             for line in lines:
                 if ':' in line:
                     key, val = line.split(':', 1)
-                    formatted_text += f"<b style='color:#888;'>{key.strip()}:</b><br>{val.strip()}<br><br>"
+                    val = format_technical_terms(val.strip())
+                    formatted_text += f"<b style='color:#888;'>{key.strip()}:</b><br>{val}<br><br>"
             if not formatted_text:
                 formatted_text = "EXIF情報が見つかりませんでした。"
             self.exif_label.setText(formatted_text)
@@ -203,17 +230,17 @@ class PreviewDialog(QDialog):
 
     def load_image(self, path):
         try:
-            cmd_orient = ['exiftool', '-Orientation', '-n', '-S', path]
-            res_orient = subprocess.run(cmd_orient, capture_output=True, text=True).stdout
+            cmd_orient = [EXIFTOOL, '-Orientation', '-n', '-S', path]
+            res_orient = subprocess.run(cmd_orient, capture_output=True, text=True, creationflags=get_creation_flags()).stdout
             orientation = 1
             if 'Orientation:' in res_orient:
                 orientation = int(res_orient.split(': ')[1])
             if path.lower().endswith('.nef'):
-                cmd_img = ['exiftool', '-b', '-JpgFromRaw', path]
-                res_img = subprocess.run(cmd_img, capture_output=True)
+                cmd_img = [EXIFTOOL, '-b', '-JpgFromRaw', path]
+                res_img = subprocess.run(cmd_img, capture_output=True, creationflags=get_creation_flags())
                 if not res_img.stdout:
-                    cmd_img = ['exiftool', '-b', '-PreviewImage', path]
-                    res_img = subprocess.run(cmd_img, capture_output=True)
+                    cmd_img = [EXIFTOOL, '-b', '-PreviewImage', path]
+                    res_img = subprocess.run(cmd_img, capture_output=True, creationflags=get_creation_flags())
                 pix = QPixmap.fromImage(QImage.fromData(res_img.stdout))
             else:
                 pix = QPixmap(path)
@@ -251,7 +278,7 @@ class NefGpsTool(QMainWindow):
         self.init_ui()
         self.apply_dark_theme()
         self.setWindowState(Qt.WindowState.WindowMaximized)
-        init_path = r"C:\SHARE\Photo\from_camera"
+        init_path = INIT_DIR if INIT_DIR and os.path.exists(INIT_DIR) else r"C:\SHARE\Photo\from_camera"
         if os.path.exists(init_path): self.start_loading(init_path)
 
     def set_app_icon(self):
@@ -356,14 +383,17 @@ class NefGpsTool(QMainWindow):
         self.worker.finished.connect(lambda count: self.status_lbl.setText(f"完了: {count}枚"))
         self.worker.start()
 
-    def add_item_to_list(self, current, total, filename, pix, has_gps):
+    def add_item_to_list(self, current, total, filename, qimg, has_gps):
         self.pbar.setMaximum(total)
         self.pbar.setValue(current)
         self.status_lbl.setText(f"読込中 ({current}/{total}): {filename}")
         display_name = f"🚩 {filename}" if has_gps else filename
         item = QListWidgetItem(display_name)
         item.setData(Qt.ItemDataRole.UserRole, os.path.join(self.current_dir, filename))
-        if pix:
+        
+        # メインスレッドで QImage から QPixmap を生成
+        if qimg and not qimg.isNull():
+            pix = QPixmap.fromImage(qimg)
             canvas = QPixmap(self.thumb_size, self.thumb_size)
             canvas.fill(Qt.GlobalColor.transparent)
             painter = QPainter(canvas)
@@ -371,7 +401,7 @@ class NefGpsTool(QMainWindow):
             painter.drawPixmap(x, y, pix)
             painter.end()
             item.setIcon(QIcon(canvas))
-        # --- 修正点1: GPSがある場合の背景色設定を削除 ---
+            
         item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
         self.list_widget.addItem(item)
 
@@ -398,7 +428,6 @@ class NefGpsTool(QMainWindow):
         for item in self.list_widget.selectedItems():
             fname = os.path.basename(item.data(Qt.ItemDataRole.UserRole))
             item.setText(f"🚩 {fname}")
-            # --- 修正点2: 書き込み完了後の背景色更新を削除 ---
         self.status_lbl.setText("書き込み完了")
         self.btn_save.setEnabled(True)
         QMessageBox.information(self, "完了", "書き込み完了。")
@@ -427,8 +456,8 @@ class NefGpsTool(QMainWindow):
 
     def get_gps_fast(self, path):
         try:
-            cmd = ['exiftool', '-GPSLatitude', '-GPSLongitude', '-n', '-S', '-f', path]
-            out = subprocess.run(cmd, capture_output=True, text=True).stdout
+            cmd = [EXIFTOOL, '-GPSLatitude', '-GPSLongitude', '-n', '-S', '-f', path]
+            out = subprocess.run(cmd, capture_output=True, text=True, creationflags=get_creation_flags()).stdout
             lat = lng = None
             for l in out.splitlines():
                 if 'GPSLatitude:' in l:
@@ -464,7 +493,7 @@ class NefGpsTool(QMainWindow):
                 .leaflet-control-geocoder {
                     font-family: 'Yu Gothic', sans-serif;
                     font-size: 14px;
-                }ss
+                }
             </style>
             <!-- Leaflet CSS & JS -->
             <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -556,4 +585,3 @@ if __name__ == "__main__":
     ex = NefGpsTool()
     ex.show()
     sys.exit(app.exec())
-    
