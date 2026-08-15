@@ -25,7 +25,7 @@
 graph TD
     A[カメラ / メディア] -->|自動転送・仕分け| B[ローカルワークスペース]
     B -->|RAW / NEF| C[日付別アーカイブフォルダ]
-    B -->|JPEG| D[GPSタグ付け<br>（Nikon Photo Geotagger / C#）]
+    B -->|JPEG| D[GPSタグ付け<br>（Nikon Photo Geotagger / Python）]
     D --> E[フレーム付与 & EXIF焼き込み<br>（frame_processor.py / Python）]
     E -->|高解像度JPEG| F[Amazon Photos]
     E -->|ブログ用画像| G[note 投稿]
