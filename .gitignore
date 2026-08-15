@@ -3,12 +3,3 @@ modules\__pycache__\*.pyc
 
 # ログファイル
 *.log
-
-# OS固有のファイル
-photo_organizer.log
-modules/__pycache__/config_manager.cpython-314.pyc
-modules/__pycache__/constants.cpython-314.pyc
-modules/__pycache__/exif_utils.cpython-314.pyc
-modules/__pycache__/frame_processor.cpython-314.pyc
-modules/__pycache__/gps_tagger.cpython-314.pyc
-modules/__pycache__/photo_copier.cpython-314.pyc
