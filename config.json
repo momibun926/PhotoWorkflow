@@ -7,6 +7,7 @@
   },
   "external_tools": {
     "flame_script": "C:\\SHARE\\APPL\\NikonPhotoFrame\\Flame.py",
-    "flame_config": "standard.yaml"
+    "flame_config": "standard.yaml",
+    "exiftool": "C:\\SHARE\\APPL\\exiftool\\exiftool.exe"
   }
 }

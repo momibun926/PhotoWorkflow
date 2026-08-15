@@ -769,3 +769,93 @@ Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.N
 2026-08-15 13:58:35,209 [INFO]  Trash: Z50_2354_0001681.NEF
 2026-08-15 13:58:35,237 [INFO]  Trash: Z50_2355_0001682.NEF
 2026-08-15 13:58:35,253 [INFO]  Trash: Z50_2356_0001683.NEF
+2026-08-15 17:35:42,062 [INFO] 設定ファイルを読み込んでいます: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-15 17:35:42,073 [INFO] --- STEP 1: GPS位置情報の書き込み ---
+2026-08-15 17:35:42,073 [INFO] 4 件のGPXファイルを検出しました。
+2026-08-15 17:35:42,073 [INFO] ExifToolを実行中...
+2026-08-15 17:35:58,283 [INFO]     1 directories scanned
+2026-08-15 17:35:58,283 [INFO]    78 image files updated
+2026-08-15 17:35:58,283 [INFO]    40 image files unchanged
+2026-08-15 17:35:58,283 [WARNING] ExifTool 警告/エラー詳細:
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2337_0001664.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2337_0001664.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2337_0001664.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2337_0001664.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2338_0001665.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2338_0001665.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2338_0001665.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2338_0001665.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2339_0001666.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2339_0001666.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2339_0001666.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2339_0001666.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2340_0001667.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2340_0001667.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2340_0001667.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2340_0001667.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2341_0001668.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2341_0001668.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2341_0001668.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2341_0001668.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2342_0001669.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2342_0001669.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2342_0001669.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2342_0001669.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2343_0001670.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2343_0001670.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2343_0001670.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2343_0001670.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2344_0001671.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2344_0001671.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2344_0001671.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2344_0001671.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2345_0001672.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2345_0001672.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2345_0001672.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2345_0001672.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2346_0001673.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2346_0001673.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2346_0001673.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2346_0001673.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2347_0001674.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2347_0001674.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2347_0001674.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2347_0001674.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2348_0001675.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2348_0001675.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2348_0001675.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2348_0001675.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2349_0001676.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2349_0001676.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2349_0001676.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2349_0001676.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2350_0001677.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2350_0001677.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2350_0001677.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2350_0001677.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2351_0001678.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2351_0001678.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2351_0001678.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2351_0001678.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2352_0001679.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2352_0001679.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2352_0001679.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2352_0001679.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2353_0001680.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2353_0001680.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2353_0001680.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2353_0001680.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2354_0001681.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2354_0001681.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2354_0001681.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2354_0001681.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2355_0001682.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2355_0001682.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2355_0001682.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2355_0001682.NEF
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2356_0001683.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.JPG
+Warning: Time is too far from nearest GPS fix in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2356_0001683.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.NEF
+2026-08-15 17:36:08,078 [INFO] 手動GPS付与ツールを起動: C:\SHARE\APPL\PhotoWorkflow\modules\manual_gps_tagger.py
+2026-08-15 17:36:28,719 [ERROR] 手動GPS付与ツールの起動エラー: Command '['C:\\Users\\hajim\\AppData\\Local\\Programs\\Python\\Python314\\python.exe', 'C:\\SHARE\\APPL\\PhotoWorkflow\\modules\\manual_gps_tagger.py']' returned non-zero exit status 3221226505.
