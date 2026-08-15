@@ -1,15 +1,16 @@
 # フォント設定
 fonts:
   # システムにインストールされているフォント名、またはパスを指定
-  bold: ["SofiaSans-Regular.ttfss"]
-  regular: ["SofiaSans-Light.ttf"]
-  
-  # サイズ指定のタイプ ("px" または "ratio")
-  size_type: "px"
-  # px指定ならピクセル数、ratio指定なら長辺に対する割合（例: 0.02）
-  main_size: 100
-  sub_size: 65
-
+  size_type: "ratio"
+  main_size: 0.022
+  sub_size: 0.015
+  bold:
+    - "fonts/SofiaSans-Regular.ttf"      # 相対パスで指定
+    - "arialbd.ttf"                      # 見つからない場合のフォールバック（システムフォント名）
+  regular:
+    - "fonts/SofiaSans-Light.ttf"        # 相対パスで指定
+    - "arial.ttf"
+s
 # 色設定 (HEX形式)
 colors:
   bg: "#222222"
@@ -25,7 +26,7 @@ ratios:
 # {変数名} の部分はメタデータから自動置換されます
 layout:
   top: "{camera}   {lens}"
-  bottom: "{focal_length}mm   |   f{f_number}  {shutter}  ISO {iso}   |   {exposure_bias}EV   |   {exposure_mode}   |   {picture_control}"
+  bottom: "{focal_length}mm  |  f{f_number}  {shutter}  ISO {iso}  |  {exposure_bias}EV  |  {exposure_mode}  |  {picture_control}  |  {white_balance} {color_temperature}"
   # 行間のピクセル数 (size_typeに関わらずpxで指定すると微調整しやすいです)
   line_spacing_px: 150
   # 下部余白の上端から 1行目(top) までの距離の割合（値を小さくすると上に移動します）

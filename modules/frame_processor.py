@@ -22,6 +22,8 @@ class PhotoMetadata:
     exposure_bias: str
     exposure_mode: str
     picture_control: str
+    white_balance: str
+    color_temperature: str  # 色温度（例: 5000K）
 
 
 class Config:
@@ -106,6 +108,28 @@ class ImageProcessor:
         bias_val = float(m.get("EXIF:ExposureCompensation", 0))
         bias_str = f"{bias_val:+.1f}" if bias_val != 0 else "0.0"
 
+        # ホワイトバランス名の取得
+        wb_val = (
+            m.get("MakerNotes:WhiteBalance")
+            or m.get("EXIF:WhiteBalance")
+            or "-"
+        ).strip()
+
+        # 色温度（Kelvin）の取得
+        ct_raw = (
+            m.get("MakerNotes:ColorTemperature")
+            or m.get("MakerNotes:WB_ColorTemperature")
+            or m.get("Composite:ColorTemperature")
+            or m.get("EXIF:ColorTemperature")
+        )
+
+        if ct_raw is not None and str(ct_raw).replace(".", "").isdigit():
+            ct_str = f"({int(round(float(ct_raw)))}K)"
+        elif ct_raw:
+            ct_str = str(ct_raw) if str(ct_raw).endswith("K") else f"({ct_raw}K)"
+        else:
+            ct_str = ""
+
         return PhotoMetadata(
             camera=ExifConverter.format_name(m.get("EXIF:Model")),
             lens=ExifConverter.format_name(m.get("EXIF:LensModel")),
@@ -118,6 +142,8 @@ class ImageProcessor:
                 m.get("EXIF:ExposureProgram")
             ),
             picture_control=m.get("MakerNotes:PictureControlName", "-"),
+            white_balance=str(wb_val),
+            color_temperature=ct_str,
         )
 
     def _calculate_font_size(self, long_side: int, config_val: float) -> int:
