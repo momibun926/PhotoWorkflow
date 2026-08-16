@@ -1021,3 +1021,304 @@ Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2356_0001683.N
 2026-08-15 21:49:24 [INFO] modules.frame_processor: ImageProcessor 初期化完了: config=C:\SHARE\APPL\PhotoWorkflow\standard.yaml
 2026-08-15 21:49:24 [WARNING] modules.frame_processor: 有効な画像ファイルが見つかりません: C:\SHARE\Photo\to_note
 2026-08-15 21:49:24 [INFO] __main__: すべてのワークフロー工程が正常に完了しました
+2026-08-15 22:26:23 [INFO] __main__: ==================================================
+2026-08-15 22:26:23 [INFO] __main__: 写真整理ワークフロープログラムを開始します
+2026-08-15 22:26:23 [INFO] __main__: ==================================================
+2026-08-15 22:26:23 [INFO] modules.config_manager: 設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-15 22:26:23 [INFO] __main__: ファイル分類開始
+2026-08-15 22:26:23 [INFO] modules.photo_copier: ファイル分類完了: JPEG=0, RAW=0, GPX=1
+2026-08-15 22:26:23 [INFO] __main__: STEP 1: GPS 書き込み開始
+2026-08-15 22:26:23 [INFO] modules.gps_tagger: --- STEP 1: GPS位置情報の書き込み ---
+2026-08-15 22:26:23 [INFO] modules.gps_tagger: 1 件の GPX ファイルを検出しました
+2026-08-15 22:26:23 [INFO] modules.gps_tagger: ExifTool コマンド実行中...
+2026-08-15 22:26:23 [INFO] modules.gps_tagger:     1 directories scanned
+2026-08-15 22:26:23 [INFO] modules.gps_tagger:     0 image files read
+2026-08-15 22:26:23 [INFO] modules.gps_tagger: GPS タグ書き込み完了: 更新=0, 変更なし=0
+2026-08-15 22:26:27 [INFO] __main__: 手動GPS付与ツール: スキップ
+2026-08-15 22:26:29 [INFO] __main__: ユーザー選択: A
+2026-08-15 22:26:29 [INFO] __main__: ユーザーが STEP 2 で中止
+2026-08-16 10:12:49 [INFO] __main__: ==================================================
+2026-08-16 10:12:49 [INFO] __main__: 写真整理ワークフロープログラムを開始します
+2026-08-16 10:12:49 [INFO] __main__: ==================================================
+2026-08-16 10:12:49 [INFO] modules.config_manager: 設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-16 10:12:49 [INFO] __main__: ファイル分類開始
+2026-08-16 10:12:49 [INFO] modules.photo_copier: ファイル分類完了: JPEG=10, RAW=10, GPX=1
+2026-08-16 10:12:49 [INFO] __main__: STEP 1: GPS 書き込み開始
+2026-08-16 10:12:49 [INFO] modules.gps_tagger: --- STEP 1: GPS位置情報の書き込み ---
+2026-08-16 10:12:49 [INFO] modules.gps_tagger: 1 件の GPX ファイルを検出しました
+2026-08-16 10:12:49 [INFO] modules.gps_tagger: ExifTool コマンド実行中...
+2026-08-16 10:12:52 [INFO] modules.gps_tagger:     1 directories scanned
+2026-08-16 10:12:52 [INFO] modules.gps_tagger:     0 image files updated
+2026-08-16 10:12:52 [INFO] modules.gps_tagger:    20 image files unchanged
+2026-08-16 10:12:52 [WARNING] modules.gps_tagger: ExifTool 警告/エラー詳細:
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2357_0001684.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2357_0001684.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2357_0001684.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2357_0001684.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2358_0001685.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2358_0001685.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2358_0001685.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2358_0001685.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2359_0001686.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2359_0001686.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2359_0001686.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2359_0001686.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2360_0001687.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2360_0001687.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2360_0001687.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2360_0001687.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2361_0001688.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2361_0001688.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2361_0001688.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2361_0001688.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2362_0001689.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2362_0001689.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2362_0001689.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2362_0001689.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2363_0001690.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2363_0001690.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2363_0001690.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2363_0001690.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2364_0001691.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2364_0001691.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2364_0001691.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2364_0001691.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2365_0001692.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2365_0001692.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2365_0001692.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2365_0001692.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2366_0001693.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2366_0001693.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2366_0001693.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2366_0001693.NEF
+2026-08-16 10:12:52 [INFO] modules.gps_tagger: GPS タグ書き込み完了: 更新=0, 変更なし=20
+2026-08-16 10:13:13 [INFO] __main__: 手動GPS付与ツール: スキップ
+2026-08-16 10:13:26 [INFO] __main__: ユーザー選択: Y
+2026-08-16 10:13:26 [INFO] __main__: STEP 2: 写真整理・コピー開始
+2026-08-16 10:13:26 [INFO] modules.photo_copier: --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-16 10:13:26 [INFO] modules.photo_copier: 出力ディレクトリ作成完了
+2026-08-16 10:13:26 [INFO] modules.photo_copier: JPEG ファイル (10 件) のコピーを開始
+2026-08-16 10:13:26 [INFO] modules.photo_copier: RAW ファイル (10 件) のコピーを開始
+2026-08-16 10:13:26 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-16 10:13:27 [WARNING] modules.exif_utils: ファイル Z50_2357_0001684.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:13:27 [WARNING] modules.exif_utils: ファイル Z50_2359_0001686.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:13:27 [WARNING] modules.exif_utils: ファイル Z50_2361_0001688.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:13:27 [WARNING] modules.exif_utils: ファイル Z50_2363_0001690.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:13:27 [WARNING] modules.exif_utils: ファイル Z50_2365_0001692.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:13:27 [INFO] modules.photo_copier: 元ファイル (20 件) をゴミ箱へ移動開始
+2026-08-16 10:13:27 [INFO] modules.photo_copier: STEP 2 完了: JPEG=10, RAW=10, Trash=20/20
+2026-08-16 10:13:46 [INFO] __main__: ユーザー選択: Y
+2026-08-16 10:13:46 [INFO] __main__: STEP 3: フレーム付与処理開始
+2026-08-16 10:13:46 [INFO] modules.config_manager: YAML設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-16 10:13:46 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-16 10:13:46 [INFO] modules.frame_processor: ImageProcessor 初期化完了: config=C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-16 10:13:46 [INFO] modules.frame_processor: メタデータ一括取得開始: 10 ファイル
+2026-08-16 10:13:47 [INFO] modules.frame_processor: 画像処理完了: Z50_2357_0001684.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2357_0001684.jpg
+2026-08-16 10:13:47 [INFO] modules.frame_processor: 画像処理完了: Z50_2358_0001685.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2358_0001685.jpg
+2026-08-16 10:13:48 [INFO] modules.frame_processor: 画像処理完了: Z50_2359_0001686.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2359_0001686.jpg
+2026-08-16 10:13:48 [INFO] modules.frame_processor: 画像処理完了: Z50_2360_0001687.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2360_0001687.jpg
+2026-08-16 10:13:48 [INFO] modules.frame_processor: 画像処理完了: Z50_2361_0001688.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2361_0001688.jpg
+2026-08-16 10:13:48 [INFO] modules.frame_processor: 画像処理完了: Z50_2362_0001689.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2362_0001689.jpg
+2026-08-16 10:13:49 [INFO] modules.frame_processor: 画像処理完了: Z50_2363_0001690.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2363_0001690.jpg
+2026-08-16 10:13:49 [INFO] modules.frame_processor: 画像処理完了: Z50_2364_0001691.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2364_0001691.jpg
+2026-08-16 10:13:49 [INFO] modules.frame_processor: 画像処理完了: Z50_2365_0001692.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2365_0001692.jpg
+2026-08-16 10:13:50 [INFO] modules.frame_processor: 画像処理完了: Z50_2366_0001693.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2366_0001693.jpg
+2026-08-16 10:13:50 [INFO] modules.frame_processor: 画像処理完了: 10/10 ファイル
+2026-08-16 10:13:50 [INFO] __main__: すべてのワークフロー工程が正常に完了しました
+2026-08-16 10:13:52 [INFO] __main__: ==================================================
+2026-08-16 10:13:52 [INFO] __main__: プログラムを終了します
+2026-08-16 10:13:52 [INFO] __main__: ==================================================
+2026-08-16 10:38:47 [INFO] __main__: ==================================================
+2026-08-16 10:38:47 [INFO] __main__: 写真整理ワークフロープログラムを開始します
+2026-08-16 10:38:47 [INFO] __main__: ==================================================
+2026-08-16 10:38:47 [INFO] modules.config_manager: 設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-16 10:38:47 [INFO] __main__: ファイル分類開始
+2026-08-16 10:38:47 [INFO] modules.photo_copier: ファイル分類完了: JPEG=11, RAW=11, GPX=1
+2026-08-16 10:38:47 [INFO] __main__: STEP 1: GPS 書き込み開始
+2026-08-16 10:38:47 [INFO] modules.gps_tagger: --- STEP 1: GPS位置情報の書き込み ---
+2026-08-16 10:38:47 [INFO] modules.gps_tagger: 1 件の GPX ファイルを検出しました
+2026-08-16 10:38:47 [INFO] modules.gps_tagger: ExifTool コマンド実行中...
+2026-08-16 10:38:48 [INFO] modules.gps_tagger:     1 directories scanned
+2026-08-16 10:38:48 [INFO] modules.gps_tagger:     0 image files updated
+2026-08-16 10:38:48 [INFO] modules.gps_tagger:    22 image files unchanged
+2026-08-16 10:38:48 [WARNING] modules.gps_tagger: ExifTool 警告/エラー詳細:
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2367_0001694.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2367_0001694.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2367_0001694.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2367_0001694.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2368_0001695.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2368_0001695.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2368_0001695.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2368_0001695.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2369_0001696.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2369_0001696.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2369_0001696.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2369_0001696.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2370_0001697.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2370_0001697.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2370_0001697.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2370_0001697.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2371_0001698.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2371_0001698.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2371_0001698.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2371_0001698.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2372_0001699.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2372_0001699.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2372_0001699.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2372_0001699.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2373_0001700.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2373_0001700.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2373_0001700.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2373_0001700.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2374_0001701.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2374_0001701.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2374_0001701.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2374_0001701.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2375_0001702.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2375_0001702.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2375_0001702.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2375_0001702.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2376_0001703.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2376_0001703.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2376_0001703.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2376_0001703.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2377_0001704.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2377_0001704.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2377_0001704.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2377_0001704.NEF
+2026-08-16 10:38:48 [INFO] modules.gps_tagger: GPS タグ書き込み完了: 更新=0, 変更なし=22
+2026-08-16 10:38:54 [INFO] __main__: 手動GPS付与ツール: スキップ
+2026-08-16 10:39:02 [INFO] __main__: ユーザー選択: Y
+2026-08-16 10:39:02 [INFO] __main__: STEP 2: 写真整理・コピー開始
+2026-08-16 10:39:02 [INFO] modules.photo_copier: --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-16 10:39:02 [INFO] modules.photo_copier: 出力ディレクトリ作成完了
+2026-08-16 10:39:02 [INFO] modules.photo_copier: JPEG ファイル (11 件) のコピーを開始
+2026-08-16 10:39:02 [INFO] modules.photo_copier: RAW ファイル (11 件) のコピーを開始
+2026-08-16 10:39:02 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-16 10:39:03 [WARNING] modules.exif_utils: ファイル Z50_2367_0001694.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:39:03 [WARNING] modules.exif_utils: ファイル Z50_2369_0001696.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:39:03 [WARNING] modules.exif_utils: ファイル Z50_2371_0001698.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:39:03 [WARNING] modules.exif_utils: ファイル Z50_2373_0001700.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:39:03 [WARNING] modules.exif_utils: ファイル Z50_2375_0001702.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:39:03 [WARNING] modules.exif_utils: ファイル Z50_2377_0001704.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 10:39:03 [INFO] modules.photo_copier: 元ファイル (22 件) をゴミ箱へ移動開始
+2026-08-16 10:39:03 [INFO] modules.photo_copier: STEP 2 完了: JPEG=11, RAW=11, Trash=22/22
+2026-08-16 10:39:09 [INFO] __main__: ユーザー選択: Y
+2026-08-16 10:39:09 [INFO] __main__: STEP 3: フレーム付与処理開始
+2026-08-16 10:39:09 [INFO] modules.config_manager: YAML設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-16 10:39:09 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-16 10:39:09 [INFO] modules.frame_processor: ImageProcessor 初期化完了: config=C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-16 10:39:09 [INFO] modules.frame_processor: メタデータ一括取得開始: 11 ファイル
+2026-08-16 10:39:10 [INFO] modules.frame_processor: 画像処理完了: Z50_2367_0001694.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2367_0001694.jpg
+2026-08-16 10:39:10 [INFO] modules.frame_processor: 画像処理完了: Z50_2368_0001695.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2368_0001695.jpg
+2026-08-16 10:39:11 [INFO] modules.frame_processor: 画像処理完了: Z50_2369_0001696.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2369_0001696.jpg
+2026-08-16 10:39:11 [INFO] modules.frame_processor: 画像処理完了: Z50_2370_0001697.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2370_0001697.jpg
+2026-08-16 10:39:11 [INFO] modules.frame_processor: 画像処理完了: Z50_2371_0001698.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2371_0001698.jpg
+2026-08-16 10:39:12 [INFO] modules.frame_processor: 画像処理完了: Z50_2372_0001699.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2372_0001699.jpg
+2026-08-16 10:39:12 [INFO] modules.frame_processor: 画像処理完了: Z50_2373_0001700.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2373_0001700.jpg
+2026-08-16 10:39:12 [INFO] modules.frame_processor: 画像処理完了: Z50_2374_0001701.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2374_0001701.jpg
+2026-08-16 10:39:12 [INFO] modules.frame_processor: 画像処理完了: Z50_2375_0001702.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2375_0001702.jpg
+2026-08-16 10:39:13 [INFO] modules.frame_processor: 画像処理完了: Z50_2376_0001703.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2376_0001703.jpg
+2026-08-16 10:39:13 [INFO] modules.frame_processor: 画像処理完了: Z50_2377_0001704.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2377_0001704.jpg
+2026-08-16 10:39:13 [INFO] modules.frame_processor: 画像処理完了: 11/11 ファイル
+2026-08-16 10:39:13 [INFO] __main__: すべてのワークフロー工程が正常に完了しました
+2026-08-16 10:39:15 [INFO] __main__: ==================================================
+2026-08-16 10:39:15 [INFO] __main__: プログラムを終了します
+2026-08-16 10:39:15 [INFO] __main__: ==================================================
+2026-08-16 12:14:07 [INFO] __main__: ==================================================
+2026-08-16 12:14:07 [INFO] __main__: 写真整理ワークフロープログラムを開始します
+2026-08-16 12:14:07 [INFO] __main__: ==================================================
+2026-08-16 12:14:07 [INFO] modules.config_manager: 設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\config.json
+2026-08-16 12:14:07 [INFO] __main__: ファイル分類開始
+2026-08-16 12:14:07 [INFO] modules.photo_copier: ファイル分類完了: JPEG=11, RAW=11, GPX=1
+2026-08-16 12:14:07 [INFO] __main__: STEP 1: GPS 書き込み開始
+2026-08-16 12:14:07 [INFO] modules.gps_tagger: --- STEP 1: GPS位置情報の書き込み ---
+2026-08-16 12:14:07 [INFO] modules.gps_tagger: 1 件の GPX ファイルを検出しました
+2026-08-16 12:14:07 [INFO] modules.gps_tagger: ExifTool コマンド実行中...
+2026-08-16 12:14:08 [INFO] modules.gps_tagger:     1 directories scanned
+2026-08-16 12:14:08 [INFO] modules.gps_tagger:     0 image files updated
+2026-08-16 12:14:08 [INFO] modules.gps_tagger:    22 image files unchanged
+2026-08-16 12:14:08 [WARNING] modules.gps_tagger: ExifTool 警告/エラー詳細:
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2378_0001705.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2378_0001705.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2378_0001705.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2378_0001705.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2379_0001706.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2379_0001706.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2379_0001706.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2379_0001706.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2380_0001707.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2380_0001707.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2380_0001707.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2380_0001707.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2381_0001708.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2381_0001708.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2381_0001708.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2381_0001708.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2382_0001709.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2382_0001709.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2382_0001709.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2382_0001709.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2383_0001710.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2383_0001710.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2383_0001710.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2383_0001710.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2384_0001711.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2384_0001711.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2384_0001711.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2384_0001711.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2385_0001712.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2385_0001712.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2385_0001712.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2385_0001712.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2386_0001713.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2386_0001713.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2386_0001713.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2386_0001713.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2387_0001714.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2387_0001714.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2387_0001714.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2387_0001714.NEF
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2388_0001715.JPG
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2388_0001715.JPG
+Warning: Time is too far beyond track in File:Geotime (ValueConvInv) - C:/SHARE/Photo/from_camera/Z50_2388_0001715.NEF
+Warning: No writable tags set from C:/SHARE/Photo/from_camera/Z50_2388_0001715.NEF
+2026-08-16 12:14:08 [INFO] modules.gps_tagger: GPS タグ書き込み完了: 更新=0, 変更なし=22
+2026-08-16 12:14:28 [INFO] __main__: 手動GPS付与ツール: スキップ
+2026-08-16 12:14:31 [INFO] __main__: ユーザー選択: Y
+2026-08-16 12:14:31 [INFO] __main__: STEP 2: 写真整理・コピー開始
+2026-08-16 12:14:31 [INFO] modules.photo_copier: --- STEP 2: 写真ファイルのコピー・整理 ---
+2026-08-16 12:14:31 [INFO] modules.photo_copier: 出力ディレクトリ作成完了
+2026-08-16 12:14:31 [INFO] modules.photo_copier: JPEG ファイル (11 件) のコピーを開始
+2026-08-16 12:14:31 [INFO] modules.photo_copier: RAW ファイル (11 件) のコピーを開始
+2026-08-16 12:14:31 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-16 12:14:32 [WARNING] modules.exif_utils: ファイル Z50_2378_0001705.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 12:14:32 [WARNING] modules.exif_utils: ファイル Z50_2380_0001707.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 12:14:32 [WARNING] modules.exif_utils: ファイル Z50_2382_0001709.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 12:14:32 [WARNING] modules.exif_utils: ファイル Z50_2384_0001711.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 12:14:32 [WARNING] modules.exif_utils: ファイル Z50_2386_0001713.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 12:14:32 [WARNING] modules.exif_utils: ファイル Z50_2388_0001715.NEF の撮影日が取得できず、更新日時を使用: 20260816
+2026-08-16 12:14:32 [INFO] modules.photo_copier: 元ファイル (22 件) をゴミ箱へ移動開始
+2026-08-16 12:14:32 [INFO] modules.photo_copier: STEP 2 完了: JPEG=11, RAW=11, Trash=22/22
+2026-08-16 12:14:54 [INFO] __main__: ユーザー選択: Y
+2026-08-16 12:14:54 [INFO] __main__: STEP 3: フレーム付与処理開始
+2026-08-16 12:14:54 [INFO] modules.config_manager: YAML設定ファイルを読み込みました: C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-16 12:14:54 [INFO] modules.exif_utils: ExifTool パス: C:\SHARE\APPL\exiftool\exiftool.exe
+2026-08-16 12:14:54 [INFO] modules.frame_processor: ImageProcessor 初期化完了: config=C:\SHARE\APPL\PhotoWorkflow\standard.yaml
+2026-08-16 12:14:54 [INFO] modules.frame_processor: メタデータ一括取得開始: 11 ファイル
+2026-08-16 12:14:55 [INFO] modules.frame_processor: 画像処理完了: Z50_2378_0001705.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2378_0001705.jpg
+2026-08-16 12:14:55 [INFO] modules.frame_processor: 画像処理完了: Z50_2379_0001706.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2379_0001706.jpg
+2026-08-16 12:14:56 [INFO] modules.frame_processor: 画像処理完了: Z50_2380_0001707.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2380_0001707.jpg
+2026-08-16 12:14:56 [INFO] modules.frame_processor: 画像処理完了: Z50_2381_0001708.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2381_0001708.jpg
+2026-08-16 12:14:56 [INFO] modules.frame_processor: 画像処理完了: Z50_2382_0001709.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2382_0001709.jpg
+2026-08-16 12:14:56 [INFO] modules.frame_processor: 画像処理完了: Z50_2383_0001710.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2383_0001710.jpg
+2026-08-16 12:14:57 [INFO] modules.frame_processor: 画像処理完了: Z50_2384_0001711.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2384_0001711.jpg
+2026-08-16 12:14:57 [INFO] modules.frame_processor: 画像処理完了: Z50_2385_0001712.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2385_0001712.jpg
+2026-08-16 12:14:57 [INFO] modules.frame_processor: 画像処理完了: Z50_2386_0001713.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2386_0001713.jpg
+2026-08-16 12:14:57 [INFO] modules.frame_processor: 画像処理完了: Z50_2387_0001714.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2387_0001714.jpg
+2026-08-16 12:14:58 [INFO] modules.frame_processor: 画像処理完了: Z50_2388_0001715.JPG -> C:\SHARE\Photo\to_note\processed_photos_standard\Frame_Z50_2388_0001715.jpg
+2026-08-16 12:14:58 [INFO] modules.frame_processor: 画像処理完了: 11/11 ファイル
+2026-08-16 12:14:58 [INFO] __main__: すべてのワークフロー工程が正常に完了しました
+2026-08-16 12:15:00 [INFO] __main__: ==================================================
+2026-08-16 12:15:00 [INFO] __main__: プログラムを終了します
+2026-08-16 12:15:00 [INFO] __main__: ==================================================

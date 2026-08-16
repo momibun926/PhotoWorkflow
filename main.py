@@ -44,7 +44,7 @@ def prompt_next_action(next_step_name: str) -> str:
         next_step_name: ステップ名
         
     Returns:
-        'N' (次へ進む)、'S' (スキップ)、'A' (中断)のいずれか
+        'Y' (次へ進む)、'S' (スキップ)、'A' (中断)のいずれか
     """
     print("\n\n--------------------------------------------------")
     while True:
@@ -52,16 +52,16 @@ def prompt_next_action(next_step_name: str) -> str:
             choice = (
                 input(
                     f"次のステップ [{next_step_name}] に進みますか？\n"
-                    "  [N] 次へ進む / [S] 次をスキップ / [A] 処理を中断 (N/S/A): "
+                    "  [Y] 次へ進む / [S] 次をスキップ / [A] 処理を中断 (Y/S/A): "
                 )
                 .strip()
                 .upper()
             )
-            if choice in ["N", "S", "A"]:
+            if choice in ["Y", "S", "A"]:
                 print("--------------------------------------------------\n\n")
                 logger.info("ユーザー選択: %s", choice)
                 return choice
-            print(" [!] 無効な入力です。'N'、'S'、'A' のいずれかを入力してください。")
+            print(" [!] 無効な入力です。'Y'、'S'、'A' のいずれかを入力してください。")
         except KeyboardInterrupt:
             logger.warning("ユーザーが Ctrl+C で中断")
             print("\n[!] 処理が中断されました")
@@ -83,17 +83,17 @@ def prompt_manual_gps_option() -> bool:
             choice = (
                 input(
                     "手動GPS付与ツールを起動しますか？\n"
-                    "  [Y] 起動する / [N] 起動せずに次へ進む (Y/N): "
+                    "  [Y] 起動する / [S] 起動せずに次へ進む (Y/S): "
                 )
                 .strip()
                 .upper()
             )
-            if choice in ["Y", "N"]:
+            if choice in ["Y", "S"]:
                 print("--------------------------------------------------\n")
                 result = choice == "Y"
                 logger.info("手動GPS付与ツール: %s", "起動" if result else "スキップ")
                 return result
-            print(" [!] 無効な入力です。'Y' または 'N' を入力してください。")
+            print(" [!] 無効な入力です。'Y' または 'S' を入力してください。")
         except KeyboardInterrupt:
             logger.warning("ユーザーが Ctrl+C で中断")
             print("\n[!] 入力がキャンセルされました")
@@ -205,7 +205,7 @@ def main() -> None:
         # --------------------------------------------------
         # STEP 2: 写真整理・コピー
         # --------------------------------------------------
-        if action == "N":
+        if action == "Y":
             logger.info("STEP 2: 写真整理・コピー開始")
             copy_and_organize_photos(
                 jpeg_files=jpeg_files,
@@ -227,7 +227,7 @@ def main() -> None:
         # --------------------------------------------------
         # STEP 3: フレーム付与処理
         # --------------------------------------------------
-        if action == "N":
+        if action == "Y":
             logger.info("STEP 3: フレーム付与処理開始")
             run_frame_processing(
                 script_path_or_unused=Path(),
