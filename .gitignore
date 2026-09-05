@@ -1,5 +1,6 @@
 # Python のキャッシュファイル
-modules\__pycache__\*.pyc
+modules/__pycache__/*.pyc
 
 # ログファイル
 *.log
+photo_organizer.log

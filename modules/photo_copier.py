@@ -113,16 +113,21 @@ def copy_and_organize_photos(
         for idx, nef in enumerate(nef_files, start=1):
             try:
                 date_str = date_map.get(nef)
-                if not date_str:
-                    logger.warning("RAW ファイルの撮影日が取得できません: %s", nef.name)
-                    date_str = "unknown"
                 
-                target_dir = base_dir / date_str
+                # 撮影日（8桁数字: YYYYMMDD）が得られている場合に YYYY\MM\YYYYMMDD 構造を作成
+                if date_str and len(date_str) == 8 and date_str.isdigit():
+                    year = date_str[:4]
+                    month = date_str[4:6]
+                    target_dir = base_dir / year / month / date_str
+                else:
+                    logger.warning("RAW ファイルの撮影日が取得できません: %s", nef.name)
+                    target_dir = base_dir / "unknown"
+                
                 target_dir.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(nef, target_dir / nef.name)
                 
                 print(f"\r  - RAW コピー中: {idx}/{total_nef} 件", end="", flush=True)
-                logger.debug("RAW コピー完了 [%d/%d]: %s -> %s", idx, total_nef, nef.name, date_str)
+                logger.debug("RAW コピー完了 [%d/%d]: %s -> %s", idx, total_nef, nef.name, target_dir)
             except Exception as e:
                 logger.error("RAW コピーエラー (%s): %s", nef.name, e)
                 print(f"\n  [警告] {nef.name} のコピーに失敗しました: {e}")

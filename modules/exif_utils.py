@@ -168,63 +168,63 @@ class ExifReader:
 
         return metadata_map
 
-        def get_exif_dates_batch(self, file_paths: List[Path]) -> Dict[Path, str]:
-            """複数ファイルの撮影日を一括取得。
+    def get_exif_dates_batch(self, file_paths: List[Path]) -> Dict[Path, str]:
+        """複数ファイルの撮影日を一括取得。
+        
+        Args:
+            file_paths: 対象ファイルパスリスト
             
-            Args:
-                file_paths: 対象ファイルパスリスト
+        Returns:
+            {ファイルパス: 撮影日}の辞書
+        """
+        if not file_paths:
+            return {}
+
+        date_map: Dict[Path, str] = {}
+        
+        # -j (JSON形式) を使うことで、ファイル名とタグを確実に1対1で紐付ける
+        cmd = [
+            self.exiftool_path,
+            "-j",
+            "-DateTimeOriginal",
+            "-CreateDate",  # DateTimeOriginal が無い場合のフォールバックタグ
+            "-d",
+            constants.EXIF_DATE_FORMAT
+        ] + [str(p) for p in file_paths]
+
+        try:
+            result = subprocess.run(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True
+            )
+            data = json.loads(result.stdout)
+            
+            # JSON結果からPathオブジェクトをキーにして辞書を作成
+            for item in data:
+                source_path = Path(item.get("SourceFile"))
+                date_str = item.get("DateTimeOriginal") or item.get("CreateDate")
                 
-            Returns:
-                {ファイルパス: 撮影日}の辞書
-            """
-            if not file_paths:
-                return {}
+                if date_str and len(str(date_str)) == 8 and str(date_str).isdigit():
+                    date_map[source_path] = str(date_str)
 
-            date_map: Dict[Path, str] = {}
-            
-            # -j (JSON形式) を使うことで、ファイル名とタグを確実に1対1で紐付ける
-            cmd = [
-                self.exiftool_path,
-                "-j",
-                "-DateTimeOriginal",
-                "-CreateDate",  # DateTimeOriginal が無い場合のフォールバックタグ
-                "-d",
-                constants.EXIF_DATE_FORMAT
-            ] + [str(p) for p in file_paths]
+        except Exception as e:
+            logger.error("ExifTool日付取得エラー: %s", e, exc_info=True)
 
-            try:
-                result = subprocess.run(
-                    cmd,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    check=True
+        # 取得できなかったファイルのみ更新日時(mtime)をフォールバック設定
+        from datetime import datetime
+        for path in file_paths:
+            if path not in date_map:
+                mtime = path.stat().st_mtime
+                date_map[path] = datetime.fromtimestamp(mtime).strftime(
+                    constants.EXIF_DATE_FORMAT
                 )
-                data = json.loads(result.stdout)
-                
-                # JSON結果からPathオブジェクトをキーにして辞書を作成
-                for item in data:
-                    source_path = Path(item.get("SourceFile"))
-                    date_str = item.get("DateTimeOriginal") or item.get("CreateDate")
-                    
-                    if date_str and len(str(date_str)) == 8 and str(date_str).isdigit():
-                        date_map[source_path] = str(date_str)
+                logger.warning("ファイル %s の撮影日が取得できず、更新日時を使用: %s",
+                            path.name, date_map[path])
 
-            except Exception as e:
-                logger.error("ExifTool日付取得エラー: %s", e, exc_info=True)
-
-            # 取得できなかったファイルのみ更新日時(mtime)をフォールバック設定
-            from datetime import datetime
-            for path in file_paths:
-                if path not in date_map:
-                    mtime = path.stat().st_mtime
-                    date_map[path] = datetime.fromtimestamp(mtime).strftime(
-                        constants.EXIF_DATE_FORMAT
-                    )
-                    logger.warning("ファイル %s の撮影日が取得できず、更新日時を使用: %s",
-                                path.name, date_map[path])
-
-            return date_map
+        return date_map
 
     def get_gps_info(self, file_path: Path) -> Optional[tuple]:
         """ファイルのGPS情報を取得。
