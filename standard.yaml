@@ -2,8 +2,8 @@
 fonts:
   # システムにインストールされているフォント名、またはパスを指定
   size_type: "ratio"
-  main_size: 0.022
-  sub_size: 0.015
+  main_size: 0.020
+  sub_size: 0.012
   bold:
     - "fonts/SofiaSans-Regular.ttf"      # 相対パスで指定
     - "arialbd.ttf"                      # 見つからない場合のフォールバック（システムフォント名）
