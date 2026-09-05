@@ -1,5 +1,6 @@
-# Python のキャッシュファイル
-/modules/__pycache__/*.pyc
+# Python のキャッシュフォルダ・ファイルをすべて除外
+**/__pycache__/
+*.pyc
 
 # ログファイル
-/*.log
+*.log
