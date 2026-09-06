@@ -139,6 +139,43 @@ def run_manual_gps_tagger() -> None:
         logger.error(msg, exc_info=True)
 
 
+def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv") -> None:
+    """外部スクリプト exif_exporter.py を呼び出して EXIF 情報を抽出・出力。"""
+    script_path = Path(__file__).parent / "modules" / "exif_exporter.py"
+
+    if not script_path.exists():
+        msg = f"EXIF抽出プログラムが見つかりません: {script_path}"
+        print(f"[警告] {msg}\n")
+        logger.warning(msg)
+        return
+
+    print("EXIF抽出・書き出しツールを起動しています...")
+    logger.info("EXIF抽出ツールを実行: %s %s %s", script_path, target_dir, tsv_filename)
+
+    cmd = [sys.executable, str(script_path), str(target_dir), tsv_filename]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            check=False,
+            timeout=1800  # 30分のタイムアウト
+        )
+        if result.returncode == 0:
+            print("EXIF抽出ツールが正常に完了しました。")
+            logger.info("EXIF抽出ツール終了: 正常")
+        else:
+            logger.warning("EXIF抽出ツール終了: 終了コード %d", result.returncode)
+            print(f"[警告] EXIF抽出ツールが異常終了しました (終了コード: {result.returncode})")
+    except subprocess.TimeoutExpired:
+        msg = "EXIF抽出ツールの実行がタイムアウトしました (30分)"
+        print(f"\n[エラー] {msg}")
+        logger.error(msg)
+    except Exception as e:
+        msg = f"EXIF抽出ツールの実行中にエラーが発生しました: {e}"
+        print(f"\n[エラー] {msg}")
+        logger.error(msg, exc_info=True)
+
+
 def main() -> None:
     """メイン実行エントリーポイント。"""
     print("==================================================")
@@ -217,6 +254,22 @@ def main() -> None:
         elif action == "S":
             print("\n[STEP 2: 写真整理・コピー] をスキップしました。")
             logger.info("STEP 2 をスキップ")
+
+        # --------------------------------------------------
+        # STEP 2.5: EXIF抽出・書き出し処理
+        # --------------------------------------------------
+        action = prompt_next_action("STEP 2.5: EXIF抽出・書き出し処理")
+        if action == "A":
+            print("\nユーザーにより処理が中断されました。")
+            logger.info("ユーザーが STEP 2.5 で中止")
+            return
+
+        if action == "Y":
+            logger.info("STEP 2.5: EXIF抽出・書き出し処理開始")
+            run_exif_exporter(target_dir=to_note_dir, tsv_filename="exif_list.tsv")
+        elif action == "S":
+            print("\n[STEP 2.5: EXIF抽出・書き出し処理] をスキップしました。")
+            logger.info("STEP 2.5 をスキップ")
 
         action = prompt_next_action("STEP 3: フレーム付与処理")
         if action == "A":
