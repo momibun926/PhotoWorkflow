@@ -53,13 +53,14 @@ def apply_gps_tags(from_camera_dir: Path, gpx_files: List[Path], config: Optiona
     logger.info("%d 件の GPX ファイルを検出しました", len(gpx_files))
 
     et = ExifToolClient(config=config)
+    geosync = config.get_gps_sync_timezone() if config is not None else constants.GPS_SYNC_TIMEZONE
 
     try:
-        logger.info("ExifTool コマンド実行中... (path=%s)", et.path)
+        logger.info("ExifTool コマンド実行中... (path=%s, geosync=%s)", et.path, geosync)
         stdout, stderr = et.geotag_from_gpx(
             target_dir=from_camera_dir,
             gpx_files=gpx_files,
-            geosync=constants.GPS_SYNC_TIMEZONE,
+            geosync=geosync,
         )
 
         stdout_lines = stdout.splitlines() if stdout else []

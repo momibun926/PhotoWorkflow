@@ -41,6 +41,7 @@ class ImageProcessor:
             raise FileNotFoundError(constants.ERROR_MESSAGES["config_not_found"].format(config_path))
         
         self.config = YamlConfigManager(self.config_path)
+        self.app_config = app_config
         self.exif_reader = ExifReader(config=app_config)
         self.logo_path = Path(constants.LOGO_FILENAME)
         logger.info("ImageProcessor 初期化完了: config=%s", config_path)
@@ -133,7 +134,13 @@ class ImageProcessor:
             out_dir.mkdir(exist_ok=True, parents=True)
             out_path = out_dir / f"{self.config.output.prefix}{path.stem}.jpg"
 
-            canvas.save(out_path, "JPEG", quality=constants.JPEG_QUALITY, subsampling=constants.JPEG_SUBSAMPLING)
+            # 出力品質はYAMLの output.quality を優先し、未指定ならconstants.pyのデフォルトを使用。
+            # ※以前はここが常に constants.JPEG_QUALITY 固定になっており、
+            #   standard.yaml/black.yaml の quality: 100 設定が反映されないバグがあった。
+            quality = getattr(self.config.output, "quality", constants.JPEG_QUALITY)
+            subsampling = getattr(self.config.output, "subsampling", constants.JPEG_SUBSAMPLING)
+
+            canvas.save(out_path, "JPEG", quality=quality, subsampling=subsampling)
 
             print(progress_str)
             logger.info("画像処理完了: %s -> %s", path.name, out_path)
@@ -154,7 +161,15 @@ class ImageProcessor:
         else:
             files = [f for f in target.iterdir() if f.is_file()]
 
-        valid_files = [f for f in files if f.suffix.lower() in constants.VALID_IMAGE_EXTENSIONS]
+        valid_extensions = constants.VALID_IMAGE_EXTENSIONS
+        if self.app_config is not None:
+            try:
+                ext_map = self.app_config.get_file_extensions()
+                valid_extensions = ext_map["jpeg"] | ext_map["raw"] | {".png"}
+            except AttributeError:
+                logger.debug("app_configにget_file_extensionsが無いため、デフォルト拡張子を使用")
+
+        valid_files = [f for f in files if f.suffix.lower() in valid_extensions]
 
         if not valid_files:
             logger.warning("有効な画像ファイルが見つかりません: %s", target)

@@ -11,16 +11,20 @@ try:
     # パッケージとして実行された場合（本来の使われ方）
     from .exiftool_client import ExifToolClient, ExifToolError
     from .logging_config import setup_logging
+    from .config_manager import ConfigManager
 except ImportError:
     # main.py から subprocess で単独スクリプトとして起動された場合のフォールバック
     # （manual_gps_tagger.py と同じパターン）
     from exiftool_client import ExifToolClient, ExifToolError
     from logging_config import setup_logging
+    from config_manager import ConfigManager
 
 logger = logging.getLogger(__name__)
 
-# 個別 .exif ファイルに出力する対象タグの一覧
-TARGET_TAGS = [
+# 個別 .exif ファイルに出力する対象タグのデフォルト一覧。
+# config.json の 'exif_export.target_tags' で上書きできる
+# （ConfigManager.get_exif_export_config() 参照）。
+DEFAULT_TARGET_TAGS = [
     "IFD0:Model",
     "Composite:LensID",
     "ExifIFD:FocalLength",
@@ -37,8 +41,9 @@ TARGET_TAGS = [
     "Composite:HyperfocalDistance"
 ]
 
-# EXIFタグに対応する日本語表示名のマッピング
-TAG_JAPANESE_NAMES = {
+# EXIFタグに対応する日本語表示名のデフォルトマッピング。
+# config.json の 'exif_export.tag_labels' で上書きできる。
+DEFAULT_TAG_JAPANESE_NAMES = {
     "IFD0:Model": "カメラ",
     "Composite:LensID": "レンズ",
     "ExifIFD:FocalLength": "焦点距離",
@@ -56,8 +61,21 @@ TAG_JAPANESE_NAMES = {
 }
 
 
-def export_individual_exif(item: Dict[str, Any], output_dir: Path) -> None:
-    """写真1枚ごとの個別 .exif ファイルを生成する（日本語ラベル付き）。"""
+def export_individual_exif(
+    item: Dict[str, Any],
+    output_dir: Path,
+    target_tags: Optional[List[str]] = None,
+    tag_labels: Optional[Dict[str, str]] = None,
+) -> None:
+    """写真1枚ごとの個別 .exif ファイルを生成する（日本語ラベル付き）。
+
+    Args:
+        target_tags: 出力するタグの一覧。Noneの場合は DEFAULT_TARGET_TAGS を使用
+        tag_labels: タグ→日本語ラベルのマッピング。Noneの場合は DEFAULT_TAG_JAPANESE_NAMES を使用
+    """
+    target_tags = target_tags or DEFAULT_TARGET_TAGS
+    tag_labels = tag_labels or DEFAULT_TAG_JAPANESE_NAMES
+
     source_path_str = item.get("SourceFile", "")
     if not source_path_str:
         return
@@ -68,14 +86,14 @@ def export_individual_exif(item: Dict[str, Any], output_dir: Path) -> None:
     exif_filepath = output_dir / exif_filename
 
     lines = []
-    for tag in TARGET_TAGS:
+    for tag in target_tags:
         val = item.get(tag, "")
         if isinstance(val, (list, dict)):
             val = str(val)
         val_str = str(val).replace("\r", " ").replace("\n", " ")
         
         # 日本語ラベルを取得（未定義の場合は元のタグ名を表示）
-        jp_label = TAG_JAPANESE_NAMES.get(tag, tag)
+        jp_label = tag_labels.get(tag, tag)
         lines.append(f"{jp_label}: {val_str}")
 
     try:
@@ -112,6 +130,17 @@ def extract_all_exif_recursive(
     et = ExifToolClient(exiftool_path=exiftool_path, config=config)
     logger.info("ExifTool を呼び出してサブフォルダ配下のメタデータを抽出中: %s (path=%s)", target_dir, et.path)
 
+    # 個別.exifファイルに出力するタグ・ラベルを解決（config優先、なければデフォルト）
+    target_tags = DEFAULT_TARGET_TAGS
+    tag_labels = DEFAULT_TAG_JAPANESE_NAMES
+    if config is not None:
+        try:
+            ee_config = config.get_exif_export_config()
+            target_tags = ee_config.get("target_tags") or DEFAULT_TARGET_TAGS
+            tag_labels = ee_config.get("tag_labels") or DEFAULT_TAG_JAPANESE_NAMES
+        except AttributeError:
+            logger.debug("configにget_exif_export_configが無いため、デフォルトのタグ設定を使用")
+
     try:
         data: List[Dict[str, Any]] = et.extract_recursive(
             directory=target_dir,
@@ -130,7 +159,7 @@ def extract_all_exif_recursive(
 
     # 1. 個別 .exif ファイルの出力
     for item in data:
-        export_individual_exif(item, output_dir)
+        export_individual_exif(item, output_dir, target_tags=target_tags, tag_labels=tag_labels)
 
     # 2. 全体TSVの出力
     all_tags = set()
@@ -173,4 +202,17 @@ if __name__ == "__main__":
     tsv_name = sys.argv[2] if len(sys.argv) > 2 else "exif_summary.tsv"
     exiftool_path = sys.argv[3] if len(sys.argv) > 3 else None
 
-    extract_all_exif_recursive(input_directory, tsv_filename=tsv_name, exiftool_path=exiftool_path)
+    # 別プロセスとして起動されるため config.json を自分で読み込み直す
+    # （出力対象タグ・日本語ラベルのカスタマイズを config.json 経由で反映するため）
+    app_config = None
+    try:
+        app_config = ConfigManager()
+    except (FileNotFoundError, ValueError) as e:
+        logger.debug("config.json の自動読み込みなし（デフォルトのタグ設定を使用）: %s", e)
+
+    extract_all_exif_recursive(
+        input_directory,
+        tsv_filename=tsv_name,
+        exiftool_path=exiftool_path,
+        config=app_config,
+    )

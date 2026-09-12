@@ -16,15 +16,23 @@ from . import constants
 logger = logging.getLogger(__name__)
 
 
-def categorize_files(from_dir: Path) -> Tuple[List[Path], List[Path], List[Path]]:
-    """ディレクトリ内のファイルを(JPEG, NEF, GPX)に分類。
+def categorize_files(from_dir: Path, config: Optional[Any] = None) -> Tuple[List[Path], List[Path], List[Path]]:
+    """ディレクトリ内のファイルを(JPEG, RAW, GPX)に分類。
     
     Args:
         from_dir: 対象ディレクトリパス
+        config: ConfigManager。対応拡張子のカスタマイズに使用
+            （config.jsonの'file_types'。Noneの場合はconstants.pyのデフォルト拡張子を使用）
         
     Returns:
         (JPEG ファイルリスト, RAW ファイルリスト, GPX ファイルリスト)のタプル
     """
+    if config is not None:
+        ext_map = config.get_file_extensions()
+        jpeg_exts, raw_exts, gpx_exts = ext_map["jpeg"], ext_map["raw"], ext_map["gpx"]
+    else:
+        jpeg_exts, raw_exts, gpx_exts = constants.JPEG_EXTENSIONS, constants.RAW_EXTENSIONS, constants.GPX_EXTENSIONS
+
     jpeg_files: List[Path] = []
     nef_files: List[Path] = []
     gpx_files: List[Path] = []
@@ -36,11 +44,11 @@ def categorize_files(from_dir: Path) -> Tuple[List[Path], List[Path], List[Path]
             
             ext = entry.suffix.lower()
             
-            if ext in constants.JPEG_EXTENSIONS:
+            if ext in jpeg_exts:
                 jpeg_files.append(entry)
-            elif ext in constants.RAW_EXTENSIONS:
+            elif ext in raw_exts:
                 nef_files.append(entry)
-            elif ext in constants.GPX_EXTENSIONS:
+            elif ext in gpx_exts:
                 gpx_files.append(entry)
 
         logger.info("ファイル分類完了: JPEG=%d, RAW=%d, GPX=%d",
@@ -56,7 +64,7 @@ def copy_and_organize_photos(
     jpeg_files: List[Path],
     nef_files: List[Path],
     to_note_dir: Path,
-    to_amazon_jpeg_dir: Path,
+    copy_targets: List[Path],
     base_dir: Path,
     config: Optional[Any] = None,
 ) -> bool:
@@ -65,8 +73,10 @@ def copy_and_organize_photos(
     Args:
         jpeg_files: JPEG ファイルリスト
         nef_files: RAW ファイルリスト
-        to_note_dir: ブログ用コピー先ディレクトリ
-        to_amazon_jpeg_dir: Amazon フォト用コピー先ディレクトリ
+        to_note_dir: ブログ用コピー先ディレクトリ（フレーム付与・EXIF抽出の対象にもなる主要出力先）
+        copy_targets: JPEGの追加コピー先ディレクトリのリスト（0件以上。
+            例: Amazon Photos用フォルダ。config.jsonの'copy_targets'で
+            台数を自由に増減できる。詳細は ConfigManager.get_copy_targets() 参照）
         base_dir: RAW ファイルのアーカイブベースディレクトリ
         config: ConfigManager。exiftoolのパス解決に使用（Noneの場合は自動検索）
         
@@ -81,8 +91,9 @@ def copy_and_organize_photos(
     # ディレクトリ作成
     try:
         to_note_dir.mkdir(parents=True, exist_ok=True)
-        to_amazon_jpeg_dir.mkdir(parents=True, exist_ok=True)
-        logger.info("出力ディレクトリ作成完了")
+        for target_dir in copy_targets:
+            target_dir.mkdir(parents=True, exist_ok=True)
+        logger.info("出力ディレクトリ作成完了（コピー先 %d 件）", len(copy_targets))
     except Exception as e:
         logger.error("ディレクトリ作成エラー: %s", e)
         print(f" -> [エラー] ディレクトリ作成に失敗しました: {e}")
@@ -90,11 +101,12 @@ def copy_and_organize_photos(
 
     # JPEG コピー
     total_jpeg = len(jpeg_files)
-    logger.info("JPEG ファイル (%d 件) のコピーを開始", total_jpeg)
+    logger.info("JPEG ファイル (%d 件) のコピーを開始 (コピー先: to_note + 追加%d件)", total_jpeg, len(copy_targets))
     for idx, jpeg in enumerate(jpeg_files, start=1):
         try:
             shutil.copy2(jpeg, to_note_dir / jpeg.name)
-            shutil.copy2(jpeg, to_amazon_jpeg_dir / jpeg.name)
+            for target_dir in copy_targets:
+                shutil.copy2(jpeg, target_dir / jpeg.name)
             print(f"\r  - JPEG コピー中: {idx}/{total_jpeg} 件", end="", flush=True)
             logger.debug("JPEG コピー完了 [%d/%d]: %s", idx, total_jpeg, jpeg.name)
         except Exception as e:

@@ -2,12 +2,80 @@
   "directories": {
     "base": "C:\\SHARE\\Photo",
     "from_camera": "C:\\SHARE\\Photo\\from_camera",
-    "to_amazon_jpeg": "C:\\SHARE\\Photo\\to_amazon\\jpeg",
     "to_note": "C:\\SHARE\\Photo\\to_note"
   },
+  "copy_targets": [
+    {"name": "to_amazon_jpeg", "path": "C:\\SHARE\\Photo\\to_amazon\\jpeg"}
+  ],
   "external_tools": {
     "flame_script": "C:\\SHARE\\APPL\\NikonPhotoFrame\\Flame.py",
     "flame_config": "standard.yaml",
     "exiftool": "C:\\SHARE\\APPL\\exiftool\\exiftool.exe"
+  },
+  "gps": {
+    "sync_timezone": "+09:00"
+  },
+  "file_types": {
+    "jpeg_extensions": [".jpg", ".jpeg"],
+    "raw_extensions": [".nef", ".arw", ".dng"],
+    "gpx_extensions": [".gpx"]
+  },
+  "camera_name_rules": {
+    "replacements": {
+      "Z50_2": "Z50II",
+      "Z50 2": "Z50II",
+      "Z50ii": "Z50II",
+      "_3": "III",
+      "_2": "II",
+      "_4": "IV",
+      "_5": "V"
+    },
+    "removes": ["NIKON", "Nikon", "nikon", "NIKKOR", "Nikkor", "nikkor"],
+    "brand_replacements": {
+      "SONY": "Sony",
+      "CANON": "Canon",
+      "FUJIFILM": "Fujifilm"
+    }
+  },
+  "exif_export": {
+    "target_tags": [
+      "IFD0:Model",
+      "Composite:LensID",
+      "ExifIFD:FocalLength",
+      "ExifIFD:FocalLengthIn35mmFormat",
+      "ExifIFD:FNumber",
+      "ExifIFD:ExposureTime",
+      "ExifIFD:ISO",
+      "ExifIFD:ExposureCompensation",
+      "Nikon:AFAreaMode",
+      "Nikon:FocusMode",
+      "Nikon:PictureControlName",
+      "Nikon:ShutterMode",
+      "Nikon:WhiteBalance",
+      "Composite:HyperfocalDistance"
+    ],
+    "tag_labels": {
+      "IFD0:Model": "カメラ",
+      "Composite:LensID": "レンズ",
+      "ExifIFD:FocalLength": "焦点距離",
+      "ExifIFD:FocalLengthIn35mmFormat": "換算",
+      "ExifIFD:FNumber": "F",
+      "ExifIFD:ExposureTime": "SS",
+      "ExifIFD:ISO": "ISO",
+      "ExifIFD:ExposureCompensation": "露出補正",
+      "Nikon:AFAreaMode": "AFエリアモード",
+      "Nikon:FocusMode": "フォーカスモード",
+      "Nikon:PictureControlName": "ピクチャーコントロール",
+      "Nikon:ShutterMode": "シャッターモード",
+      "Nikon:WhiteBalance": "ホワイトバランス",
+      "Composite:HyperfocalDistance": "過焦点距離"
+    }
+  },
+  "steps": {
+    "gps_tag": true,
+    "manual_gps": true,
+    "copy": true,
+    "exif_export": true,
+    "frame": true
   }
 }

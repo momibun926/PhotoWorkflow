@@ -81,30 +81,41 @@ class ExifConverter:
             return f"({code})"
 
     @staticmethod
-    def format_camera_name(name: Optional[str]) -> str:
+    def format_camera_name(name: Optional[str], rules: Optional[Dict[str, Any]] = None) -> str:
         """カメラ・レンズ名の表記ゆれを補正。
         
         Args:
             name: フォーマット前のカメラ名
+            rules: 補正ルール（replacements/removes/brand_replacements を持つ辞書）。
+                Noneの場合は constants.py のデフォルトルールを使用する。
+                config.jsonの 'camera_name_rules' で機種別ルールを上書きできる
+                （ConfigManager.get_camera_name_rules() 参照）。
             
         Returns:
             フォーマット済みのカメラ名
         """
         if not name or name == "Unknown":
             return "Unknown"
-        
+
+        if rules is None:
+            rules = {
+                "replacements": constants.CAMERA_NAME_REPLACEMENTS,
+                "removes": constants.CAMERA_NAME_REMOVES,
+                "brand_replacements": constants.CAMERA_NAME_BRAND_REPLACEMENTS,
+            }
+
         name_str = str(name)
         
         # 機材名の表記ゆれ補正
-        for old, new in constants.CAMERA_NAME_REPLACEMENTS.items():
+        for old, new in rules["replacements"].items():
             name_str = name_str.replace(old, new)
         
         # 不要な単語を削除
-        for word in constants.CAMERA_NAME_REMOVES:
+        for word in rules["removes"]:
             name_str = name_str.replace(word, "")
         
         # ブランド名の統一化
-        for old, new in constants.CAMERA_NAME_BRAND_REPLACEMENTS.items():
+        for old, new in rules["brand_replacements"].items():
             if name_str.upper().startswith(old.upper()):
                 name_str = name_str.replace(name_str[:len(old)], new)
         
@@ -122,9 +133,12 @@ class ExifReader:
 
         Args:
             exiftool_path: exiftoolの実行ファイルパス。Noneの場合はconfig→自動検索の順で解決
-            config: ConfigManager。exiftoolパス解決に使用
+            config: ConfigManager。exiftoolパス解決およびカメラ名補正ルールの取得に使用
         """
         self._client = ExifToolClient(exiftool_path=exiftool_path, config=config)
+        self._camera_rules: Optional[Dict[str, Any]] = (
+            config.get_camera_name_rules() if config is not None else None
+        )
         logger.info("ExifTool パス: %s", self._client.path)
 
     @property
@@ -155,7 +169,7 @@ class ExifReader:
                 if not source_file:
                     continue
 
-                meta = self._parse_metadata_result(result)
+                meta = self._parse_metadata_result(result, self._camera_rules)
                 metadata_map[os.path.normpath(source_file)] = meta
 
         except ExifToolError as e:
@@ -186,8 +200,13 @@ class ExifReader:
         return self._client.get_gps(file_path)
 
     @staticmethod
-    def _parse_metadata_result(result: Dict[str, Any]) -> PhotoMetadata:
-        """ExifToolの結果をPhotoMetadataに変換。"""
+    def _parse_metadata_result(result: Dict[str, Any], camera_rules: Optional[Dict[str, Any]] = None) -> PhotoMetadata:
+        """ExifToolの結果をPhotoMetadataに変換。
+
+        Args:
+            result: ExifToolから返された1ファイル分のメタデータ辞書
+            camera_rules: カメラ名補正ルール（Noneならconstants.pyのデフォルトを使用）
+        """
         bias_val = float(result.get("EXIF:ExposureCompensation", 0))
         bias_str = f"{bias_val:+.1f}" if bias_val != 0 else "0.0"
 
@@ -214,8 +233,8 @@ class ExifReader:
             ct_str = ""
 
         return PhotoMetadata(
-            camera=ExifConverter.format_camera_name(result.get("EXIF:Model")),
-            lens=ExifConverter.format_camera_name(result.get("EXIF:LensModel")),
+            camera=ExifConverter.format_camera_name(result.get("EXIF:Model"), camera_rules),
+            lens=ExifConverter.format_camera_name(result.get("EXIF:LensModel"), camera_rules),
             focal_length=str(result.get("EXIF:FocalLength", "-")).replace(" mm", ""),
             iso=str(result.get("EXIF:ISO", "-")),
             f_number=str(result.get("EXIF:FNumber", "-")),

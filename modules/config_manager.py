@@ -3,7 +3,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Set
 from types import SimpleNamespace
 
 logger = logging.getLogger(__name__)
@@ -76,7 +76,9 @@ class ConfigManager:
                 raise ValueError(f"設定ファイルに必須キー '{key}' がありません")
 
         # ディレクトリキー
-        required_dirs = ["base", "from_camera", "to_amazon_jpeg", "to_note"]
+        # 'to_amazon_jpeg' は必須から外し、'copy_targets'（可変長のコピー先リスト）
+        # または後方互換の 'directories.to_amazon_jpeg' のどちらかで指定できるようにする。
+        required_dirs = ["base", "from_camera", "to_note"]
         dirs = self.config.get("directories", {})
         for key in required_dirs:
             if key not in dirs:
@@ -164,6 +166,108 @@ class ConfigManager:
         except KeyError as e:
             logger.error("外部ツール設定が見つかりません: %s", tool_key)
             raise KeyError(f"外部ツール設定が見つかりません: {tool_key}") from e
+
+    def get_copy_targets(self) -> List[Dict[str, str]]:
+        """JPEGの追加コピー先（Amazon Photos等）のリストを取得。
+
+        config.json に 'copy_targets'（[{"name": ..., "path": ...}, ...]の形）が
+        あればそれを使う。指定がなければ後方互換のため、旧来の単一キーだった
+        directories.to_amazon_jpeg から1件だけ組み立てる（互換用フォールバック）。
+        コピー先を増やしたい場合は copy_targets にオブジェクトを追加するだけでよく、
+        photo_copier.py 側のコード変更は不要。
+
+        Returns:
+            [{"name": "表示名", "path": "コピー先パス"}, ...] のリスト（0件もあり得る）
+        """
+        targets = self.config.get("copy_targets")
+        if targets:
+            return targets
+
+        dirs = self.config.get("directories", {})
+        if "to_amazon_jpeg" in dirs:
+            return [{"name": "to_amazon_jpeg", "path": dirs["to_amazon_jpeg"]}]
+        return []
+
+    def get_file_extensions(self) -> Dict[str, Set[str]]:
+        """対応ファイル拡張子（JPEG/RAW/GPX）を取得。
+
+        config.json の 'file_types' で上書きでき、指定がないキーは
+        constants.py のデフォルトにフォールバックする。RAWフォーマットが
+        異なるカメラ（Fuji の .raf、Canon の .cr3 等）を追加したい場合、
+        コードを変更せずここに列挙するだけでよい。
+        """
+        from . import constants  # 遅延importで循環参照を避ける
+
+        file_types = self.config.get("file_types", {})
+
+        def _to_ext_set(key: str, default: Set[str]) -> Set[str]:
+            values = file_types.get(key)
+            if not values:
+                return default
+            return {str(v).lower() for v in values}
+
+        return {
+            "jpeg": _to_ext_set("jpeg_extensions", constants.JPEG_EXTENSIONS),
+            "raw": _to_ext_set("raw_extensions", constants.RAW_EXTENSIONS),
+            "gpx": _to_ext_set("gpx_extensions", constants.GPX_EXTENSIONS),
+        }
+
+    def get_camera_name_rules(self) -> Dict[str, Any]:
+        """カメラ・レンズ名の表記ゆれ補正ルールを取得。
+
+        config.json の 'camera_name_rules' で機種別の補正ルールを上書きできる。
+        Nikon以外のカメラを使う場合や、新機種の略記ルールを追加したい場合に
+        constants.py を編集せずに対応できる。
+        """
+        from . import constants
+
+        rules = self.config.get("camera_name_rules", {})
+        return {
+            "replacements": rules.get("replacements", constants.CAMERA_NAME_REPLACEMENTS),
+            "removes": rules.get("removes", constants.CAMERA_NAME_REMOVES),
+            "brand_replacements": rules.get("brand_replacements", constants.CAMERA_NAME_BRAND_REPLACEMENTS),
+        }
+
+    def get_gps_sync_timezone(self) -> str:
+        """GPXログとの時刻同期に使うタイムゾーンを取得。
+
+        海外旅行など、撮影地のタイムゾーンが日本と異なる場合に
+        config.json の 'gps.sync_timezone' で上書きできる。
+        """
+        from . import constants
+
+        return self.config.get("gps", {}).get("sync_timezone", constants.GPS_SYNC_TIMEZONE)
+
+    def get_exif_export_config(self) -> Dict[str, Optional[Any]]:
+        """個別.exifファイルに出力するタグと日本語ラベルの設定を取得。
+
+        config.json の 'exif_export.target_tags' / 'exif_export.tag_labels' で
+        上書きできる。指定がなければ None を返すので、呼び出し側
+        （exif_exporter.py）は自身のデフォルト値を使う。
+        """
+        exif_export = self.config.get("exif_export", {})
+        return {
+            "target_tags": exif_export.get("target_tags"),
+            "tag_labels": exif_export.get("tag_labels"),
+        }
+
+    def get_enabled_steps(self) -> Dict[str, bool]:
+        """有効化されているワークフローステップを取得。
+
+        config.json の 'steps' で特定ステップを恒常的に無効化できる
+        （例: 手動GPS付与ツールを常にスキップしたい、Amazon Photosへの
+        バックアップ運用をやめてSTEP2だけ使いたい、など）。
+        指定がないステップはデフォルトで全て有効。
+        """
+        default_steps = {
+            "gps_tag": True,
+            "manual_gps": True,
+            "copy": True,
+            "exif_export": True,
+            "frame": True,
+        }
+        default_steps.update(self.config.get("steps", {}))
+        return default_steps
 
     def __getattr__(self, name: str) -> Any:
         """属性アクセスのサポート（namespace経由）。"""

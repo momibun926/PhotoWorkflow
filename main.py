@@ -1,10 +1,24 @@
-"""写真整理ワークフロー統括プログラム (main.py)."""
+"""写真整理ワークフロー統括プログラム (main.py).
 
+ワークフローは STEP_DEFINITIONS の配列で定義されている。新しいステップを
+追加したい場合はステップ関数を実装して配列に1行追加するだけでよく、
+main() 本体を直接編集する必要はない。
+
+CLIオプション:
+    --config PATH   config.json のパスを明示指定
+    --yes, -y       すべての確認プロンプトを自動でY（実行）として進める（無人実行向け）
+    --skip STEP     指定したステップをスキップする（複数回指定可）
+    --dry-run       実際のファイル操作は行わず、実行予定のステップのみ表示する
+    --list-steps    実行可能なステップ一覧を表示して終了する
+"""
+
+import argparse
 import logging
 import subprocess
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Tuple, List
+from typing import Callable, List, Optional
 
 # 自作モジュールのインポート
 from modules.config_manager import ConfigManager
@@ -23,6 +37,160 @@ setup_logging(LOG_FILE_PATH)
 
 logger = logging.getLogger(__name__)
 
+
+# ==================================================
+# ワークフローのコンテキスト・ステップ定義
+# ==================================================
+
+@dataclass
+class WorkflowContext:
+    """各ステップ関数が共有する実行時状態。"""
+
+    config: ConfigManager
+    from_camera_dir: Path
+    to_note_dir: Path
+    copy_target_dirs: List[Path]
+    base_dir: Path
+    flame_yaml: str
+    jpeg_files: List[Path] = field(default_factory=list)
+    nef_files: List[Path] = field(default_factory=list)
+    gpx_files: List[Path] = field(default_factory=list)
+
+
+@dataclass
+class WorkflowStep:
+    """1つのワークフローステップの定義。
+
+    Attributes:
+        key: config.json の 'steps' や --skip で参照するキー
+        label: 画面表示用のステップ名
+        action: ctx を受け取り成功可否(bool)を返す実行関数
+        requires_confirmation: Trueなら実行前にY/S/Aで確認する
+        abort_on_failure: Trueならこのステップの失敗でワークフロー全体を中断する
+    """
+
+    key: str
+    label: str
+    action: Callable[[WorkflowContext], bool]
+    requires_confirmation: bool = True
+    abort_on_failure: bool = False
+
+
+def step_gps_tag(ctx: WorkflowContext) -> bool:
+    """STEP 1: GPXログに基づくGPS位置情報の書き込み。"""
+    return apply_gps_tags(ctx.from_camera_dir, ctx.gpx_files, config=ctx.config)
+
+
+def step_manual_gps(ctx: WorkflowContext) -> bool:
+    """STEP 1.5: 手動GPS付与GUIツールの起動。"""
+    run_manual_gps_tagger()
+    # 手動付与でファイルが変更された可能性があるため再分類
+    logger.info("手動GPS付与後のファイル再分類")
+    ctx.jpeg_files, ctx.nef_files, ctx.gpx_files = categorize_files(ctx.from_camera_dir, config=ctx.config)
+    return True
+
+
+def step_copy(ctx: WorkflowContext) -> bool:
+    """STEP 2: 写真ファイルの分類・コピー・整理。"""
+    return copy_and_organize_photos(
+        jpeg_files=ctx.jpeg_files,
+        nef_files=ctx.nef_files,
+        to_note_dir=ctx.to_note_dir,
+        copy_targets=ctx.copy_target_dirs,
+        base_dir=ctx.base_dir,
+        config=ctx.config,
+    )
+
+
+def step_exif_export(ctx: WorkflowContext) -> bool:
+    """STEP 2.5: EXIF抽出・書き出し処理。"""
+    run_exif_exporter(target_dir=ctx.to_note_dir, tsv_filename="exif_list.tsv", app_config=ctx.config)
+    return True
+
+
+def step_frame(ctx: WorkflowContext) -> bool:
+    """STEP 3: フレーム付与処理。"""
+    return run_frame_processing(
+        script_path_or_unused=Path(),
+        target_dir=ctx.to_note_dir,
+        yaml_config=ctx.flame_yaml,
+        app_config=ctx.config,
+    )
+
+
+def build_steps() -> List[WorkflowStep]:
+    """ワークフローのステップ一覧を構築する。
+
+    新しいステップを追加する場合はここに1行加えるだけでよい。
+    """
+    return [
+        WorkflowStep(
+            key="gps_tag",
+            label="STEP 1: GPS位置情報の書き込み",
+            action=step_gps_tag,
+            requires_confirmation=False,  # 従来通り確認なしで自動実行
+            abort_on_failure=True,        # 失敗時はワークフロー全体を中断
+        ),
+        WorkflowStep(
+            key="manual_gps",
+            label="STEP 1.5: 手動GPS情報付与",
+            action=step_manual_gps,
+        ),
+        WorkflowStep(
+            key="copy",
+            label="STEP 2: 写真整理・コピー",
+            action=step_copy,
+        ),
+        WorkflowStep(
+            key="exif_export",
+            label="STEP 2.5: EXIF抽出・書き出し処理",
+            action=step_exif_export,
+        ),
+        WorkflowStep(
+            key="frame",
+            label="STEP 3: フレーム付与処理",
+            action=step_frame,
+        ),
+    ]
+
+
+# ==================================================
+# CLI引数
+# ==================================================
+
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    """コマンドライン引数を解析する。"""
+    parser = argparse.ArgumentParser(
+        description="写真整理ワークフロープログラム",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument(
+        "--config", type=Path, default=None,
+        help="config.json のパス（省略時はカレントディレクトリ等を自動探索）",
+    )
+    parser.add_argument(
+        "--yes", "-y", action="store_true",
+        help="すべての確認プロンプトを自動でY（実行）として進める（無人実行向け）",
+    )
+    parser.add_argument(
+        "--skip", action="append", metavar="STEP", default=[],
+        choices=[s.key for s in build_steps()],
+        help="指定したステップをスキップする（複数回指定可）",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true",
+        help="実際のファイル操作は行わず、実行予定のステップのみ表示する",
+    )
+    parser.add_argument(
+        "--list-steps", action="store_true",
+        help="実行可能なステップ一覧を表示して終了する",
+    )
+    return parser.parse_args(argv)
+
+
+# ==================================================
+# 対話プロンプト
+# ==================================================
 
 def prompt_next_action(next_step_name: str) -> str:
     """次のステップへの進行確認を行います。
@@ -58,38 +226,9 @@ def prompt_next_action(next_step_name: str) -> str:
             print(f" [!] 入力エラーが発生しました: {e}")
 
 
-def prompt_manual_gps_option() -> bool:
-    """手動でGPS情報を付与するかどうかを確認。
-    
-    Returns:
-        True の場合は起動、False の場合はスキップ
-    """
-    print("\n\n--------------------------------------------------")
-    while True:
-        try:
-            choice = (
-                input(
-                    "手動GPS付与ツールを起動しますか？\n"
-                    "  [Y] 起動する / [S] 起動せずに次へ進む (Y/S): "
-                )
-                .strip()
-                .upper()
-            )
-            if choice in ["Y", "S"]:
-                print("--------------------------------------------------\n")
-                result = choice == "Y"
-                logger.info("手動GPS付与ツール: %s", "起動" if result else "スキップ")
-                return result
-            print(" [!] 無効な入力です。'Y' または 'S' を入力してください。")
-        except KeyboardInterrupt:
-            logger.warning("ユーザーが Ctrl+C で中断")
-            print("\n[!] 入力がキャンセルされました")
-            return False
-        except Exception as e:
-            logger.error("入力エラー: %s", e)
-            print(f" [!] 入力エラーが発生しました: {e}")
-            return False
-
+# ==================================================
+# 外部ツール起動ヘルパー
+# ==================================================
 
 def run_manual_gps_tagger() -> None:
     """手動GPS付与GUIツールを起動。"""
@@ -130,7 +269,8 @@ def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv", app
     """外部スクリプト exif_exporter.py を呼び出して EXIF 情報を抽出・出力。
 
     別プロセスとして起動するため、config.json の exiftool パスは文字列として
-    コマンドライン引数で渡す（ConfigManagerオブジェクト自体はプロセスをまたげない）。
+    コマンドライン引数で渡す（ConfigManagerオブジェクト自体はプロセスをまたげない。
+    exif_exporter.py 側は自分自身で config.json を再読み込みし、出力タグ設定等を取得する）。
     """
     script_path = Path(__file__).parent / "modules" / "exif_exporter.py"
 
@@ -176,15 +316,71 @@ def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv", app
         logger.error(msg, exc_info=True)
 
 
-def main() -> None:
+# ==================================================
+# ワークフロー実行
+# ==================================================
+
+def run_workflow(ctx: WorkflowContext, args: argparse.Namespace) -> None:
+    """ステップ配列を順に実行する。"""
+    enabled_steps = ctx.config.get_enabled_steps()
+    skip_from_cli = set(args.skip)
+
+    for step in build_steps():
+        if not enabled_steps.get(step.key, True):
+            print(f"\n[{step.label}] は config.json の設定によりスキップされました。")
+            logger.info("%s: config設定によりスキップ", step.key)
+            continue
+
+        if step.key in skip_from_cli:
+            print(f"\n[{step.label}] は --skip 指定によりスキップされました。")
+            logger.info("%s: --skip指定によりスキップ", step.key)
+            continue
+
+        if step.requires_confirmation and not args.yes:
+            choice = prompt_next_action(step.label)
+            if choice == "A":
+                print("\nユーザーにより処理が中断されました。")
+                logger.info("ユーザーが %s で中止", step.key)
+                return
+            if choice == "S":
+                print(f"\n[{step.label}] をスキップしました。")
+                logger.info("%s をスキップ", step.key)
+                continue
+
+        if args.dry_run:
+            print(f"\n[dry-run] {step.label} を実行します（実際にはファイル操作を行いません）")
+            logger.info("[dry-run] %s は実行対象（実処理はスキップ）", step.key)
+            continue
+
+        logger.info("%s 開始", step.key)
+        ok = step.action(ctx)
+        if not ok and step.abort_on_failure:
+            print(f"\n{step.label} で重大なエラーが発生したため中断します。")
+            logger.error("%s エラーで中止", step.key)
+            return
+
+    print("\n==================================================")
+    print(" すべてのワークフロー工程が終了しました！")
+    print("==================================================")
+    logger.info("すべてのワークフロー工程が正常に完了しました")
+
+
+def main(args: argparse.Namespace) -> None:
     """メイン実行エントリーポイント。"""
+    if args.list_steps:
+        print("実行可能なステップ一覧:")
+        for step in build_steps():
+            confirm = "確認あり" if step.requires_confirmation else "自動実行"
+            print(f"  - {step.key:<12} {step.label} ({confirm})")
+        return
+
     print("==================================================")
     print("      写真整理ワークフロープログラム")
     print("==================================================")
 
     try:
         # 設定の読み込み
-        config_file = Path(__file__).parent / "config.json"
+        config_file = args.config if args.config is not None else Path(__file__).parent / "config.json"
         try:
             config = ConfigManager(config_file)
         except (FileNotFoundError, ValueError) as e:
@@ -192,13 +388,13 @@ def main() -> None:
             logger.error("設定読み込みエラー: %s", e)
             return
 
-        # ディレクトリパスを取得
+        # ディレクトリ・設定値を取得
         try:
             from_camera_dir = config.get_directory("from_camera")
-            to_amazon_jpeg_dir = config.get_directory("to_amazon_jpeg")
             to_note_dir = config.get_directory("to_note")
             base_dir = config.get_directory("base")
             flame_yaml = config.get("external_tools.flame_config")
+            copy_target_dirs = [Path(t["path"]) for t in config.get_copy_targets()]
         except KeyError as e:
             print(f"\n[エラー] 設定キーが不足しています: {e}")
             logger.error("設定キーエラー: %s", e)
@@ -213,90 +409,21 @@ def main() -> None:
 
         # ファイル分類
         logger.info("ファイル分類開始")
-        jpeg_files, nef_files, gpx_files = categorize_files(from_camera_dir)
+        jpeg_files, nef_files, gpx_files = categorize_files(from_camera_dir, config=config)
 
-        # --------------------------------------------------
-        # STEP 1: GPS書き込み
-        # --------------------------------------------------
-        logger.info("STEP 1: GPS 書き込み開始")
-        if not apply_gps_tags(from_camera_dir, gpx_files, config=config):
-            print("\nGPSタグ書き込みで重大なエラーが発生したため中断します。")
-            logger.error("STEP 1 エラーで中止")
-            return
+        ctx = WorkflowContext(
+            config=config,
+            from_camera_dir=from_camera_dir,
+            to_note_dir=to_note_dir,
+            copy_target_dirs=copy_target_dirs,
+            base_dir=base_dir,
+            flame_yaml=str(flame_yaml),
+            jpeg_files=jpeg_files,
+            nef_files=nef_files,
+            gpx_files=gpx_files,
+        )
 
-        # --------------------------------------------------
-        # STEP 1.5: 手動GPS情報付与 (追加ステップ)
-        # --------------------------------------------------
-        if prompt_manual_gps_option():
-            run_manual_gps_tagger()
-            # 手動付与でファイルが変更された可能性があるため再分類
-            logger.info("手動GPS付与後のファイル再分類")
-            jpeg_files, nef_files, gpx_files = categorize_files(from_camera_dir)
-
-        action = prompt_next_action("STEP 2: 写真整理・コピー")
-        if action == "A":
-            print("\nユーザーにより処理が中断されました。")
-            logger.info("ユーザーが STEP 2 で中止")
-            return
-
-        # --------------------------------------------------
-        # STEP 2: 写真整理・コピー
-        # --------------------------------------------------
-        if action == "Y":
-            logger.info("STEP 2: 写真整理・コピー開始")
-            copy_and_organize_photos(
-                jpeg_files=jpeg_files,
-                nef_files=nef_files,
-                to_note_dir=to_note_dir,
-                to_amazon_jpeg_dir=to_amazon_jpeg_dir,
-                base_dir=base_dir,
-                config=config,
-            )
-        elif action == "S":
-            print("\n[STEP 2: 写真整理・コピー] をスキップしました。")
-            logger.info("STEP 2 をスキップ")
-
-        # --------------------------------------------------
-        # STEP 2.5: EXIF抽出・書き出し処理
-        # --------------------------------------------------
-        action = prompt_next_action("STEP 2.5: EXIF抽出・書き出し処理")
-        if action == "A":
-            print("\nユーザーにより処理が中断されました。")
-            logger.info("ユーザーが STEP 2.5 で中止")
-            return
-
-        if action == "Y":
-            logger.info("STEP 2.5: EXIF抽出・書き出し処理開始")
-            run_exif_exporter(target_dir=to_note_dir, tsv_filename="exif_list.tsv", app_config=config)
-        elif action == "S":
-            print("\n[STEP 2.5: EXIF抽出・書き出し処理] をスキップしました。")
-            logger.info("STEP 2.5 をスキップ")
-
-        action = prompt_next_action("STEP 3: フレーム付与処理")
-        if action == "A":
-            print("\nユーザーにより処理が中断されました。")
-            logger.info("ユーザーが STEP 3 で中止")
-            return
-
-        # --------------------------------------------------
-        # STEP 3: フレーム付与処理
-        # --------------------------------------------------
-        if action == "Y":
-            logger.info("STEP 3: フレーム付与処理開始")
-            run_frame_processing(
-                script_path_or_unused=Path(),
-                target_dir=to_note_dir,
-                yaml_config=str(flame_yaml),
-                app_config=config,
-            )
-        elif action == "S":
-            print("\n[STEP 3: フレーム付与処理] をスキップしました。")
-            logger.info("STEP 3 をスキップ")
-
-        print("\n==================================================")
-        print(" すべてのワークフロー工程が終了しました！")
-        print("==================================================")
-        logger.info("すべてのワークフロー工程が正常に完了しました")
+        run_workflow(ctx, args)
 
     except KeyboardInterrupt:
         print("\n\n[!] ユーザーが Ctrl+C で中断しました")
@@ -307,11 +434,12 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    cli_args = parse_args()
     try:
         logger.info("=" * 50)
         logger.info("写真整理ワークフロープログラムを開始します")
         logger.info("=" * 50)
-        main()
+        main(cli_args)
     except KeyboardInterrupt:
         print("\n\n[!] プログラムが Ctrl+C で中断されました")
         logger.warning("プログラムが Ctrl+C で中止されました")
@@ -322,11 +450,13 @@ if __name__ == "__main__":
         sys.exit(1)
     finally:
         print()
-        try:
-            input("キーを押すと終了します...")
-        except (KeyboardInterrupt, EOFError):
-            pass
-        finally:
-            logger.info("=" * 50)
-            logger.info("プログラムを終了します")
-            logger.info("=" * 50)
+        # 無人実行（--yes）や標準入力が対話端末でない場合は
+        # キー入力待ちで停止させない（cron/タスクスケジューラ運用を想定）
+        if not cli_args.yes and sys.stdin.isatty():
+            try:
+                input("キーを押すと終了します...")
+            except (KeyboardInterrupt, EOFError):
+                pass
+        logger.info("=" * 50)
+        logger.info("プログラムを終了します")
+        logger.info("=" * 50)
