@@ -10,7 +10,7 @@ fonts:
   regular:
     - "fonts/SofiaSans-Light.ttf"        # 相対パスで指定
     - "arial.ttf"
-s
+
 # 色設定 (HEX形式)
 colors:
   bg: "#222222"
@@ -27,12 +27,10 @@ ratios:
 layout:
   top: "{camera}   {lens}"
   bottom: "{focal_length}mm  |  f{f_number}  {shutter}  ISO {iso}  |  {exposure_bias}EV  |  {exposure_mode}  |  {picture_control}  |  {white_balance} {color_temperature}"
-  # 行間のピクセル数 (size_typeに関わらずpxで指定すると微調整しやすいです)
-  line_spacing_px: 150
   # 下部余白の上端から 1行目(top) までの距離の割合（値を小さくすると上に移動します）
   # 例: 0.35 -> 0.20 や 0.25 に変更することで位置が上になります
   top_padding_ratio: 0.20
-  # 行間（ピクセル）
+  # 行間のピクセル数 (size_typeに関わらずpxで指定すると微調整しやすいです)
   line_spacing_px: 140
 
 # 出力設定

@@ -11,28 +11,15 @@ from modules.config_manager import ConfigManager
 from modules.gps_tagger import apply_gps_tags
 from modules.photo_copier import categorize_files, copy_and_organize_photos
 from modules.frame_processor import run_frame_processing
+from modules.logging_config import setup_logging, DEFAULT_LOG_FILE
 from modules import constants
 
 # --- ログ設定 ---
-LOG_FILE_PATH = Path(__file__).parent / "photo_organizer.log"
-
-# ルートロガーの設定（すべてのモジュールに適用）
-logging.basicConfig(
-    level=logging.INFO,
-    format=constants.LOG_FORMAT,
-    datefmt=constants.LOG_DATE_FORMAT,
-    handlers=[
-        logging.FileHandler(LOG_FILE_PATH, encoding="utf-8"),
-        logging.StreamHandler(sys.stdout),
-    ]
-)
-
-# ファイルハンドラのレベル調整
-for handler in logging.root.handlers:
-    if isinstance(handler, logging.FileHandler):
-        handler.setLevel(logging.INFO)
-    elif isinstance(handler, logging.StreamHandler):
-        handler.setLevel(logging.WARNING)
+# ファイルには詳細(INFO)を、画面にはWARNING以上のみを簡潔に表示する。
+# manual_gps_tagger.py / exif_exporter.py もこの共通設定を使うため、
+# 別プロセスとして起動された場合でも画面表示のポリシーが揃う。
+LOG_FILE_PATH = DEFAULT_LOG_FILE
+setup_logging(LOG_FILE_PATH)
 
 logger = logging.getLogger(__name__)
 
@@ -139,8 +126,12 @@ def run_manual_gps_tagger() -> None:
         logger.error(msg, exc_info=True)
 
 
-def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv") -> None:
-    """外部スクリプト exif_exporter.py を呼び出して EXIF 情報を抽出・出力。"""
+def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv", app_config=None) -> None:
+    """外部スクリプト exif_exporter.py を呼び出して EXIF 情報を抽出・出力。
+
+    別プロセスとして起動するため、config.json の exiftool パスは文字列として
+    コマンドライン引数で渡す（ConfigManagerオブジェクト自体はプロセスをまたげない）。
+    """
     script_path = Path(__file__).parent / "modules" / "exif_exporter.py"
 
     if not script_path.exists():
@@ -149,10 +140,19 @@ def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv") -> 
         logger.warning(msg)
         return
 
+    exiftool_path = ""
+    if app_config is not None:
+        try:
+            exiftool_path = str(app_config.get_tool_path("exiftool"))
+        except KeyError:
+            logger.warning("config.jsonにexiftoolパスが見つからないため、自動検索に委ねます")
+
     print("EXIF抽出・書き出しツールを起動しています...")
     logger.info("EXIF抽出ツールを実行: %s %s %s", script_path, target_dir, tsv_filename)
 
     cmd = [sys.executable, str(script_path), str(target_dir), tsv_filename]
+    if exiftool_path:
+        cmd.append(exiftool_path)
 
     try:
         result = subprocess.run(
@@ -219,7 +219,7 @@ def main() -> None:
         # STEP 1: GPS書き込み
         # --------------------------------------------------
         logger.info("STEP 1: GPS 書き込み開始")
-        if not apply_gps_tags(from_camera_dir, gpx_files):
+        if not apply_gps_tags(from_camera_dir, gpx_files, config=config):
             print("\nGPSタグ書き込みで重大なエラーが発生したため中断します。")
             logger.error("STEP 1 エラーで中止")
             return
@@ -250,6 +250,7 @@ def main() -> None:
                 to_note_dir=to_note_dir,
                 to_amazon_jpeg_dir=to_amazon_jpeg_dir,
                 base_dir=base_dir,
+                config=config,
             )
         elif action == "S":
             print("\n[STEP 2: 写真整理・コピー] をスキップしました。")
@@ -266,7 +267,7 @@ def main() -> None:
 
         if action == "Y":
             logger.info("STEP 2.5: EXIF抽出・書き出し処理開始")
-            run_exif_exporter(target_dir=to_note_dir, tsv_filename="exif_list.tsv")
+            run_exif_exporter(target_dir=to_note_dir, tsv_filename="exif_list.tsv", app_config=config)
         elif action == "S":
             print("\n[STEP 2.5: EXIF抽出・書き出し処理] をスキップしました。")
             logger.info("STEP 2.5 をスキップ")
@@ -286,6 +287,7 @@ def main() -> None:
                 script_path_or_unused=Path(),
                 target_dir=to_note_dir,
                 yaml_config=str(flame_yaml),
+                app_config=config,
             )
         elif action == "S":
             print("\n[STEP 3: フレーム付与処理] をスキップしました。")

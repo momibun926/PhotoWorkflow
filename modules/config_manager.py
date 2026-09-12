@@ -2,17 +2,15 @@
 
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any, Dict, Optional
 from types import SimpleNamespace
-import sys
 
 logger = logging.getLogger(__name__)
 
 
 class ConfigManager:
-    """JSON形式の設定ファイルを管理するクラス。"""
+    """JSON形式の設定ファイル（config.json）を管理するクラス。"""
 
     def __init__(self, config_path: Optional[Path] = None):
         """初期化。
@@ -146,6 +144,10 @@ class ConfigManager:
 
     def get_tool_path(self, tool_key: str) -> Path:
         """外部ツールのパスを取得し、Pathオブジェクトとして返す。
+
+        gps_tagger / exif_utils / manual_gps_tagger / exif_exporter は
+        すべて ExifToolClient 経由でこのメソッドを呼び出し、exiftoolの
+        パス解決を一元化している。
         
         Args:
             tool_key: ツールキー（例：'exiftool', 'flame_script'）
@@ -169,7 +171,17 @@ class ConfigManager:
 
 
 class YamlConfigManager:
-    """YAML形式の設定ファイルを管理するクラス。"""
+    """YAML形式の設定ファイル（フレームレイアウト設定）を管理するクラス。"""
+
+    #: frame_processor.py が参照する必須キー。欠落時は起動時に検出できるよう検証する。
+    REQUIRED_TOP_KEYS = ("fonts", "colors", "ratios", "layout", "output")
+    REQUIRED_KEYS = {
+        "fonts": ("size_type", "main_size", "sub_size", "bold", "regular"),
+        "colors": ("bg", "main", "sub"),
+        "ratios": ("bottom_margin", "side_margin"),
+        "layout": ("top", "bottom"),
+        "output": ("prefix", "dir_name"),
+    }
 
     def __init__(self, config_path: Path):
         """初期化。
@@ -179,7 +191,7 @@ class YamlConfigManager:
             
         Raises:
             FileNotFoundError: ファイルが存在しない場合
-            ValueError: YAML形式が不正な場合
+            ValueError: YAML形式が不正、または必須キーが不足している場合
         """
         self.config_path = Path(config_path)
         self.config: Dict[str, Any] = {}
@@ -208,7 +220,22 @@ class YamlConfigManager:
             logger.error("設定ファイル読み込みエラー: %s", e)
             raise
 
+        self._validate_config()
         self.namespace = self._dict_to_namespace(self.config)
+
+    def _validate_config(self) -> None:
+        """必須キーの検証。frame_processor.py実行中のAttributeErrorを未然に防ぐ。"""
+        for top_key in self.REQUIRED_TOP_KEYS:
+            if top_key not in self.config:
+                raise ValueError(f"{self.config_path.name} に必須キー '{top_key}' がありません")
+
+        for top_key, sub_keys in self.REQUIRED_KEYS.items():
+            section = self.config.get(top_key, {}) or {}
+            for sub_key in sub_keys:
+                if sub_key not in section:
+                    raise ValueError(
+                        f"{self.config_path.name} の '{top_key}' に必須キー '{sub_key}' がありません"
+                    )
 
     @staticmethod
     def _dict_to_namespace(data: Any) -> Any:

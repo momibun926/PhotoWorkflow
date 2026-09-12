@@ -88,6 +88,8 @@ LOG_FORMAT: str = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 LOG_DATE_FORMAT: str = "%Y-%m-%d %H:%M:%S"
 LOG_LEVEL_FILE: str = "INFO"
 LOG_LEVEL_CONSOLE: str = "WARNING"
+# コンソールにはタイムスタンプやロガー名を出さず、簡潔に表示する
+CONSOLE_LOG_FORMAT: str = "[%(levelname)s] %(message)s"
 
 # ===== プログレス表示 =====
 PROGRESS_FORMAT: str = "[{:3d}%] ({}/{})"

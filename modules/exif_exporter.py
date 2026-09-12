@@ -2,15 +2,21 @@
 exif_data フォルダ内に全データTSVおよび個別の .exif ファイルを出力するスクリプト。
 """
 
-import json
 import logging
-import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
-# ログの設定
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+try:
+    # パッケージとして実行された場合（本来の使われ方）
+    from .exiftool_client import ExifToolClient, ExifToolError
+    from .logging_config import setup_logging
+except ImportError:
+    # main.py から subprocess で単独スクリプトとして起動された場合のフォールバック
+    # （manual_gps_tagger.py と同じパターン）
+    from exiftool_client import ExifToolClient, ExifToolError
+    from logging_config import setup_logging
+
 logger = logging.getLogger(__name__)
 
 # 個別 .exif ファイルに出力する対象タグの一覧
@@ -50,13 +56,6 @@ TAG_JAPANESE_NAMES = {
 }
 
 
-def find_exiftool() -> str:
-    """ExifToolの実行可能ファイルパスを検索。"""
-    import shutil
-    path = shutil.which("exiftool.exe") or shutil.which("exiftool") or "exiftool"
-    return path
-
-
 def export_individual_exif(item: Dict[str, Any], output_dir: Path) -> None:
     """写真1枚ごとの個別 .exif ファイルを生成する（日本語ラベル付き）。"""
     source_path_str = item.get("SourceFile", "")
@@ -86,8 +85,20 @@ def export_individual_exif(item: Dict[str, Any], output_dir: Path) -> None:
         logger.error("個別EXIF書き込みエラー (%s): %s", exif_filename, e)
 
 
-def extract_all_exif_recursive(target_dir: Path, output_dir_name: str = "exif_data", tsv_filename: str = "exif_summary.tsv") -> bool:
-    """ディレクトリ内の写真を再帰検索し、exif_dataフォルダ内にTSVおよび個別.exifを出力する。"""
+def extract_all_exif_recursive(
+    target_dir: Path,
+    output_dir_name: str = "exif_data",
+    tsv_filename: str = "exif_summary.tsv",
+    config: Optional[Any] = None,
+    exiftool_path: Optional[str] = None,
+) -> bool:
+    """ディレクトリ内の写真を再帰検索し、exif_dataフォルダ内にTSVおよび個別.exifを出力する。
+
+    Args:
+        config: ConfigManager。exiftoolのパス解決に使用（同一プロセス内呼び出し用）
+        exiftool_path: exiftool実行ファイルの明示パス（別プロセス起動時など、configが
+            渡せない場合に使用。config指定時はexiftool_pathが優先される）
+    """
     if not target_dir.exists() or not target_dir.is_dir():
         logger.error("指定されたディレクトリが存在しません: %s", target_dir)
         return False
@@ -95,39 +106,20 @@ def extract_all_exif_recursive(target_dir: Path, output_dir_name: str = "exif_da
     # 出力先フォルダ（exif_data）の作成
     output_dir = target_dir / output_dir_name
     output_dir.mkdir(parents=True, exist_ok=True)
-    
+
     output_tsv_path = output_dir / tsv_filename
 
-    exiftool_path = find_exiftool()
-    logger.info("ExifTool を呼び出してサブフォルダ配下のメタデータを抽出中: %s", target_dir)
-
-    cmd = [
-        exiftool_path,
-        "-r",
-        "-ext", "jpg",
-        "-ext", "jpeg",
-        "-ext", "nef",
-        "-j",
-        "-G1",
-        str(target_dir.resolve())
-    ]
+    et = ExifToolClient(exiftool_path=exiftool_path, config=config)
+    logger.info("ExifTool を呼び出してサブフォルダ配下のメタデータを抽出中: %s (path=%s)", target_dir, et.path)
 
     try:
-        result = subprocess.run(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            check=True
+        data: List[Dict[str, Any]] = et.extract_recursive(
+            directory=target_dir,
+            extensions=["jpg", "jpeg", "nef"],
+            group_names=True,
         )
-        data: List[Dict[str, Any]] = json.loads(result.stdout)
-    except subprocess.CalledProcessError as e:
-        logger.error("ExifToolの実行に失敗しました: %s", e.stderr)
-        return False
-    except Exception as e:
-        logger.error("データ解析エラー: %s", e, exc_info=True)
+    except ExifToolError as e:
+        logger.error("ExifToolの実行に失敗しました: %s", e)
         return False
 
     if not data:
@@ -161,7 +153,7 @@ def extract_all_exif_recursive(target_dir: Path, output_dir_name: str = "exif_da
                     row_values.append(val_str)
                 f.write("\t".join(row_values) + "\n")
 
-        logger.info("処理完了: %s フォルダにTSVおよび個別.exifを出力しました。", output_dir)
+        logger.info("処理完了: %s フォルダにTSV(%s)および個別.exifを出力しました。", output_dir, tsv_filename)
         return True
 
     except Exception as e:
@@ -170,5 +162,15 @@ def extract_all_exif_recursive(target_dir: Path, output_dir_name: str = "exif_da
 
 
 if __name__ == "__main__":
+    # main.py と同じ共通ログ設定を使う（画面にはWARNING以上のみ、
+    # 詳細は同じ photo_organizer.log に集約）
+    setup_logging()
+
+    # sys.argv[1]: 対象ディレクトリ
+    # sys.argv[2]: TSVファイル名（省略可）
+    # sys.argv[3]: exiftool実行ファイルパス（省略可。main.py経由の場合、config.jsonの値が渡される）
     input_directory = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".")
-    extract_all_exif_recursive(input_directory)
+    tsv_name = sys.argv[2] if len(sys.argv) > 2 else "exif_summary.tsv"
+    exiftool_path = sys.argv[3] if len(sys.argv) > 3 else None
+
+    extract_all_exif_recursive(input_directory, tsv_filename=tsv_name, exiftool_path=exiftool_path)

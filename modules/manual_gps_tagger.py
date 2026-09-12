@@ -7,13 +7,10 @@ RAW ファイルのサムネイル表示とExif情報の編集が可能。
 import logging
 import sys
 import os
-import json
-import subprocess
 from typing import Optional, Dict, Any
 from pathlib import Path
 
 import rawpy
-import configparser
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QListWidgetItem, QPushButton, QLabel, QSplitter,
@@ -25,26 +22,36 @@ from PyQt6.QtCore import Qt, QUrl, pyqtSlot, QObject, QSize, QTimer, QThread, py
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
 
+try:
+    # パッケージとして実行された場合（本来の使われ方）
+    from .config_manager import ConfigManager
+    from .exiftool_client import ExifToolClient
+    from .logging_config import setup_logging
+except ImportError:
+    # 単独スクリプトとして実行された場合のフォールバック
+    from config_manager import ConfigManager
+    from exiftool_client import ExifToolClient
+    from logging_config import setup_logging
+
 # ロギング設定
 logger = logging.getLogger(__name__)
 
-# --- 設定の読み込み ---
-def load_app_config() -> Dict[str, Any]:
-    """アプリケーション設定の読み込み。"""
-    path = "config.json"
+# --- 設定の読み込み（他モジュールと同じ ConfigManager を使用して一元化） ---
+def load_app_config() -> Optional[ConfigManager]:
+    """アプリケーション設定(config.json)の読み込み。見つからない場合はNone。"""
     try:
-        if os.path.exists(path):
-            with open(path, "r", encoding="utf-8") as f:
-                config = json.load(f)
-                logger.info("アプリケーション設定を読み込みました")
-                return config
-    except Exception as e:
-        logger.warning("設定ファイルの読み込みに失敗: %s", e)
-    return {}
+        return ConfigManager()
+    except (FileNotFoundError, ValueError) as e:
+        logger.warning("config.json の読み込みに失敗: %s", e)
+        return None
 
 APP_CONFIG = load_app_config()
-EXIFTOOL = APP_CONFIG.get("external_tools", {}).get("exiftool", "exiftool")
-INIT_DIR = APP_CONFIG.get("directories", {}).get("from_camera", r"C:\SHARE\Photo\from_camera")
+INIT_DIR = (
+    str(APP_CONFIG.get_directory("from_camera"))
+    if APP_CONFIG is not None
+    else r"C:\SHARE\Photo\from_camera"
+)
+
 
 def format_technical_terms(text: str) -> str:
     """カメラ・レンズ名の表記を補正。"""
@@ -59,29 +66,10 @@ def format_technical_terms(text: str) -> str:
     )
     return text
 
-def get_creation_flags() -> int:
-    """Windows環境でサブプロセス実行時にコンソール画面を出さないフラグを返す。"""
-    return subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
-
-# --- 設定管理クラス ---
-class ConfigManager:
-    """API キーなどのローカル設定を管理。"""
-    
-    def __init__(self) -> None:
-        self.api_key: str = ""
-        self.load()
-
-    def load(self) -> None:
-        """設定ファイルから API キーを読み込み。"""
-        try:
-            config = configparser.ConfigParser()
-            path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')
-            if os.path.exists(path):
-                config.read(path, encoding='utf-8')
-                self.api_key = config.get('GOOGLE_MAPS', 'API_KEY', fallback="")
-                logger.debug("設定ファイルから API キーを読み込みました")
-        except Exception as e:
-            logger.warning("設定ファイルの読み込みエラー: %s", e)
+# NOTE: 以前ここには Google Maps API キー用の独自 ConfigManager クラスがあったが、
+# 地図には Leaflet + OpenStreetMap を使用しており api_key はどこからも参照されて
+# いなかった（デッドコード）ため削除。設定管理は config_manager.ConfigManager に
+# 一元化する（モジュール冒頭の APP_CONFIG を参照）。
 
 # --- バックグラウンド処理（読み込み）用スレッド ---
 class LoadWorker(QThread):
@@ -95,6 +83,8 @@ class LoadWorker(QThread):
         self.directory = directory
         self.thumb_size = thumb_size
         self._is_running = True
+        # exiftoolのパス解決・呼び出しは ExifToolClient に一元化する
+        self.et = ExifToolClient(config=APP_CONFIG)
         logger.info("LoadWorker 初期化: directory=%s, thumb_size=%d", directory, thumb_size)
 
     def run(self) -> None:
@@ -112,8 +102,8 @@ class LoadWorker(QThread):
                 self.finished.emit(0)
                 return
 
-            # フォルダ単位で一括してメタデータを取得
-            meta_dict = self.batch_read_exif(self.directory)
+            # フォルダ単位で一括してメタデータを取得（exiftool呼び出しは1回のみ）
+            meta_dict = self.et.get_gps_orientation_batch(Path(self.directory))
 
             for i, f in enumerate(files):
                 if not self._is_running:
@@ -144,44 +134,6 @@ class LoadWorker(QThread):
         """スレッドを停止。"""
         self._is_running = False
         logger.debug("LoadWorker 停止要求")
-
-    def batch_read_exif(self, directory: str) -> Dict[str, Dict[str, Any]]:
-        """ExifTool を使用してメタデータを一括取得。"""
-        cmd = [EXIFTOOL, '-j', '-n', '-Orientation', '-GPSLatitude', '-GPSLongitude', directory]
-        meta_dict: Dict[str, Dict[str, Any]] = {}
-        
-        try:
-            res = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                creationflags=get_creation_flags(),
-                timeout=30
-            )
-            
-            if res.returncode != 0 and not res.stdout:
-                logger.warning("ExifTool 実行エラー: %s", res.stderr)
-                return meta_dict
-            
-            if res.stdout:
-                try:
-                    data = json.loads(res.stdout)
-                    for item in data:
-                        path = os.path.normpath(item.get('SourceFile', ''))
-                        meta_dict[path] = {
-                            'orientation': item.get('Orientation', 1),
-                            'lat': item.get('GPSLatitude'),
-                            'lng': item.get('GPSLongitude')
-                        }
-                    logger.debug("ExifTool 実行完了: %d ファイル", len(meta_dict))
-                except json.JSONDecodeError as e:
-                    logger.error("JSON デコードエラー: %s", e)
-        except subprocess.TimeoutExpired:
-            logger.error("ExifTool がタイムアウト")
-        except Exception as e:
-            logger.error("batch_read_exif エラー: %s", e)
-        
-        return meta_dict
 
     def load_thumbnail(self, path: str, orientation: int) -> Optional[QImage]:
         """ファイルのサムネイルを読み込み。"""
@@ -224,14 +176,11 @@ class LoadWorker(QThread):
     def extract_thumb_fast(self, path: str) -> Optional[QImage]:
         """ExifTool でプレビュー画像を抽出。"""
         try:
-            cmd = [EXIFTOOL, '-b', '-PreviewImage', path]
-            res = subprocess.run(cmd, capture_output=True, creationflags=get_creation_flags(), timeout=5)
-            if res.stdout:
-                qimg = QImage.fromData(res.stdout)
+            data = self.et.get_binary_tag(Path(path), "PreviewImage", timeout=5)
+            if data:
+                qimg = QImage.fromData(data)
                 if not qimg.isNull():
                     return qimg
-        except subprocess.TimeoutExpired:
-            logger.debug("サムネイル抽出タイムアウト: %s", path)
         except Exception as e:
             logger.debug("サムネイル抽出失敗 (Fast): %s", e)
         return None
@@ -259,6 +208,7 @@ class WriteWorker(QThread):
         self.items_data = items_data
         self.lat = lat
         self.lng = lng
+        self.et = ExifToolClient(config=APP_CONFIG)
         logger.info("WriteWorker 初期化: %d ファイル, lat=%.6f, lng=%.6f",
                    len(items_data), lat, lng)
 
@@ -268,38 +218,15 @@ class WriteWorker(QThread):
         success_count = 0
         
         for i, (path, _) in enumerate(self.items_data):
-            try:
-                current = i + 1
-                filename = os.path.basename(path)
-                self.progress.emit(current, total, filename)
+            current = i + 1
+            filename = os.path.basename(path)
+            self.progress.emit(current, total, filename)
 
-                cmd = [
-                    EXIFTOOL,
-                    f"-GPSLatitude={self.lat}",
-                    f"-GPSLongitude={self.lng}",
-                    "-GPSLatitudeRef=N" if self.lat >= 0 else "-GPSLatitudeRef=S",
-                    "-GPSLongitudeRef=E" if self.lng >= 0 else "-GPSLongitudeRef=W",
-                    "-overwrite_original",
-                    path
-                ]
-                
-                result = subprocess.run(
-                    cmd,
-                    capture_output=True,
-                    creationflags=get_creation_flags(),
-                    timeout=10
-                )
-                
-                if result.returncode == 0:
-                    success_count += 1
-                    logger.debug("GPS書き込み成功: %s", filename)
-                else:
-                    logger.warning("GPS書き込み失敗: %s (exitcode=%d)", filename, result.returncode)
-                    
-            except subprocess.TimeoutExpired:
-                logger.error("GPS書き込みタイムアウト: %s", os.path.basename(path))
-            except Exception as e:
-                logger.error("GPS書き込みエラー (%s): %s", os.path.basename(path), e)
+            if self.et.write_gps(Path(path), self.lat, self.lng, timeout=10):
+                success_count += 1
+                logger.debug("GPS書き込み成功: %s", filename)
+            else:
+                logger.warning("GPS書き込み失敗: %s", filename)
 
         logger.info("GPS書き込み完了: %d/%d ファイル", success_count, total)
         self.finished.emit()
@@ -338,10 +265,10 @@ class PreviewDialog(QDialog):
 
     def load_exif(self, path):
         try:
-            tags = ['-Model', '-LensID', '-LensModel', '-ExposureTime', '-FNumber', 
-                    '-ISO', '-FocalLength', '-DateTimeOriginal', '-ImageSize']
-            cmd = [EXIFTOOL, '-S'] + tags + [path]
-            res = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', creationflags=get_creation_flags()).stdout
+            tags = ['Model', 'LensID', 'LensModel', 'ExposureTime', 'FNumber',
+                    'ISO', 'FocalLength', 'DateTimeOriginal', 'ImageSize']
+            et = ExifToolClient(config=APP_CONFIG)
+            res = et.get_tags_text(Path(path), tags)
             lines = res.strip().split('\n')
             formatted_text = ""
             for line in lines:
@@ -358,18 +285,14 @@ class PreviewDialog(QDialog):
 
     def load_image(self, path):
         try:
-            cmd_orient = [EXIFTOOL, '-Orientation', '-n', '-S', path]
-            res_orient = subprocess.run(cmd_orient, capture_output=True, text=True, creationflags=get_creation_flags()).stdout
+            et = ExifToolClient(config=APP_CONFIG)
+            res_orient = et.run_raw(["-Orientation", "-n", "-S", path])
             orientation = 1
             if 'Orientation:' in res_orient:
                 orientation = int(res_orient.split(': ')[1])
             if path.lower().endswith('.nef'):
-                cmd_img = [EXIFTOOL, '-b', '-JpgFromRaw', path]
-                res_img = subprocess.run(cmd_img, capture_output=True, creationflags=get_creation_flags())
-                if not res_img.stdout:
-                    cmd_img = [EXIFTOOL, '-b', '-PreviewImage', path]
-                    res_img = subprocess.run(cmd_img, capture_output=True, creationflags=get_creation_flags())
-                pix = QPixmap.fromImage(QImage.fromData(res_img.stdout))
+                img_data = et.get_binary_tag(Path(path), "JpgFromRaw") or et.get_binary_tag(Path(path), "PreviewImage")
+                pix = QPixmap.fromImage(QImage.fromData(img_data)) if img_data else QPixmap()
             else:
                 pix = QPixmap(path)
             if pix and not pix.isNull():
@@ -393,7 +316,8 @@ class MapBridge(QObject):
 class NefGpsTool(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.cfg = ConfigManager()
+        # exiftool呼び出しは全て ExifToolClient に一元化（configはモジュール冒頭のAPP_CONFIG）
+        self.et = ExifToolClient(config=APP_CONFIG)
         self.selected_coords = (0.0, 0.0)
         self.thumb_size = 180
         self.target_sidebar_width = 450
@@ -583,19 +507,8 @@ class NefGpsTool(QMainWindow):
         self.coord_lbl.setText(f"緯度: {lat:.6f}, 経度: {lng:.6f}")
 
     def get_gps_fast(self, path):
-        try:
-            cmd = [EXIFTOOL, '-GPSLatitude', '-GPSLongitude', '-n', '-S', '-f', path]
-            out = subprocess.run(cmd, capture_output=True, text=True, creationflags=get_creation_flags()).stdout
-            lat = lng = None
-            for l in out.splitlines():
-                if 'GPSLatitude:' in l:
-                    v = l.split(': ')[1]
-                    if v != '-': lat = float(v)
-                if 'GPSLongitude:' in l:
-                    v = l.split(': ')[1]
-                    if v != '-': lng = float(v)
-            return lat, lng
-        except: return None, None
+        result = self.et.get_gps(Path(path))
+        return result if result is not None else (None, None)
 
     def closeEvent(self, event):
         if self.writer and self.writer.isRunning():
@@ -710,11 +623,9 @@ class NefGpsTool(QMainWindow):
 
 if __name__ == "__main__":
     try:
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S"
-        )
+        # main.py と同じ共通ログ設定を使う（画面にはWARNING以上のみ、
+        # 詳細は同じ photo_organizer.log に集約）
+        setup_logging()
         logger.info("=" * 50)
         logger.info("手動GPS付与ツールを開始します")
         logger.info("=" * 50)

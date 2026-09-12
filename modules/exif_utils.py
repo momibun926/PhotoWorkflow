@@ -2,13 +2,12 @@
 
 import logging
 import os
-import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
-import json
 
 from . import constants
+from .exiftool_client import ExifToolClient, ExifToolError
 
 logger = logging.getLogger(__name__)
 
@@ -113,23 +112,25 @@ class ExifConverter:
 
 
 class ExifReader:
-    """ExifToolを使用してメタデータを取得するクラス。"""
+    """ExifToolClientを使用してメタデータを取得するクラス。
 
-    def __init__(self, exiftool_path: Optional[str] = None):
+    生のexiftool呼び出しは行わず、すべて ExifToolClient に委譲する。
+    """
+
+    def __init__(self, exiftool_path: Optional[str] = None, config: Any = None):
         """初期化。
-        
-        Args:
-            exiftool_path: exiftoolの実行ファイルパス。Noneの場合は自動検索
-        """
-        self.exiftool_path = exiftool_path or self._find_exiftool()
-        logger.info("ExifTool パス: %s", self.exiftool_path)
 
-    @staticmethod
-    def _find_exiftool() -> str:
-        """ExifToolを自動検索。"""
-        import shutil
-        path = shutil.which("exiftool.exe") or shutil.which("exiftool") or "exiftool"
-        return path
+        Args:
+            exiftool_path: exiftoolの実行ファイルパス。Noneの場合はconfig→自動検索の順で解決
+            config: ConfigManager。exiftoolパス解決に使用
+        """
+        self._client = ExifToolClient(exiftool_path=exiftool_path, config=config)
+        logger.info("ExifTool パス: %s", self._client.path)
+
+    @property
+    def exiftool_path(self) -> str:
+        """互換性のため：解決済みのexiftoolパスを返す。"""
+        return self._client.path
 
     def get_photo_metadata_batch(self, file_paths: List[Path]) -> Dict[str, PhotoMetadata]:
         """複数ファイルのメタデータを一括取得。
@@ -143,27 +144,21 @@ class ExifReader:
         if not file_paths:
             return {}
 
-        str_paths = [str(p) for p in file_paths]
         metadata_map: Dict[str, PhotoMetadata] = {}
 
         try:
-            # import exiftoolはここで動的に行う（依存性を軽くするため）
-            import exiftool
-            
-            with exiftool.ExifToolHelper(executable=self.exiftool_path) as et:
-                results = et.get_metadata(str_paths)
-            
+            with self._client as et:
+                results = et.get_metadata_batch(file_paths)
+
             for result in results:
                 source_file = result.get("SourceFile")
                 if not source_file:
                     continue
-                
+
                 meta = self._parse_metadata_result(result)
                 metadata_map[os.path.normpath(source_file)] = meta
-                
-        except ImportError:
-            logger.error("exiftool パッケージが未インストール。pip install exiftool を実行してください")
-        except Exception as e:
+
+        except ExifToolError as e:
             logger.error("ExifTool一括取得エラー: %s", e, exc_info=True)
 
         return metadata_map
@@ -177,54 +172,7 @@ class ExifReader:
         Returns:
             {ファイルパス: 撮影日}の辞書
         """
-        if not file_paths:
-            return {}
-
-        date_map: Dict[Path, str] = {}
-        
-        # -j (JSON形式) を使うことで、ファイル名とタグを確実に1対1で紐付ける
-        cmd = [
-            self.exiftool_path,
-            "-j",
-            "-DateTimeOriginal",
-            "-CreateDate",  # DateTimeOriginal が無い場合のフォールバックタグ
-            "-d",
-            constants.EXIF_DATE_FORMAT
-        ] + [str(p) for p in file_paths]
-
-        try:
-            result = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=True
-            )
-            data = json.loads(result.stdout)
-            
-            # JSON結果からPathオブジェクトをキーにして辞書を作成
-            for item in data:
-                source_path = Path(item.get("SourceFile"))
-                date_str = item.get("DateTimeOriginal") or item.get("CreateDate")
-                
-                if date_str and len(str(date_str)) == 8 and str(date_str).isdigit():
-                    date_map[source_path] = str(date_str)
-
-        except Exception as e:
-            logger.error("ExifTool日付取得エラー: %s", e, exc_info=True)
-
-        # 取得できなかったファイルのみ更新日時(mtime)をフォールバック設定
-        from datetime import datetime
-        for path in file_paths:
-            if path not in date_map:
-                mtime = path.stat().st_mtime
-                date_map[path] = datetime.fromtimestamp(mtime).strftime(
-                    constants.EXIF_DATE_FORMAT
-                )
-                logger.warning("ファイル %s の撮影日が取得できず、更新日時を使用: %s",
-                            path.name, date_map[path])
-
-        return date_map
+        return self._client.get_dates_batch(file_paths, date_format=constants.EXIF_DATE_FORMAT)
 
     def get_gps_info(self, file_path: Path) -> Optional[tuple]:
         """ファイルのGPS情報を取得。
@@ -235,34 +183,7 @@ class ExifReader:
         Returns:
             (緯度, 経度)のタプル、またはGPS情報がない場合はNone
         """
-        cmd = [
-            self.exiftool_path,
-            "-j",
-            "-n",
-            "-GPSLatitude",
-            "-GPSLongitude",
-            str(file_path)
-        ]
-
-        try:
-            result = subprocess.run(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                check=True
-            )
-            data = json.loads(result.stdout)
-            if data and len(data) > 0:
-                item = data[0]
-                lat = item.get("GPSLatitude")
-                lng = item.get("GPSLongitude")
-                if lat is not None and lng is not None:
-                    return (float(lat), float(lng))
-        except Exception as e:
-            logger.debug("GPS情報取得失敗 (%s): %s", file_path.name, e)
-        
-        return None
+        return self._client.get_gps(file_path)
 
     @staticmethod
     def _parse_metadata_result(result: Dict[str, Any]) -> PhotoMetadata:

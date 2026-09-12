@@ -9,9 +9,19 @@ from typing import List
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-from .exif_utils import PhotoMetadata, ExifReader
-from .config_manager import YamlConfigManager
-from . import constants
+try:
+    # パッケージとして実行された場合（本来の使われ方）
+    from .exif_utils import PhotoMetadata, ExifReader
+    from .config_manager import YamlConfigManager
+    from .logging_config import setup_logging
+    from . import constants
+except ImportError:
+    # python frame_processor.py として単独実行された場合のフォールバック
+    # （manual_gps_tagger.py / exif_exporter.py と同じパターン）
+    from exif_utils import PhotoMetadata, ExifReader
+    from config_manager import YamlConfigManager
+    from logging_config import setup_logging
+    import constants
 
 logger = logging.getLogger(__name__)
 
@@ -19,18 +29,19 @@ logger = logging.getLogger(__name__)
 class ImageProcessor:
     """画像にフレームとEXIF情報を付与するクラス。"""
 
-    def __init__(self, config_path: Path) -> None:
+    def __init__(self, config_path: Path, app_config=None) -> None:
         """初期化。
         
         Args:
-            config_path: YAML形式の設定ファイルパス
+            config_path: YAML形式の設定ファイルパス（フレームのレイアウト設定）
+            app_config: ConfigManager（config.json）。exiftoolのパス解決に使用
         """
         self.config_path = Path(config_path)
         if not self.config_path.exists():
             raise FileNotFoundError(constants.ERROR_MESSAGES["config_not_found"].format(config_path))
         
         self.config = YamlConfigManager(self.config_path)
-        self.exif_reader = ExifReader()
+        self.exif_reader = ExifReader(config=app_config)
         self.logo_path = Path(constants.LOGO_FILENAME)
         logger.info("ImageProcessor 初期化完了: config=%s", config_path)
 
@@ -172,8 +183,12 @@ class ImageProcessor:
         return success_count
 
 
-def run_frame_processing(script_path_or_unused: Path, target_dir: Path, yaml_config: str) -> bool:
-    """フレーム付与処理を実行するエントリーポイント。"""
+def run_frame_processing(script_path_or_unused: Path, target_dir: Path, yaml_config: str, app_config=None) -> bool:
+    """フレーム付与処理を実行するエントリーポイント。
+
+    Args:
+        app_config: ConfigManager（config.json）。exiftoolのパス解決に使用
+    """
     print("==================================================")
     print(" 【開始】STEP 3: フレーム付与処理")
     print("==================================================")
@@ -181,7 +196,7 @@ def run_frame_processing(script_path_or_unused: Path, target_dir: Path, yaml_con
     conf_path = Path(yaml_config).resolve()
 
     try:
-        processor = ImageProcessor(conf_path)
+        processor = ImageProcessor(conf_path, app_config=app_config)
         success_count = processor.run(target_dir)
 
         print("\n")
@@ -204,11 +219,7 @@ def run_frame_processing(script_path_or_unused: Path, target_dir: Path, yaml_con
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO,
-        format=constants.LOG_FORMAT,
-        datefmt=constants.LOG_DATE_FORMAT
-    )
+    setup_logging()
 
     if len(sys.argv) < 2:
         print("使用法: python frame_processor.py <image_path_or_dir> [config_path]")

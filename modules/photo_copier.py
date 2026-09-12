@@ -3,7 +3,7 @@
 import logging
 import shutil
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 try:
     import send2trash
@@ -58,6 +58,7 @@ def copy_and_organize_photos(
     to_note_dir: Path,
     to_amazon_jpeg_dir: Path,
     base_dir: Path,
+    config: Optional[Any] = None,
 ) -> bool:
     """写真ファイルを規定のディレクトリへコピーし、元の写真をゴミ箱へ移動。
     
@@ -67,6 +68,7 @@ def copy_and_organize_photos(
         to_note_dir: ブログ用コピー先ディレクトリ
         to_amazon_jpeg_dir: Amazon フォト用コピー先ディレクトリ
         base_dir: RAW ファイルのアーカイブベースディレクトリ
+        config: ConfigManager。exiftoolのパス解決に使用（Noneの場合は自動検索）
         
     Returns:
         処理が成功した場合True
@@ -107,7 +109,7 @@ def copy_and_organize_photos(
     logger.info("RAW ファイル (%d 件) のコピーを開始", total_nef)
     
     if total_nef > 0:
-        exif_reader = ExifReader()
+        exif_reader = ExifReader(config=config)
         date_map = exif_reader.get_exif_dates_batch(nef_files)
         
         for idx, nef in enumerate(nef_files, start=1):
