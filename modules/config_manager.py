@@ -1,4 +1,15 @@
-"""アプリケーション全体の設定管理を統一するモジュール。"""
+"""アプリケーション全体の設定管理を統一するモジュール。
+
+PyQt6には依存しない、シンプルな設定読み込みクラスを2つ提供する：
+  - ConfigManager: JSON形式の config.json を読み込み、写真整理ツール群
+    （main.py, gps_tagger.py, exif_utils.py, manual_gps_tagger.py 等）が
+    共有する設定（ディレクトリパス・外部ツールパス・各種ルールなど）を扱う。
+  - YamlConfigManager: YAML形式の設定ファイルを読み込み、frame_processor.py が
+    使うフレーム（透かし）レイアウト設定を扱う。
+
+どちらも読み込んだ辞書をSimpleNamespaceに変換し、__getattr__経由で
+「config.directories.base」のようなドット記法でのアクセスも可能にしている。
+"""
 
 import json
 import logging
@@ -6,6 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 from types import SimpleNamespace
 
+# このモジュール専用のロガー
 logger = logging.getLogger(__name__)
 
 
@@ -14,33 +26,39 @@ class ConfigManager:
 
     def __init__(self, config_path: Optional[Path] = None):
         """初期化。
-        
+
         Args:
             config_path: 設定ファイルのパス。Noneの場合はカレントディレクトリを探索
         """
+        # パス未指定時は候補パスを順に探索して決定する
         self.config_path = self._resolve_config_path(config_path)
         self.config: Dict[str, Any] = {}
         self.namespace: SimpleNamespace = SimpleNamespace()
+        # コンストラクタの時点で即座に読み込み・検証まで行う
         self.load()
 
     @staticmethod
     def _resolve_config_path(config_path: Optional[Path]) -> Path:
         """設定ファイルパスを解決。"""
+        # 呼び出し元が明示的にパスを指定し、かつ実在する場合はそれを優先する
         if config_path and Path(config_path).exists():
             return Path(config_path)
 
         # デフォルト検索順序
+        # カレントディレクトリ → このファイルの2階層上（プロジェクトルート想定） → 実行時のカレントディレクトリ
         search_paths = [
             Path("config.json"),
             Path(__file__).parent.parent / "config.json",
             Path.cwd() / "config.json",
         ]
 
+        # 候補を順番に確認し、最初に見つかったものを使う
         for path in search_paths:
             if path.exists():
                 logger.info("設定ファイルを検出: %s", path)
                 return path
 
+        # どこにも見つからなければ、探索した候補一覧を添えて例外を送出する
         raise FileNotFoundError(
             "config.json が見つかりません。以下のいずれかの場所に配置してください:\n"
             + "\n".join(str(p) for p in search_paths)
@@ -49,6 +67,7 @@ class ConfigManager:
     def load(self) -> None:
         """設定ファイルを読み込み。"""
         if not self.config_path.exists():
+            # _resolve_config_path後にファイルが削除された等、稀なケースへの防御
             raise FileNotFoundError(f"設定ファイルが見つかりません: {self.config_path}")
 
         try:
@@ -56,13 +75,15 @@ class ConfigManager:
                 self.config = json.load(f)
             logger.info("設定ファイルを読み込みました: %s", self.config_path)
         except json.JSONDecodeError as e:
+            # JSON構文エラーは原因を特定しやすいよう専用にログ・例外を出す
             logger.error("JSON形式エラー: %s", e)
             raise ValueError(f"設定ファイルのJSON形式が不正です: {self.config_path}") from e
         except Exception as e:
+            # ファイルI/Oエラーなどその他の予期しない例外はログを残して再送出する
             logger.error("設定ファイル読み込みエラー: %s", e)
             raise
 
-        # 設定値の検証
+        # 設定値の検証（必須キーの有無をチェック。ここで失敗すれば起動時に気付ける）
         self._validate_config()
 
         # 辞書をSimpleNamespaceに変換（ドットアクセスを可能に）
@@ -70,6 +91,7 @@ class ConfigManager:
 
     def _validate_config(self) -> None:
         """設定の必須キーを検証。"""
+        # トップレベルで必須のセクション
         required_keys = ["directories", "external_tools"]
         for key in required_keys:
             if key not in self.config:
@@ -84,7 +106,7 @@ class ConfigManager:
             if key not in dirs:
                 raise ValueError(f"directories に必須キー '{key}' がありません")
 
-        # 外部ツールキー
+        # 外部ツールキー（exiftoolの実行ファイルパスなど）
         required_tools = ["exiftool"]
         tools = self.config.get("external_tools", {})
         for key in required_tools:
@@ -94,27 +116,31 @@ class ConfigManager:
     @staticmethod
     def _dict_to_namespace(data: Any) -> Any:
         """辞書をSimpleNamespaceに再帰的に変換。
-        
-        ドット記法（config.directories.base）でアクセス可能にする。
+
+        ドット表記（config.directories.base）でアクセス可能にする。
         """
         if isinstance(data, dict):
+            # 辞書ならキーごとに再帰変換し、SimpleNamespaceの属性として展開する
             return SimpleNamespace(**{
                 k: ConfigManager._dict_to_namespace(v) for k, v in data.items()
             })
         elif isinstance(data, list):
+            # リストの場合は各要素を再帰変換したリストにする（中の辞書もNamespace化される）
             return [ConfigManager._dict_to_namespace(v) for v in data]
+        # 辞書でもリストでもない場合（文字列・数値・bool・Noneなど）はそのまま返す
         return data
 
     def get(self, key: str, default: Any = None) -> Any:
         """設定値をキーで取得（辞書形式）。
-        
+
         Args:
             key: ドット区切りのキー（例：'directories.base'）
             default: キーが存在しない場合のデフォルト値
-            
+
         Returns:
             設定値、またはデフォルト値
         """
+        # "directories.base" のようなキーを "." で分割し、辞書を順にたどっていく
         keys = key.split(".")
         value = self.config
         try:
@@ -122,18 +148,19 @@ class ConfigManager:
                 value = value[k]
             return value
         except (KeyError, TypeError):
+            # 途中のキーが存在しない、または途中で辞書でない値に当たった場合はデフォルト値を返す
             logger.warning("設定キーが見つかりません: %s, デフォルト値を使用", key)
             return default
 
     def get_directory(self, dir_key: str) -> Path:
         """ディレクトリパスを取得し、Pathオブジェクトとして返す。
-        
+
         Args:
             dir_key: ディレクトリキー（例：'base', 'from_camera'）
-            
+
         Returns:
             Pathオブジェクト
-            
+
         Raises:
             KeyError: ディレクトリキーが存在しない場合
         """
@@ -141,6 +168,7 @@ class ConfigManager:
             dir_path = Path(self.config["directories"][dir_key])
             return dir_path
         except KeyError as e:
+            # 呼び出し元がどのキーで失敗したか分かるよう、キー名を含めて再送出する
             logger.error("ディレクトリ設定が見つかりません: %s", dir_key)
             raise KeyError(f"ディレクトリ設定が見つかりません: {dir_key}") from e
 
@@ -150,13 +178,13 @@ class ConfigManager:
         gps_tagger / exif_utils / manual_gps_tagger / exif_exporter は
         すべて ExifToolClient 経由でこのメソッドを呼び出し、exiftoolの
         パス解決を一元化している。
-        
+
         Args:
             tool_key: ツールキー（例：'exiftool', 'flame_script'）
-            
+
         Returns:
             Pathオブジェクト
-            
+
         Raises:
             KeyError: ツールキーが存在しない場合
         """
@@ -179,13 +207,16 @@ class ConfigManager:
         Returns:
             [{"name": "表示名", "path": "コピー先パス"}, ...] のリスト（0件もあり得る）
         """
+        # 新しい形式（複数コピー先に対応）が指定されていれば最優先で使う
         targets = self.config.get("copy_targets")
         if targets:
             return targets
 
+        # 旧形式（directories.to_amazon_jpeg 単体キー）からの後方互換フォールバック
         dirs = self.config.get("directories", {})
         if "to_amazon_jpeg" in dirs:
             return [{"name": "to_amazon_jpeg", "path": dirs["to_amazon_jpeg"]}]
+        # どちらも設定されていなければコピー先なし（空リスト）
         return []
 
     def get_file_extensions(self) -> Dict[str, Set[str]]:
@@ -201,9 +232,11 @@ class ConfigManager:
         file_types = self.config.get("file_types", {})
 
         def _to_ext_set(key: str, default: Set[str]) -> Set[str]:
+            # config.jsonに該当キーの指定がなければデフォルトの拡張子集合を使う
             values = file_types.get(key)
             if not values:
                 return default
+            # 大文字小文字の表記ゆれを吸収するため小文字に統一したsetにする
             return {str(v).lower() for v in values}
 
         return {
@@ -222,6 +255,7 @@ class ConfigManager:
         from . import constants
 
         rules = self.config.get("camera_name_rules", {})
+        # config.jsonに個別指定がなければ、それぞれconstants.pyのデフォルトルールを使う
         return {
             "replacements": rules.get("replacements", constants.CAMERA_NAME_REPLACEMENTS),
             "removes": rules.get("removes", constants.CAMERA_NAME_REMOVES),
@@ -229,7 +263,7 @@ class ConfigManager:
         }
 
     def get_gps_sync_timezone(self) -> str:
-        """GPXログとの時刻同期に使うタイムゾーンを取得。
+        """GPSログとの時刻同期に使うタイムゾーンを取得。
 
         海外旅行など、撮影地のタイムゾーンが日本と異なる場合に
         config.json の 'gps.sync_timezone' で上書きできる。
@@ -259,6 +293,7 @@ class ConfigManager:
         バックアップ運用をやめてSTEP2だけ使いたい、など）。
         指定がないステップはデフォルトで全て有効。
         """
+        # まず全ステップを有効にしたデフォルト状態を作り、
         default_steps = {
             "gps_tag": True,
             "manual_gps": True,
@@ -266,11 +301,14 @@ class ConfigManager:
             "exif_export": True,
             "frame": True,
         }
+        # config.jsonの 'steps' で指定された値のみ上書きする（部分指定でよい）
         default_steps.update(self.config.get("steps", {}))
         return default_steps
 
     def __getattr__(self, name: str) -> Any:
         """属性アクセスのサポート（namespace経由）。"""
+        # get()やget_directory()等で定義されていない属性アクセスは、
+        # SimpleNamespace化した設定（self.namespace）に委譲する
         return getattr(self.namespace, name)
 
 
@@ -279,6 +317,7 @@ class YamlConfigManager:
 
     #: frame_processor.py が参照する必須キー。欠落時は起動時に検出できるよう検証する。
     REQUIRED_TOP_KEYS = ("fonts", "colors", "ratios", "layout", "output")
+    # トップレベルキーごとに、その中でさらに必須となるサブキーの一覧
     REQUIRED_KEYS = {
         "fonts": ("size_type", "main_size", "sub_size", "bold", "regular"),
         "colors": ("bg", "main", "sub"),
@@ -289,10 +328,10 @@ class YamlConfigManager:
 
     def __init__(self, config_path: Path):
         """初期化。
-        
+
         Args:
             config_path: YAML設定ファイルのパス
-            
+
         Raises:
             FileNotFoundError: ファイルが存在しない場合
             ValueError: YAML形式が不正、または必須キーが不足している場合
@@ -308,6 +347,7 @@ class YamlConfigManager:
             raise FileNotFoundError(f"設定ファイルが見つかりません: {self.config_path}")
 
         try:
+            # PyYAMLはこのクラスを使う場合のみ必要なので、ここで遅延importする
             import yaml
         except ImportError:
             logger.error("PyYAML がインストールされていません。pip install pyyaml を実行してください")
@@ -315,24 +355,29 @@ class YamlConfigManager:
 
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
+                # ファイルが空の場合 safe_load は None を返すため、その場合は空辞書にフォールバック
                 self.config = yaml.safe_load(f) or {}
             logger.info("YAML設定ファイルを読み込みました: %s", self.config_path)
         except yaml.YAMLError as e:
+            # YAML構文エラーは専用にログ・例外を出す
             logger.error("YAML形式エラー: %s", e)
             raise ValueError(f"YAML形式が不正です: {self.config_path}") from e
         except Exception as e:
             logger.error("設定ファイル読み込みエラー: %s", e)
             raise
 
+        # 必須キーの検証、SimpleNamespaceへの変換はConfigManagerと同様の流れ
         self._validate_config()
         self.namespace = self._dict_to_namespace(self.config)
 
     def _validate_config(self) -> None:
         """必須キーの検証。frame_processor.py実行中のAttributeErrorを未然に防ぐ。"""
+        # トップレベルキー（fonts/colors/ratios/layout/output）の存在チェック
         for top_key in self.REQUIRED_TOP_KEYS:
             if top_key not in self.config:
                 raise ValueError(f"{self.config_path.name} に必須キー '{top_key}' がありません")
 
+        # 各トップレベルキーの中身（サブキー）についても存在チェックする
         for top_key, sub_keys in self.REQUIRED_KEYS.items():
             section = self.config.get(top_key, {}) or {}
             for sub_key in sub_keys:
@@ -344,6 +389,7 @@ class YamlConfigManager:
     @staticmethod
     def _dict_to_namespace(data: Any) -> Any:
         """辞書をSimpleNamespaceに再帰的に変換。"""
+        # ロジックはConfigManager._dict_to_namespaceと同じ（クラスが異なるため再帰呼び出し先だけ変えている）
         if isinstance(data, dict):
             return SimpleNamespace(**{
                 k: YamlConfigManager._dict_to_namespace(v) for k, v in data.items()
@@ -354,14 +400,15 @@ class YamlConfigManager:
 
     def get(self, key: str, default: Any = None) -> Any:
         """設定値をキーで取得。
-        
+
         Args:
             key: ドット区切りのキー（例：'layout.top'）
             default: デフォルト値
-            
+
         Returns:
             設定値
         """
+        # ConfigManager.get()と同様、ドット区切りキーを分解して辞書を順にたどる
         keys = key.split(".")
         value = self.config
         try:
@@ -379,13 +426,15 @@ class YamlConfigManager:
 
 def get_or_create_config(config_path: Optional[Path] = None) -> ConfigManager:
     """グローバルな設定マネージャーを取得（シングルトン）。
-    
+
     Args:
         config_path: 設定ファイルパス
-        
+
     Returns:
         ConfigManager インスタンス
     """
+    # 関数オブジェクト自体に _instance 属性を持たせることで、
+    # モジュール内グローバル変数を増やさずにシングルトンを実現している
     if not hasattr(get_or_create_config, "_instance"):
         get_or_create_config._instance = ConfigManager(config_path)
     return get_or_create_config._instance

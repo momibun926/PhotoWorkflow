@@ -1,31 +1,43 @@
+# フレーム付与処理（modules/frame_processor.py）用のレイアウト設定ファイル。
+# 「ブラック」テーマ（暗い背景・白文字）用の設定。standard.yamlとの違いは
+# フォントサイズがやや大きめであることと、色設定・出力先ディレクトリ名のみ。
+
 # フォント設定
 fonts:
   # システムにインストールされているフォント名、またはパスを指定
+  # "ratio"（画像長辺に対する比率でサイズ指定）または "px"（ピクセル数で直接指定）
   size_type: "ratio"
+  # メイン行（カメラ名・レンズ名）のフォントサイズ比率（standard.yamlより少し大きめ）
   main_size: 0.022
+  # サブ行（焦点距離・絞り等の撮影情報）のフォントサイズ比率
   sub_size: 0.015
+  # メイン行用フォントの候補リスト（先頭から順に読み込みを試み、最初に成功したものを使用）
   bold:
     - "fonts/SofiaSans-Regular.ttf"      # 相対パスで指定
     - "arialbd.ttf"                      # 見つからない場合のフォールバック（システムフォント名）
+  # サブ行用フォントの候補リスト
   regular:
     - "fonts/SofiaSans-Light.ttf"        # 相対パスで指定
     - "arial.ttf"
 
 # 色設定 (HEX形式)
 colors:
-  bg: "#222222"
-  main: "#ffffff"
-  sub: "#eeeeee"
+  bg: "#222222"    # フレーム背景色（暗いグレー、standard.yamlの明るい背景と対をなす）
+  main: "#ffffff"  # メイン行（カメラ名・レンズ名）の文字色（白）
+  sub: "#eeeeee"   # サブ行（撮影情報）の文字色（薄いグレー）
 
 # 余白設定（画像長辺に対する割合）
 ratios:
-  bottom_margin: 0.070
-  side_margin: 0.000
+  bottom_margin: 0.070  # 下部に確保する余白（文字を配置するスペース）の高さ比率
+  side_margin: 0.000    # 左右・上部に確保する余白の幅比率
 
 # レイアウトテンプレート
 # {変数名} の部分はメタデータから自動置換されます
 layout:
+  # メイン行のテンプレート。{camera}=カメラ名, {lens}=レンズ名
   top: "{camera}   {lens}"
+  # サブ行のテンプレート。焦点距離・絞り・シャッター速度・ISO・露出補正・露出モード・
+  # ピクチャーコントロール・ホワイトバランス・色温度を並べて表示する
   bottom: "{focal_length}mm  |  f{f_number}  {shutter}  ISO {iso}  |  {exposure_bias}EV  |  {exposure_mode}  |  {picture_control}  |  {white_balance} {color_temperature}"
   # 下部余白の上端から 1行目(top) までの距離の割合（値を小さくすると上に移動します）
   # 例: 0.35 -> 0.20 や 0.25 に変更することで位置が上になります
@@ -35,6 +47,6 @@ layout:
 
 # 出力設定
 output:
-  prefix: "Frame_"
-  dir_name: "processed_photos_black"
-  quality: 100
+  prefix: "Frame_"                         # 出力ファイル名の接頭辞（Frame_元のファイル名.jpg）
+  dir_name: "processed_photos_black"       # 出力先サブディレクトリ名（standard.yamlとは別フォルダに出力）
+  quality: 100                             # JPEG保存時の画質（0-100）。frame_processor.pyのデフォルト値より優先される

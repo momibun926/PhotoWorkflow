@@ -1,7 +1,7 @@
 """写真整理ワークフロー統括プログラム (main.py).
 
 ワークフローは STEP_DEFINITIONS の配列で定義されている。新しいステップを
-追加したい場合はステップ関数を実装して配列に1行追加するだけでよく、
+追加した場合はステップ関数を実装して配列に1行追加するだけでよく、
 main() 本体を直接編集する必要はない。
 
 CLIオプション:
@@ -77,21 +77,27 @@ class WorkflowStep:
 
 
 def step_gps_tag(ctx: WorkflowContext) -> bool:
-    """STEP 1: GPXログに基づくGPS位置情報の書き込み。"""
+    """STEP 1: GPSログに基づくGPS位置情報の書き込み。"""
+    # gps_tagger モジュールに委譲。exiftoolを使ってGPXログの位置情報を
+    # from_camera_dir配下の写真のEXIFに書き込む
     return apply_gps_tags(ctx.from_camera_dir, ctx.gpx_files, config=ctx.config)
 
 
 def step_manual_gps(ctx: WorkflowContext) -> bool:
     """STEP 1.5: 手動GPS付与GUIツールの起動。"""
+    # PyQt6ベースの別プロセス（manual_gps_tagger.py）をブロッキングで起動する
     run_manual_gps_tagger()
     # 手動付与でファイルが変更された可能性があるため再分類
+    # （GUI側でファイル名やタグが書き換わっている場合があるため、最新の状態を取り直す）
     logger.info("手動GPS付与後のファイル再分類")
     ctx.jpeg_files, ctx.nef_files, ctx.gpx_files = categorize_files(ctx.from_camera_dir, config=ctx.config)
+    # このステップ自体はGUI起動が成功すれば常にTrue（GUI内のエラーはこの関数からは判別できない）
     return True
 
 
 def step_copy(ctx: WorkflowContext) -> bool:
     """STEP 2: 写真ファイルの分類・コピー・整理。"""
+    # 分類済みのJPEG/NEFファイルを、設定されたコピー先（to_note_dirや複数のcopy_targets）へ整理して配置する
     return copy_and_organize_photos(
         jpeg_files=ctx.jpeg_files,
         nef_files=ctx.nef_files,
@@ -104,12 +110,15 @@ def step_copy(ctx: WorkflowContext) -> bool:
 
 def step_exif_export(ctx: WorkflowContext) -> bool:
     """STEP 2.5: EXIF抽出・書き出し処理。"""
+    # exif_exporter.py を別プロセスとして起動し、to_note_dir配下のEXIF情報をTSVに書き出す
     run_exif_exporter(target_dir=ctx.to_note_dir, tsv_filename="exif_list.tsv", app_config=ctx.config)
+    # run_exif_exporter自体は戻り値を持たない（内部でsubprocessの結果をprint/logのみ）ため常にTrue
     return True
 
 
 def step_frame(ctx: WorkflowContext) -> bool:
     """STEP 3: フレーム付与処理。"""
+    # frame_processor モジュールに委譲し、to_note_dir配下の画像にフレーム・EXIF文字を焼き込む
     return run_frame_processing(
         script_path_or_unused=Path(),
         target_dir=ctx.to_note_dir,
@@ -173,13 +182,15 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
         help="すべての確認プロンプトを自動でY（実行）として進める（無人実行向け）",
     )
     parser.add_argument(
+        # choices=[...] は build_steps() から動的に取得しているため、
+        # ステップが増減してもこの部分の修正は不要
         "--skip", action="append", metavar="STEP", default=[],
         choices=[s.key for s in build_steps()],
         help="指定したステップをスキップする（複数回指定可）",
     )
     parser.add_argument(
         "--dry-run", action="store_true",
-        help="実際のファイル操作は行わず、実行予定のステップのみ表示する",
+        help="実際のファイル操作は行わず、実行予定のスッップのみ表示する",
     )
     parser.add_argument(
         "--list-steps", action="store_true",
@@ -194,14 +205,15 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
 
 def prompt_next_action(next_step_name: str) -> str:
     """次のステップへの進行確認を行います。
-    
+
     Args:
         next_step_name: ステップ名
-        
+
     Returns:
         'Y' (次へ進む)、'S' (スキップ)、'A' (中断)のいずれか
     """
     print("\n\n--------------------------------------------------")
+    # 有効な入力（Y/S/A）が得られるまでループし続ける
     while True:
         try:
             choice = (
@@ -216,12 +228,15 @@ def prompt_next_action(next_step_name: str) -> str:
                 print("--------------------------------------------------\n\n")
                 logger.info("ユーザー選択: %s", choice)
                 return choice
+            # Y/S/A以外の入力はエラーメッセージを出して再度ループ
             print(" [!] 無効な入力です。'Y'、'S'、'A' のいずれかを入力してください。")
         except KeyboardInterrupt:
+            # プロンプト待機中にCtrl+Cが押された場合は「中断(A)」として扱う
             logger.warning("ユーザーが Ctrl+C で中断")
             print("\n[!] 処理が中断されました")
             return "A"
         except Exception as e:
+            # input()に伴う予期しない例外（EOFErrorなど）はログに残しつつループを継続
             logger.error("入力エラー: %s", e)
             print(f" [!] 入力エラーが発生しました: {e}")
 
@@ -232,9 +247,11 @@ def prompt_next_action(next_step_name: str) -> str:
 
 def run_manual_gps_tagger() -> None:
     """手動GPS付与GUIツールを起動。"""
+    # main.pyと同じディレクトリ配下のmodulesフォルダにあるスクリプトを指す
     script_path = Path(__file__).parent / "modules" / "manual_gps_tagger.py"
-    
+
     if not script_path.exists():
+        # スクリプトが見つからない場合は警告のみでワークフローは継続する（致命的エラーにしない）
         msg = f"手動GPS付与プログラムが見つかりません: {script_path}"
         print(f"[警告] {msg}\n")
         logger.warning(msg)
@@ -242,8 +259,9 @@ def run_manual_gps_tagger() -> None:
 
     print("手動GPS付与ツールを起動しています...")
     logger.info("手動GPS付与ツールを起動: %s", script_path)
-    
+
     try:
+        # 別プロセスとしてGUIツールを起動し、ユーザーの操作が終わるまで待機する
         result = subprocess.run(
             [sys.executable, str(script_path)],
             check=False,
@@ -253,13 +271,16 @@ def run_manual_gps_tagger() -> None:
             print("手動GPS付与ツールが正常に終了しました。")
             logger.info("手動GPS付与ツール終了: 正常")
         else:
+            # 0以外の終了コードは異常終了として警告扱い（ワークフロー自体は継続）
             logger.warning("手動GPS付与ツール終了: 終了コード %d", result.returncode)
             print(f"[警告] 手動GPS付与ツールが異常終了しました (終了コード: {result.returncode})")
     except subprocess.TimeoutExpired:
+        # 1時間経ってもGUIが終了しない場合はタイムアウトとして打ち切る
         msg = "手動GPS付与ツールの実行がタイムアウトしました (1時間)"
         print(f"\n[エラー] {msg}")
         logger.error(msg)
     except Exception as e:
+        # サブプロセス起動自体に失敗した場合などの予期しないエラー
         msg = f"手動GPS付与ツールの実行中にエラーが発生しました: {e}"
         print(f"\n[エラー] {msg}")
         logger.error(msg, exc_info=True)
@@ -275,6 +296,7 @@ def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv", app
     script_path = Path(__file__).parent / "modules" / "exif_exporter.py"
 
     if not script_path.exists():
+        # スクリプトが見つからない場合も警告にとどめ、ワークフロー全体は止めない
         msg = f"EXIF抽出プログラムが見つかりません: {script_path}"
         print(f"[警告] {msg}\n")
         logger.warning(msg)
@@ -283,15 +305,19 @@ def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv", app
     exiftool_path = ""
     if app_config is not None:
         try:
+            # config.jsonにexiftoolの明示パスがあれば取得し、サブプロセスの引数として渡す
             exiftool_path = str(app_config.get_tool_path("exiftool"))
         except KeyError:
+            # 未設定の場合はexif_exporter.py側のPATH自動検索に委ねる
             logger.warning("config.jsonにexiftoolパスが見つからないため、自動検索に委ねます")
 
-    print("EXIF抽出・書き出しツールを起動しています...")
+    print("EXIF抽出・書き出ツールを起動しています...")
     logger.info("EXIF抽出ツールを実行: %s %s %s", script_path, target_dir, tsv_filename)
 
+    # 基本コマンド: python exif_exporter.py <対象ディレクトリ> <出力TSVファイル名>
     cmd = [sys.executable, str(script_path), str(target_dir), tsv_filename]
     if exiftool_path:
+        # exiftoolパスが解決できた場合のみ第3引数として追加
         cmd.append(exiftool_path)
 
     try:
@@ -307,6 +333,7 @@ def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv", app
             logger.warning("EXIF抽出ツール終了: 終了コード %d", result.returncode)
             print(f"[警告] EXIF抽出ツールが異常終了しました (終了コード: {result.returncode})")
     except subprocess.TimeoutExpired:
+        # 30分を超えても終わらない場合はタイムアウトとして打ち切る
         msg = "EXIF抽出ツールの実行がタイムアウトしました (30分)"
         print(f"\n[エラー] {msg}")
         logger.error(msg)
@@ -322,43 +349,54 @@ def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv", app
 
 def run_workflow(ctx: WorkflowContext, args: argparse.Namespace) -> None:
     """ステップ配列を順に実行する。"""
+    # config.jsonの"steps"設定で個別に有効/無効を指定できる（未指定はデフォルトで有効=True）
     enabled_steps = ctx.config.get_enabled_steps()
     skip_from_cli = set(args.skip)
 
     for step in build_steps():
         if not enabled_steps.get(step.key, True):
+            # config.json側の設定で無効化されているステップは実行せず次へ
             print(f"\n[{step.label}] は config.json の設定によりスキップされました。")
             logger.info("%s: config設定によりスキップ", step.key)
             continue
 
         if step.key in skip_from_cli:
+            # --skip オプションで明示的にスキップ指定されたステップ
             print(f"\n[{step.label}] は --skip 指定によりスキップされました。")
             logger.info("%s: --skip指定によりスキップ", step.key)
             continue
 
         if step.requires_confirmation and not args.yes:
+            # 確認が必要なステップかつ --yes（無人実行）が指定されていない場合のみ、対話プロンプトを出す
             choice = prompt_next_action(step.label)
             if choice == "A":
-                print("\nユーザーにより処理が中断されました。")
+                # ユーザーが中断を選んだ場合はワークフロー全体を打ち切って戻る
+                print("\nユーザーにより処理が中止されました。")
                 logger.info("ユーザーが %s で中止", step.key)
                 return
             if choice == "S":
+                # このステップだけスキップして次のステップへ進む
                 print(f"\n[{step.label}] をスキップしました。")
                 logger.info("%s をスキップ", step.key)
                 continue
 
         if args.dry_run:
+            # dry-runモードでは実際のステップ関数は呼ばず、実行予定であることの表示のみ行う
             print(f"\n[dry-run] {step.label} を実行します（実際にはファイル操作を行いません）")
             logger.info("[dry-run] %s は実行対象（実処理はスキップ）", step.key)
             continue
 
         logger.info("%s 開始", step.key)
+        # 実際にステップの処理関数を実行し、成功可否を受け取る
         ok = step.action(ctx)
         if not ok and step.abort_on_failure:
-            print(f"\n{step.label} で重大なエラーが発生したため中断します。")
+            # abort_on_failure=True のステップが失敗した場合はワークフロー全体を中断する
+            # （例: STEP 1のGPSタグ付けが失敗した場合、後続ステップの前提が崩れるため）
+            print(f"\n{step.label} で重大なエラーが発生したため中止します。")
             logger.error("%s エラーで中止", step.key)
             return
 
+    # forループが最後まで（中断されずに）完了した場合はここに到達する
     print("\n==================================================")
     print(" すべてのワークフロー工程が終了しました！")
     print("==================================================")
@@ -368,6 +406,7 @@ def run_workflow(ctx: WorkflowContext, args: argparse.Namespace) -> None:
 def main(args: argparse.Namespace) -> None:
     """メイン実行エントリーポイント。"""
     if args.list_steps:
+        # --list-steps はステップ一覧を表示するだけで、実際のワークフローは実行せず終了する
         print("実行可能なステップ一覧:")
         for step in build_steps():
             confirm = "確認あり" if step.requires_confirmation else "自動実行"
@@ -380,15 +419,17 @@ def main(args: argparse.Namespace) -> None:
 
     try:
         # 設定の読み込み
+        # --config指定があればそちらを優先し、なければmain.pyと同じディレクトリのconfig.jsonを探す
         config_file = args.config if args.config is not None else Path(__file__).parent / "config.json"
         try:
             config = ConfigManager(config_file)
         except (FileNotFoundError, ValueError) as e:
+            # 設定ファイルが存在しない、またはJSONとして不正な場合はここで打ち切る
             print(f"\n[エラー] {e}")
             logger.error("設定読み込みエラー: %s", e)
             return
 
-        # ディレクトリ・設定値を取得
+        # ディレクトリ設定値を取得
         try:
             from_camera_dir = config.get_directory("from_camera")
             to_note_dir = config.get_directory("to_note")
@@ -396,21 +437,25 @@ def main(args: argparse.Namespace) -> None:
             flame_yaml = config.get("external_tools.flame_config")
             copy_target_dirs = [Path(t["path"]) for t in config.get_copy_targets()]
         except KeyError as e:
+            # 必要な設定キーがconfig.jsonに存在しない場合はここで打ち切る
             print(f"\n[エラー] 設定キーが不足しています: {e}")
             logger.error("設定キーエラー: %s", e)
             return
 
         # 入力ディレクトリの確認
         if not from_camera_dir.exists():
+            # カメラ取り込み元フォルダが存在しなければ、これ以降の処理はすべて意味を持たないため打ち切る
             msg = f"取り込み元フォルダが存在しません: {from_camera_dir}"
             print(f"\n[エラー] {msg}")
             logger.error(msg)
             return
 
         # ファイル分類
+        # from_camera_dir配下のファイルをJPEG/NEF(RAW)/GPXログに振り分ける
         logger.info("ファイル分類開始")
         jpeg_files, nef_files, gpx_files = categorize_files(from_camera_dir, config=config)
 
+        # 以降の各ステップ関数が共有する実行コンテキストを構築
         ctx = WorkflowContext(
             config=config,
             from_camera_dir=from_camera_dir,
@@ -426,29 +471,35 @@ def main(args: argparse.Namespace) -> None:
         run_workflow(ctx, args)
 
     except KeyboardInterrupt:
+        # main()内の処理中（設定読み込み〜ワークフロー実行）にCtrl+Cが押された場合
         print("\n\n[!] ユーザーが Ctrl+C で中断しました")
         logger.warning("ユーザーが Ctrl+C で中止")
     except Exception as e:
-        print(f"\n[重大なエラーが発生しました]: {e}")
+        # ここまでの個別のtry/exceptで捕捉されなかった予期しない重大なエラーの最終防波堤
+        print(f"\n[エラー] 重大なエラーが発生しました: {e}")
         logger.critical("予期せぬ重大なエラーが発生しました: %s", e, exc_info=True)
 
 
 if __name__ == "__main__":
     cli_args = parse_args()
     try:
+        # プログラム開始を区切り線付きでログに残す（後からログファイルを見返す際に見つけやすくするため）
         logger.info("=" * 50)
-        logger.info("写真整理ワークフロープログラムを開始します")
+        logger.info("写真整理ワークフロープログラムを開始")
         logger.info("=" * 50)
         main(cli_args)
     except KeyboardInterrupt:
+        # main()呼び出し自体（またはmain内で再送出された）Ctrl+Cをここでも最終的に捕捉
         print("\n\n[!] プログラムが Ctrl+C で中断されました")
-        logger.warning("プログラムが Ctrl+C で中止されました")
+        logger.warning("プログラム Ctrl+C で中止されました")
         sys.exit(130)
     except Exception as e:
+        # main()内で捕捉されなかった、本当に予期しない例外の最終フォールバック
         print(f"\n[エラー] 予期しないエラーが発生しました: {e}")
         logger.critical("予期しないエラーが発生しました", exc_info=True)
         sys.exit(1)
     finally:
+        # 正常終了・異常終了を問わず必ず実行される後始末処理
         print()
         # 無人実行（--yes）や標準入力が対話端末でない場合は
         # キー入力待ちで停止させない（cron/タスクスケジューラ運用を想定）

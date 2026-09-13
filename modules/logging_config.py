@@ -17,16 +17,18 @@ frame_processor.py の __main__ ブロック）から呼ぶことで、
 「詳細はファイルに、画面にはWARNING以上を簡潔に」という方針を統一する。
 """
 
-import logging
-import sys
-from pathlib import Path
+import logging  # 標準ロギングモジュール。ルートロガーに対してハンドラを設定する
+import sys  # コンソール出力先(sys.stdout)を明示的に指定するために使用
+from pathlib import Path  # ログファイルの出力先パスをOS非依存に扱うために使用
 
 try:
     # パッケージとして実行された場合（本来の使われ方）
+    # 同じmodulesパッケージ内のconstantsモジュールから定数（ログ書式等）をインポート
     from . import constants
 except ImportError:
     # 単独スクリプトとして実行されたモジュール（exif_exporter.py等）から
     # フォールバック経由でimportされた場合
+    # 相対importが失敗するケース（パッケージ外から単体実行された場合）に備えた通常importでの再試行
     import constants
 
 # プロジェクトルート直下の共通ログファイル。
@@ -35,6 +37,8 @@ except ImportError:
 # 実行されても同じログファイルに集約される。
 DEFAULT_LOG_FILE: Path = Path(__file__).resolve().parent.parent / "photo_organizer.log"
 
+# setup_logging() が既に一度実行されたかどうかを記録するモジュールレベルのフラグ。
+# 同一プロセス内で複数回呼び出されてもハンドラが多重登録されないようにするためのガード。
 _configured = False
 
 
@@ -58,9 +62,12 @@ def setup_logging(
         file_level: ファイルに記録する最低ログレベル
     """
     global _configured
+    # 既に設定済みなら何もせず即座に戻る（二重設定によるハンドラ重複を防ぐ）
     if _configured:
         return
 
+    # ルート（無名）ロガーを取得し、全体のログレベルはファイル/コンソールのうち
+    # より詳細な（数値の小さい）方に合わせておく。個々のハンドラ側で再度絞り込む。
     root = logging.getLogger()
     root.setLevel(min(console_level, file_level))
 
@@ -68,14 +75,17 @@ def setup_logging(
     for h in list(root.handlers):
         root.removeHandler(h)
 
+    # ファイル出力用ハンドラ: 詳細な書式（時刻・レベル・ロガー名付き）でUTF-8で書き出す
     file_handler = logging.FileHandler(log_file, encoding="utf-8")
     file_handler.setLevel(file_level)
     file_handler.setFormatter(logging.Formatter(constants.LOG_FORMAT, datefmt=constants.LOG_DATE_FORMAT))
     root.addHandler(file_handler)
 
+    # コンソール出力用ハンドラ: 標準出力へ簡潔な書式（レベルとメッセージのみ）で表示する
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(console_level)
     console_handler.setFormatter(logging.Formatter(constants.CONSOLE_LOG_FORMAT))
     root.addHandler(console_handler)
 
+    # 設定完了フラグを立て、以降の呼び出しを早期リターンさせる
     _configured = True

@@ -1,26 +1,52 @@
 {
+  "_comment": "写真整理ワークフロー全体の設定ファイル。main.py起動時にConfigManagerがこれを読み込む。パスはWindows環境のバックスラッシュ表記（JSON内では \\\\ とエスケープして記述する）。",
   "directories": {
+    "_comment": "ワークフローが使用する主要ディレクトリ。実行環境に合わせて書き換える。",
     "base": "C:\\SHARE\\Photo",
+    "_comment_from_camera": "STEP1(GPS付与)・STEP1.5(手動GPS)・STEP2(コピー)の入力元。カメラ/カードから取り込んだファイルの置き場所",
     "from_camera": "C:\\SHARE\\Photo\\from_camera",
+    "_comment_to_note": "STEP2のコピー先。STEP2.5(EXIF抽出)・STEP3(フレーム付与)はここを処理対象にする",
     "to_note": "C:\\SHARE\\Photo\\to_note"
   },
+  "_comment_copy_targets": "JPEGファイルの追加コピー先一覧（photo_copier.pyが使用）。各要素は {\"name\": 表示名, \"path\": コピー先パス}。空リストの場合はConfigManager.get_copy_targetsがdirectories.to_amazon_jpeg等へフォールバックする。",
   "copy_targets": [
-    {"name": "to_amazon_jpeg", "path": "C:\\SHARE\\Photo\\to_amazon\\jpeg"}
+    {
+      "name": "to_amazon_jpeg",
+      "path": "C:\\SHARE\\Photo\\to_amazon\\jpeg"
+    }
   ],
   "external_tools": {
+    "_comment": "外部ツール（exiftool、フレーム付与スクリプト）の実行ファイル・設定ファイルパス。",
+    "_comment_flame_script": "旧フレーム付与スクリプトのパス（現在はmodules/frame_processor.pyに統合済みのため未使用の可能性あり）",
     "flame_script": "C:\\SHARE\\APPL\\NikonPhotoFrame\\Flame.py",
+    "_comment_flame_config": "STEP3で使用するフレーム付与のレイアウト設定YAMLファイル名（standard.yaml/black.yaml等）",
     "flame_config": "standard.yaml",
+    "_comment_exiftool": "exiftool実行ファイルのフルパス。ExifToolClientがこれを最優先で使用する",
     "exiftool": "C:\\SHARE\\APPL\\exiftool\\exiftool.exe"
   },
   "gps": {
+    "_comment": "GPSログ同期に関する設定。",
+    "_comment_sync_timezone": "カメラ時計とGPSログ(UTC)のタイムゾーン差を補正する値（例: 日本時間なら+09:00）",
     "sync_timezone": "+09:00"
   },
   "file_types": {
-    "jpeg_extensions": [".jpg", ".jpeg"],
-    "raw_extensions": [".nef", ".arw", ".dng"],
-    "gpx_extensions": [".gpx"]
+    "_comment": "対象ファイルの拡張子一覧。ここに追加すればphoto_copier.py等で自動的に対象へ含まれる。",
+    "jpeg_extensions": [
+      ".jpg",
+      ".jpeg"
+    ],
+    "raw_extensions": [
+      ".nef",
+      ".arw",
+      ".dng"
+    ],
+    "gpx_extensions": [
+      ".gpx"
+    ]
   },
   "camera_name_rules": {
+    "_comment": "カメラ機種名の表記ゆれを整えるルール（config_manager.get_camera_name_rulesが読み込み、constants.pyのデフォルト値を上書きする）。適用順序: replacements（部分文字列の置換）→ removes（不要な語の削除）→ brand_replacements（ブランド名の大文字→表記統一）。",
+    "_comment_replacements": "型番の表記ゆれ統一（例: 'Z50_2' 'Z50 2' 'Z50ii' はすべて 'Z50II' に統一）",
     "replacements": {
       "Z50_2": "Z50II",
       "Z50 2": "Z50II",
@@ -30,7 +56,16 @@
       "_4": "IV",
       "_5": "V"
     },
-    "removes": ["NIKON", "Nikon", "nikon", "NIKKOR", "Nikkor", "nikkor"],
+    "_comment_removes": "カメラ名から取り除く語（メーカー名の重複表記などをすっきりさせる）",
+    "removes": [
+      "NIKON",
+      "Nikon",
+      "nikon",
+      "NIKKOR",
+      "Nikkor",
+      "nikkor"
+    ],
+    "_comment_brand_replacements": "全角/大文字表記のブランド名を通常表記に置換",
     "brand_replacements": {
       "SONY": "Sony",
       "CANON": "Canon",
@@ -38,6 +73,8 @@
     }
   },
   "exif_export": {
+    "_comment": "exif_exporter.pyがTSVに書き出すEXIFタグの設定。target_tagsとtag_labelsは同じキー集合で対応させること（tag_labelsは各タグの日本語見出し名）。",
+    "_comment_target_tags": "抽出対象のexiftoolタグ名一覧（順序がそのままTSVの列順になる）",
     "target_tags": [
       "IFD0:Model",
       "Composite:LensID",
@@ -54,6 +91,7 @@
       "Nikon:WhiteBalance",
       "Composite:HyperfocalDistance"
     ],
+    "_comment_tag_labels": "各タグに対応する日本語表示名（TSVのヘッダー行に使用）",
     "tag_labels": {
       "IFD0:Model": "カメラ",
       "Composite:LensID": "レンズ",
@@ -72,6 +110,7 @@
     }
   },
   "steps": {
+    "_comment": "各ワークフローステップの有効/無効フラグ（config_manager.get_enabled_stepsが読み込む）。falseにするとmain.pyのrun_workflowで該当ステップが常にスキップされる。",
     "gps_tag": true,
     "manual_gps": true,
     "copy": true,
