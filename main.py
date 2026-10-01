@@ -4,10 +4,17 @@
 追加した場合はステップ関数を実装して配列に1行追加するだけでよく、
 main() 本体を直接編集する必要はない。
 
+起動するとメニューを表示し、実行したいステップを1つずつ選んで実行できる
+（全ステップを順に実行する項目もある）。--yes や --all を付けた場合、
+または標準入力が対話端末でない場合（タスクスケジューラ等）はメニューを出さず、
+従来どおり全ステップを順に実行する。
+
 CLIオプション:
     --config PATH   config.json のパスを明示指定
-    --yes, -y       すべての確認プロンプトを自動でY（実行）として進める（無人実行向け）
-    --skip STEP     指定したステップをスキップする（複数回指定可）
+    --yes, -y       すべての確認プロンプトを自動でY（実行）として進める（無人実行向け。メニューは出さない）
+    --all           メニューを出さずに全ステップを順に実行する（各ステップの前に確認あり）
+    --step STEP     メニューを出さずに指定したステップだけを実行する（複数回指定可）
+    --skip STEP     指定したステップをスキップする（複数回指定可。全ステップ実行時のみ有効）
     --dry-run       実際のファイル操作は行わず、実行予定のステップのみ表示する
     --list-steps    実行可能なステップ一覧を表示して終了する
 """
@@ -65,8 +72,9 @@ class WorkflowStep:
         key: config.json の 'steps' や --skip で参照するキー
         label: 画面表示用のステップ名
         action: ctx を受け取り成功可否(bool)を返す実行関数
-        requires_confirmation: Trueなら実行前にY/S/Aで確認する
+        requires_confirmation: Trueなら実行前にY/S/Aで確認する（全ステップ実行時のみ）
         abort_on_failure: Trueならこのステップの失敗でワークフロー全体を中断する
+        requires_source: Trueなら取り込み元フォルダ（from_camera）が存在しないと実行できない
     """
 
     key: str
@@ -74,6 +82,7 @@ class WorkflowStep:
     action: Callable[[WorkflowContext], bool]
     requires_confirmation: bool = True
     abort_on_failure: bool = False
+    requires_source: bool = True
 
 
 def step_gps_tag(ctx: WorkflowContext) -> bool:
@@ -154,11 +163,13 @@ def build_steps() -> List[WorkflowStep]:
             key="exif_export",
             label="STEP 2.5: EXIF抽出・書き出し処理",
             action=step_exif_export,
+            requires_source=False,  # to_note を処理対象にするため取り込み元は不要
         ),
         WorkflowStep(
             key="frame",
             label="STEP 3: フレーム付与処理",
             action=step_frame,
+            requires_source=False,  # to_note を処理対象にするため取り込み元は不要
         ),
     ]
 
@@ -179,7 +190,16 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--yes", "-y", action="store_true",
-        help="すべての確認プロンプトを自動でY（実行）として進める（無人実行向け）",
+        help="すべての確認プロンプトを自動でY（実行）として進める（無人実行向け。メニューは出さない）",
+    )
+    parser.add_argument(
+        "--all", action="store_true",
+        help="メニューを出さずに全ステップを順に実行する",
+    )
+    parser.add_argument(
+        "--step", action="append", metavar="STEP", default=[],
+        choices=[s.key for s in build_steps()],
+        help="メニューを出さずに指定したステップだけを実行する（複数回指定可）",
     )
     parser.add_argument(
         # choices=[...] は build_steps() から動的に取得しているため、
@@ -190,7 +210,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--dry-run", action="store_true",
-        help="実際のファイル操作は行わず、実行予定のスッップのみ表示する",
+        help="実際のファイル操作は行わず、実行予定のステップのみ表示する",
     )
     parser.add_argument(
         "--list-steps", action="store_true",
@@ -234,6 +254,12 @@ def prompt_next_action(next_step_name: str) -> str:
             # プロンプト待機中にCtrl+Cが押された場合は「中断(A)」として扱う
             logger.warning("ユーザーが Ctrl+C で中断")
             print("\n[!] 処理が中断されました")
+            return "A"
+        except EOFError:
+            # 標準入力が閉じている（対話端末でない）場合は入力を待てないため中断する。
+            # ※以前は下の汎用 except で捕まえてループし続け、プログラムが終わらなくなっていた
+            logger.warning("標準入力から確認の応答を読めないため中断（無人実行では --yes を指定）")
+            print("\n[!] 確認の入力を受け取れないため中断します（無人で実行する場合は --yes を付けてください）")
             return "A"
         except Exception as e:
             # input()に伴う予期しない例外（EOFErrorなど）はログに残しつつループを継続
@@ -347,11 +373,122 @@ def run_exif_exporter(target_dir: Path, tsv_filename: str = "exif_list.tsv", app
 # ワークフロー実行
 # ==================================================
 
+def refresh_files(ctx: WorkflowContext) -> None:
+    """取り込み元フォルダのファイル分類を取り直す。
+
+    ステップを実行するとファイルが増減する（例: STEP 2 で元ファイルがゴミ箱へ移る）ため、
+    メニュー表示やステップ実行の前に毎回最新の状態にする。
+    """
+    if ctx.from_camera_dir.exists():
+        ctx.jpeg_files, ctx.nef_files, ctx.gpx_files = categorize_files(ctx.from_camera_dir, config=ctx.config)
+    else:
+        ctx.jpeg_files, ctx.nef_files, ctx.gpx_files = [], [], []
+
+
+def run_single_step(ctx: WorkflowContext, step: WorkflowStep, args: argparse.Namespace) -> bool:
+    """1つのステップだけを実行する（メニュー・--step 用）。確認プロンプトは出さない。"""
+    if not ctx.config.get_enabled_steps().get(step.key, True):
+        print(f"\n[{step.label}] は config.json の steps 設定で無効になっているため実行できません。")
+        logger.info("%s: config設定により無効", step.key)
+        return False
+
+    if step.requires_source and not ctx.from_camera_dir.exists():
+        msg = f"取り込み元フォルダが存在しないため実行できません: {ctx.from_camera_dir}"
+        print(f"\n[エラー] {msg}")
+        logger.error("%s: %s", step.key, msg)
+        return False
+
+    if args.dry_run:
+        print(f"\n[dry-run] {step.label} を実行します（実際にはファイル操作を行いません）")
+        logger.info("[dry-run] %s は実行対象（実処理はスキップ）", step.key)
+        return True
+
+    refresh_files(ctx)
+    logger.info("%s 開始（単独実行）", step.key)
+    try:
+        ok = step.action(ctx)
+    except KeyboardInterrupt:
+        # ステップ実行中の Ctrl+C はそのステップだけを中断し、メニューに戻れるようにする
+        print(f"\n[!] {step.label} を Ctrl+C で中断しました")
+        logger.warning("%s: ユーザーが Ctrl+C で中断", step.key)
+        return False
+    except Exception as e:
+        # 1ステップの予期しないエラーでプログラム全体（メニュー）を終わらせない
+        print(f"\n[エラー] {step.label} の実行中にエラーが発生しました: {e}")
+        logger.error("%s: 予期しないエラー", step.key, exc_info=True)
+        return False
+
+    status = "完了" if ok else "失敗"
+    print(f"\n>>> {step.label}: {status}")
+    logger.info("%s %s（単独実行）", step.key, status)
+    return ok
+
+
+def print_menu(ctx: WorkflowContext, steps: List[WorkflowStep]) -> None:
+    """メニューを表示する。"""
+    enabled = ctx.config.get_enabled_steps()
+    print("\n==================================================")
+    print("      写真整理ワークフロー  メニュー")
+    print("==================================================")
+    if ctx.from_camera_dir.exists():
+        print(f"  取り込み元: {ctx.from_camera_dir}")
+        print(f"    JPEG {len(ctx.jpeg_files)} 件 / RAW {len(ctx.nef_files)} 件 / GPX {len(ctx.gpx_files)} 件")
+    else:
+        print(f"  取り込み元: {ctx.from_camera_dir}（フォルダがありません）")
+    print("--------------------------------------------------")
+    for i, step in enumerate(steps, 1):
+        note = ""
+        if not enabled.get(step.key, True):
+            note = "  ※config で無効"
+        elif step.requires_source and not ctx.from_camera_dir.exists():
+            note = "  ※取り込み元がないため実行不可"
+        print(f"  [{i}] {step.label}{note}")
+    print("  [A] 全ステップを順に実行（各ステップの前に確認あり）")
+    print("  [Q] 終了")
+    print("--------------------------------------------------")
+
+
+def run_menu(ctx: WorkflowContext, args: argparse.Namespace) -> None:
+    """メニューを表示し、選ばれたステップを1つずつ実行する。Q で終了。"""
+    steps = build_steps()
+    while True:
+        refresh_files(ctx)
+        print_menu(ctx, steps)
+        try:
+            choice = input("番号を入力してください: ").strip().upper()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            return
+
+        if choice in ("Q", "0"):
+            return
+        if choice == "A":
+            try:
+                run_workflow(ctx, args)
+            except KeyboardInterrupt:
+                # 全ステップ実行中の Ctrl+C は実行を打ち切ってメニューに戻る
+                print("\n[!] 全ステップの実行を Ctrl+C で中断しました")
+                logger.warning("全ステップ実行: ユーザーが Ctrl+C で中断")
+            continue
+        if choice.isdigit() and 1 <= int(choice) <= len(steps):
+            run_single_step(ctx, steps[int(choice) - 1], args)
+            continue
+        print(f" [!] 無効な入力です: '{choice}'。1〜{len(steps)}、A、Q のいずれかを入力してください。")
+
+
 def run_workflow(ctx: WorkflowContext, args: argparse.Namespace) -> None:
     """ステップ配列を順に実行する。"""
     # config.jsonの"steps"設定で個別に有効/無効を指定できる（未指定はデフォルトで有効=True）
     enabled_steps = ctx.config.get_enabled_steps()
     skip_from_cli = set(args.skip)
+    refresh_files(ctx)
+
+    if not ctx.from_camera_dir.exists():
+        # 取り込み元がなければ先頭のステップから前提が崩れるため、全体実行はしない
+        msg = f"取り込み元フォルダが存在しません: {ctx.from_camera_dir}"
+        print(f"\n[エラー] {msg}")
+        logger.error(msg)
+        return
 
     for step in build_steps():
         if not enabled_steps.get(step.key, True):
@@ -403,6 +540,17 @@ def run_workflow(ctx: WorkflowContext, args: argparse.Namespace) -> None:
     logger.info("すべてのワークフロー工程が正常に完了しました")
 
 
+def use_menu(args: argparse.Namespace) -> bool:
+    """メニューを表示するかどうか。
+
+    無人実行（--yes）・全ステップ実行の明示（--all / --skip）・対話端末でない場合
+    （タスクスケジューラ等）は、従来どおりメニューを出さずに全ステップを順に実行する。
+    """
+    if args.yes or args.all or args.skip or args.step or args.list_steps:
+        return False
+    return sys.stdin.isatty()
+
+
 def main(args: argparse.Namespace) -> None:
     """メイン実行エントリーポイント。"""
     if args.list_steps:
@@ -442,20 +590,10 @@ def main(args: argparse.Namespace) -> None:
             logger.error("設定キーエラー: %s", e)
             return
 
-        # 入力ディレクトリの確認
-        if not from_camera_dir.exists():
-            # カメラ取り込み元フォルダが存在しなければ、これ以降の処理はすべて意味を持たないため打ち切る
-            msg = f"取り込み元フォルダが存在しません: {from_camera_dir}"
-            print(f"\n[エラー] {msg}")
-            logger.error(msg)
-            return
-
-        # ファイル分類
-        # from_camera_dir配下のファイルをJPEG/NEF(RAW)/GPXログに振り分ける
-        logger.info("ファイル分類開始")
-        jpeg_files, nef_files, gpx_files = categorize_files(from_camera_dir, config=config)
-
-        # 以降の各ステップ関数が共有する実行コンテキストを構築
+        # 以降の各ステップ関数が共有する実行コンテキストを構築。
+        # ファイル分類（JPEG/RAW/GPX）は各ステップの実行直前に refresh_files() で取り直す。
+        # 取り込み元フォルダがなくても、STEP 2.5 / STEP 3 は to_note を対象に単独実行できるため、
+        # ここでは打ち切らない（取り込み元が必要なステップは実行時に個別にチェックする）
         ctx = WorkflowContext(
             config=config,
             from_camera_dir=from_camera_dir,
@@ -463,12 +601,17 @@ def main(args: argparse.Namespace) -> None:
             copy_target_dirs=copy_target_dirs,
             base_dir=base_dir,
             flame_yaml=str(flame_yaml),
-            jpeg_files=jpeg_files,
-            nef_files=nef_files,
-            gpx_files=gpx_files,
         )
 
-        run_workflow(ctx, args)
+        if args.step:
+            # --step 指定: メニューを出さず、指定されたステップだけを指定順に実行する
+            steps_by_key = {s.key: s for s in build_steps()}
+            for key in args.step:
+                run_single_step(ctx, steps_by_key[key], args)
+        elif use_menu(args):
+            run_menu(ctx, args)
+        else:
+            run_workflow(ctx, args)
 
     except KeyboardInterrupt:
         # main()内の処理中（設定読み込み〜ワークフロー実行）にCtrl+Cが押された場合
@@ -503,7 +646,8 @@ if __name__ == "__main__":
         print()
         # 無人実行（--yes）や標準入力が対話端末でない場合は
         # キー入力待ちで停止させない（cron/タスクスケジューラ運用を想定）
-        if not cli_args.yes and sys.stdin.isatty():
+        # メニューは Q で終了した時点で操作が終わっているため、ここでは待たない
+        if not cli_args.yes and sys.stdin.isatty() and not use_menu(cli_args):
             try:
                 input("キーを押すと終了します...")
             except (KeyboardInterrupt, EOFError):
