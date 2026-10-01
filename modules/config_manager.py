@@ -12,6 +12,7 @@ PyQt6には依存しない、シンプルな設定読み込みクラスを2つ�
 """
 
 import json
+import re
 import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
@@ -262,15 +263,74 @@ class ConfigManager:
             "brand_replacements": rules.get("brand_replacements", constants.CAMERA_NAME_BRAND_REPLACEMENTS),
         }
 
-    def get_gps_sync_timezone(self) -> str:
-        """GPSログとの時刻同期に使うタイムゾーンを取得。
+    #: カメラ時計のずれ補正値として受け付ける書式（[+|-]時:分:秒）。
+    #: exiftool は "09:00" を「9分」と解釈するため、曖昧さを避けて時:分:秒に限定する。
+    _CLOCK_OFFSET_PATTERN = re.compile(r"^[+-]?\d{1,2}:\d{2}:\d{2}$")
 
-        海外旅行など、撮影地のタイムゾーンが日本と異なる場合に
-        config.json の 'gps.sync_timezone' で上書きできる。
+    def get_camera_clock_offset(self) -> Optional[str]:
+        """カメラ時計のずれ補正値（exiftool の -geosync に渡す値）を取得。
+
+        config.json の 'gps.camera_clock_offset' に "[+|-]時:分:秒" で指定する。
+        値は「GPS時刻 − カメラ時刻」。例: カメラ時計が1分30秒遅れているなら "+00:01:30"。
+        タイムゾーン（日本時間など）の補正ではない点に注意。タイムゾーンは exiftool が
+        写真の OffsetTimeOriginal、なければPCのタイムゾーン設定から自動で扱う。
+
+        Returns:
+            補正値の文字列。未指定・空・書式不正の場合は None（補正なし）
         """
         from . import constants
 
-        return self.config.get("gps", {}).get("sync_timezone", constants.GPS_SYNC_TIMEZONE)
+        gps = self.config.get("gps", {})
+        if "sync_timezone" in gps:
+            # 旧設定。"+09:00" が「+9分」と解釈され位置が9分ずれていたため廃止し、読み込まない
+            logger.warning(
+                "config.json の gps.sync_timezone は廃止されました（値 %r は使用しません）。"
+                "カメラ時計のずれを補正する場合は gps.camera_clock_offset を \"+00:01:30\" の形式で指定してください",
+                gps["sync_timezone"],
+            )
+
+        value = str(gps.get("camera_clock_offset", constants.CAMERA_CLOCK_OFFSET) or "").strip()
+        if not value:
+            return None
+        if not self._CLOCK_OFFSET_PATTERN.match(value):
+            logger.warning(
+                "gps.camera_clock_offset の書式が不正なため補正しません: %r（\"+00:01:30\" のように時:分:秒で指定）",
+                value,
+            )
+            return None
+        return value
+
+    def get_gps_options(self) -> Dict[str, Any]:
+        """STEP 1（GPXからの位置情報付与）の動作設定を取得。
+
+        config.json の 'gps' セクション:
+          - skip_existing_gps (bool, 既定 True):
+              既にGPS情報を持つ写真は書き換えない（スマホ連携や手動付与した位置を保護）
+          - max_interpolation_seconds (int|null, 既定 null):
+              GPXの記録点の間隔がこの秒数を超える区間では位置を補間しない。null なら exiftool 既定（1800秒）
+          - max_extrapolation_seconds (int|null, 既定 null):
+              GPXの記録の開始前・終了後この秒数以内の写真には端点の位置を使う。null なら exiftool 既定（1800秒）
+        """
+        gps = self.config.get("gps", {})
+
+        def _seconds(key: str) -> Optional[int]:
+            value = gps.get(key)
+            if value in (None, ""):
+                return None
+            try:
+                seconds = int(value)
+                if seconds < 0:
+                    raise ValueError
+                return seconds
+            except (TypeError, ValueError):
+                logger.warning("gps.%s の値が不正なため既定値を使います: %r", key, value)
+                return None
+
+        return {
+            "skip_existing": bool(gps.get("skip_existing_gps", True)),
+            "max_interpolation_secs": _seconds("max_interpolation_seconds"),
+            "max_extrapolation_secs": _seconds("max_extrapolation_seconds"),
+        }
 
     def get_exif_export_config(self) -> Dict[str, Optional[Any]]:
         """個別.exifファイルに出力するタグと日本語ラベルの設定を取得。

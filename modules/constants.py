@@ -92,7 +92,12 @@ DEFAULT_LOGO_TOP_OFFSET: int = 70  # ロゴの上端からのオフセット（�
 
 # ===== 処理設定 =====
 THUMBNAIL_SIZE: int = 200  # GUI等で表示するサムネイル画像の一辺のサイズ（ピクセル）
-GPS_SYNC_TIMEZONE: str = "+09:00"  # GPXログとカメラ内蔵時計の時刻を同期する際に使うタイムゾーン（日本時間）
+# カメラ内蔵時計のずれ補正値（exiftool の -geosync に渡す、"GPS時刻 − カメラ時刻"）。
+# 既定は空文字＝補正なし。タイムゾーンは exiftool が OffsetTimeOriginal（なければPCの
+# タイムゾーン）から自動で扱うため、ここで +09:00 などを指定してはいけない。
+# ※以前は GPS_SYNC_TIMEZONE="+09:00" だったが、exiftool は "+09:00" を「+9分」と
+#   解釈するため、全写真の位置が9分ずれていた。
+CAMERA_CLOCK_OFFSET: str = ""
 JPEG_QUALITY: int = 95  # 画像保存時のJPEG品質（0-100、高いほど高画質・大容量）
 JPEG_SUBSAMPLING: int = 0  # JPEGのクロマサブサンプリング設定（0=4:4:4、色情報を間引かず高画質を維持）
 

@@ -234,7 +234,7 @@ class ExifReader:
             file_paths: 対象ファイルパスリスト
 
         Returns:
-            {正規化済みのファイルパス: 撮影日}の辞書
+            {ファイルパス: 撮影日}の辞書。撮影日を取得できなかったファイルは含まれない
         """
         # 日付取得もクライアント側に委譲。フォーマットはconstants.pyで一元管理している
         return self._client.get_dates_batch(file_paths, date_format=constants.EXIF_DATE_FORMAT)

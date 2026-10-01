@@ -22,7 +22,9 @@ from PyQt6.QtWidgets import (
     QAbstractItemView, QFileDialog, QFrame, QProgressBar, QMessageBox,
     QDialog, QMenuBar
 )
-from PyQt6.QtGui import QPixmap, QImage, QTransform, QIcon, QPainter, QColor, QAction
+from PyQt6.QtGui import (
+    QPixmap, QImage, QTransform, QIcon, QPainter, QColor, QAction, QFont, QFontMetrics
+)
 from PyQt6.QtCore import Qt, QUrl, pyqtSlot, QObject, QSize, QTimer, QThread, pyqtSignal
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
@@ -77,6 +79,26 @@ def format_technical_terms(text: str) -> str:
     )
     return text
 
+# --- GPS状態の表示定義 ---
+# 読み込み時に判定したGPSの状態。サムネイル右上のバッジとファイル名の先頭記号に使う。
+#   yes     : GPS情報あり（書き込み不要）
+#   no      : GPS情報なし（手動で付与が必要）
+#   unknown : 読み取りに失敗して判定できなかった
+GPS_YES, GPS_NO, GPS_UNKNOWN = "yes", "no", "unknown"
+GPS_BADGES = {
+    GPS_YES: ("GPS", "#2E9E4F"),        # 緑
+    GPS_NO: ("GPSなし", "#D9822B"),     # オレンジ
+    GPS_UNKNOWN: ("GPS ?", "#6E6E6E"),  # グレー
+}
+GPS_NAME_PREFIX = {GPS_YES: "🚩 ", GPS_NO: "", GPS_UNKNOWN: "❓ "}
+
+# QListWidgetItem に持たせるデータのロール
+ROLE_PATH = Qt.ItemDataRole.UserRole          # 実ファイルパス
+ROLE_THUMB = Qt.ItemDataRole.UserRole + 1     # バッジを描く前のサムネイル（QPixmap / None）
+ROLE_GPS = Qt.ItemDataRole.UserRole + 2       # GPS状態（GPS_YES / GPS_NO / GPS_UNKNOWN）
+ROLE_COORDS = Qt.ItemDataRole.UserRole + 3    # (lat, lng) または None
+
+
 # NOTE: 以前ここには Google Maps API キー用の独自 ConfigManager クラスがあったが、
 # 地図には Leaflet + OpenStreetMap を使用しており api_key はどこからも参照されて
 # いなかった（デッドコード）ため削除。設定管理は config_manager.ConfigManager に
@@ -86,8 +108,9 @@ def format_technical_terms(text: str) -> str:
 class LoadWorker(QThread):
     """ファイルリストを読み込むバックグラウンドスレッド。"""
 
-    # progress: (現在何件目, 全体件数, ファイル名, サムネイルQImageまたはNone, GPS情報の有無)
-    progress = pyqtSignal(int, int, str, object, bool)
+    # progress: (現在何件目, 全体件数, ファイル名, サムネイルQImageまたはNone,
+    #            GPS情報 {"state": GPS_YES/GPS_NO/GPS_UNKNOWN, "lat": float|None, "lng": float|None})
+    progress = pyqtSignal(int, int, str, object, object)
     # finished: 読み込みが完了したファイル総数
     finished = pyqtSignal(int)
 
@@ -120,8 +143,13 @@ class LoadWorker(QThread):
 
             # フォルダ単位で一括してメタデータを取得（exiftool呼び出しは指定したディレクトリ内全ファイルを一度に処理）
             # ファイルごとにexiftoolを都度起動すると非常に遅いため、
-            # ディレクトリ単位でまとめて1回のexiftool呼び出しにすることで高速化している
-            meta_dict = self.et.get_gps_orientation_batch(Path(self.directory))
+            # ディレクトリ単位でまとめて1回のexiftool呼び出しにすることで高速化している。
+            # 戻り値のキーは小文字のファイル名。
+            meta_dict = self.et.get_gps_orientation_batch(
+                Path(self.directory),
+                extensions=[e.lstrip('.') for e in valid_exts],
+            )
+            fallback_count = 0
 
             for i, f in enumerate(files):
                 if not self._is_running:
@@ -130,30 +158,47 @@ class LoadWorker(QThread):
                     break
 
                 full_path = os.path.join(self.directory, f)
-                # 一括取得結果のキーと突き合わせるため、パスの区切り文字等を正規化する
-                norm_path = os.path.normpath(full_path)
 
-                # 一括取得結果からこのファイル分のメタデータ（GPS座標・向き）を取り出す
-                meta = meta_dict.get(norm_path, {})
-                lat = meta.get('lat')
-                lng = meta.get('lng')
+                # 一括取得結果からこのファイル分のメタデータ（GPS座標・向き）を取り出す。
+                # 一括取得がタイムアウト等で失敗した／このファイルが漏れた場合は、
+                # 「GPSなし」と誤表示しないよう、このファイルだけ個別に取り直す
+                meta = meta_dict.get(f.lower())
+                if meta is None:
+                    fallback_count += 1
+                    meta = self.et.get_gps_orientation(Path(full_path))
+                gps_info = self._to_gps_info(meta)
                 # 向き情報（EXIF Orientation）。取得できなければ1（回転なし）とみなす
-                orientation = meta.get('orientation', 1)
+                orientation = meta.get('orientation', 1) if meta else 1
 
                 try:
                     # サムネイル画像を読み込み・回転補正した上でUIスレッドへ通知する
                     qimg = self.load_thumbnail(full_path, orientation)
-                    self.progress.emit(i + 1, total, f, qimg, lat is not None)
+                    self.progress.emit(i + 1, total, f, qimg, gps_info)
                 except Exception as e:
                     # 1ファイルの読み込みに失敗しても全体を止めず、そのファイルだけスキップして続行する
+                    # （GPSの判定結果はサムネイルの成否と関係ないのでそのまま渡す）
                     logger.error("サムネイル読み込みエラー (%s): %s", f, e)
-                    self.progress.emit(i + 1, total, f, None, False)
+                    self.progress.emit(i + 1, total, f, None, gps_info)
+
+            if fallback_count:
+                logger.warning("一括取得で見つからず個別に再取得したファイル: %d/%d 件", fallback_count, total)
 
             self.finished.emit(total)
         except Exception as e:
             # ディレクトリ読み取り自体の失敗など、想定外のエラーはログを残し finished(0) で終了を通知
             logger.error("LoadWorker エラー: %s", e, exc_info=True)
             self.finished.emit(0)
+
+    @staticmethod
+    def _to_gps_info(meta: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        """exiftoolの取得結果をGPS状態の辞書に変換する。"""
+        if meta is None:
+            # 個別取得でも読めなかった（exiftoolエラー等）→ 判定不能
+            return {"state": GPS_UNKNOWN, "lat": None, "lng": None}
+        lat, lng = meta.get("lat"), meta.get("lng")
+        if lat is not None and lng is not None:
+            return {"state": GPS_YES, "lat": lat, "lng": lng}
+        return {"state": GPS_NO, "lat": None, "lng": None}
 
     def stop(self) -> None:
         """スレッドを停止。"""
@@ -239,7 +284,10 @@ class WriteWorker(QThread):
 
     # progress: (現在何件目, 全体件数, ファイル名)
     progress = pyqtSignal(int, int, str)
-    finished = pyqtSignal()
+    # file_done: (ファイルパス, 書き込み成功ならTrue)。一覧のバッジを1件ずつ更新するために使う
+    file_done = pyqtSignal(str, bool)
+    # finished: (成功件数, 全体件数)
+    finished = pyqtSignal(int, int)
 
     def __init__(self, items_data, lat: float, lng: float) -> None:
         super().__init__()
@@ -262,15 +310,17 @@ class WriteWorker(QThread):
             filename = os.path.basename(path)
             self.progress.emit(current, total, filename)
 
-            if self.et.write_gps(Path(path), self.lat, self.lng, timeout=10):
+            ok = self.et.write_gps(Path(path), self.lat, self.lng, timeout=10)
+            if ok:
                 success_count += 1
                 logger.debug("GPS書込成功: %s", filename)
             else:
                 # 書き込みに失敗した場合も処理は継続し、後続ファイルの書き込みを試みる
                 logger.warning("GPS書込失敗: %s", filename)
+            self.file_done.emit(path, ok)
 
         logger.info("GPS書込完了: %d/%d ファイル", success_count, total)
-        self.finished.emit()
+        self.finished.emit(success_count, total)
 
 # --- プレビュー表示用ダイアログ ---
 class PreviewDialog(QDialog):
@@ -383,6 +433,8 @@ class NefGpsTool(QMainWindow):
         self.current_dir = ""
         self.worker = None
         self.writer = None
+        # ファイルパス → 一覧のアイテム（書き込み結果をバッジに反映するために使う）
+        self.items_by_path: Dict[str, QListWidgetItem] = {}
         self.setWindowTitle("Photo GPS Writer (NEF & JPEG)")
         self.set_app_icon()
         self.create_menu_bar()
@@ -501,41 +553,98 @@ class NefGpsTool(QMainWindow):
             self.worker.stop()
             self.worker.wait()
         self.list_widget.clear()
+        self.items_by_path = {}
         self.path_lbl.setText(path)
         self.current_dir = path
         self.pbar.setValue(0)
         self.worker = LoadWorker(path, self.thumb_size)
         # progress/finishedシグナルをUI更新用のスロットに接続してからスレッドを開始する
         self.worker.progress.connect(self.add_item_to_list)
-        self.worker.finished.connect(lambda count: self.status_lbl.setText(f"完了: {count}枚"))
+        self.worker.finished.connect(self.on_load_finished)
         self.worker.start()
 
-    def add_item_to_list(self, current, total, filename, qimg, has_gps):
+    def add_item_to_list(self, current, total, filename, qimg, gps_info):
         # LoadWorker.progress シグナルのハンドラ。1ファイル分の結果をリストに追加する
         self.pbar.setMaximum(total)
         self.pbar.setValue(current)
         self.status_lbl.setText(f"読込中 ({current}/{total}): {filename}")
-        # 既にGPS情報を持つファイルには目印の絵文字を付けて視覚的に分かるようにする
-        display_name = f"🚩 {filename}" if has_gps else filename
-        item = QListWidgetItem(display_name)
+
+        path = os.path.join(self.current_dir, filename)
+        item = QListWidgetItem(filename)
         # アイテムに実ファイルパスをユーザーデータとして保持させておく（後で選択時に参照するため）
-        item.setData(Qt.ItemDataRole.UserRole, os.path.join(self.current_dir, filename))
-
-        # サムネイルで QImage から QPixmap を生成
-        if qimg and not qimg.isNull():
-            pix = QPixmap.fromImage(qimg)
-            # サムネイルのアスペクト比が正方形でない場合も見た目を揃えるため、
-            # 固定サイズの透明キャンバスの中央にpixを描画してアイコン化する
-            canvas = QPixmap(self.thumb_size, self.thumb_size)
-            canvas.fill(Qt.GlobalColor.transparent)
-            painter = QPainter(canvas)
-            x, y = (self.thumb_size-pix.width())//2, (self.thumb_size-pix.height())//2
-            painter.drawPixmap(x, y, pix)
-            painter.end()
-            item.setIcon(QIcon(canvas))
-
+        item.setData(ROLE_PATH, path)
+        # バッジを描き直せるよう、バッジなしのサムネイルも保持しておく
+        pix = QPixmap.fromImage(qimg) if qimg is not None and not qimg.isNull() else None
+        item.setData(ROLE_THUMB, pix)
         item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
+
+        # GPS状態に応じてバッジ・ファイル名の記号・ツールチップを設定する
+        coords = (gps_info["lat"], gps_info["lng"]) if gps_info["state"] == GPS_YES else None
+        self.apply_gps_state(item, gps_info["state"], coords)
+
+        self.items_by_path[path] = item
         self.list_widget.addItem(item)
+
+    def on_load_finished(self, count):
+        # 読み込み完了時に、GPSあり／なしの件数を表示して手動付与が必要な枚数を分かるようにする
+        states = [self.list_widget.item(i).data(ROLE_GPS) for i in range(self.list_widget.count())]
+        n_yes, n_no, n_unknown = (states.count(s) for s in (GPS_YES, GPS_NO, GPS_UNKNOWN))
+        text = f"完了: {count}枚（GPSあり {n_yes} / GPSなし {n_no}"
+        text += f" / 判定不可 {n_unknown}）" if n_unknown else "）"
+        self.status_lbl.setText(text)
+
+    def apply_gps_state(self, item: QListWidgetItem, state: str, coords=None) -> None:
+        """アイテムのGPS状態を更新し、バッジ付きアイコン・ファイル名・ツールチップに反映する。"""
+        item.setData(ROLE_GPS, state)
+        item.setData(ROLE_COORDS, coords)
+        filename = os.path.basename(item.data(ROLE_PATH))
+        item.setText(f"{GPS_NAME_PREFIX[state]}{filename}")
+        item.setIcon(self.make_thumb_icon(item.data(ROLE_THUMB), state))
+        if state == GPS_YES and coords:
+            tip = f"GPSあり\n緯度: {coords[0]:.6f}\n経度: {coords[1]:.6f}"
+        elif state == GPS_NO:
+            tip = "GPSなし（手動で付与が必要）"
+        else:
+            tip = "GPS情報を読み取れませんでした（ログを確認してください）"
+        item.setToolTip(f"{filename}\n{tip}")
+
+    def make_thumb_icon(self, pix: Optional[QPixmap], state: str) -> QIcon:
+        """サムネイルを正方形キャンバスの中央に置き、右上にGPS状態のバッジを描いたアイコンを作る。"""
+        size = self.thumb_size
+        # サムネイルのアスペクト比が正方形でない場合も見た目を揃えるため、
+        # 固定サイズの透明キャンバスの中央にpixを描画してアイコン化する
+        canvas = QPixmap(size, size)
+        canvas.fill(Qt.GlobalColor.transparent)
+        painter = QPainter(canvas)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        if pix is not None and not pix.isNull():
+            x, y = (size - pix.width()) // 2, (size - pix.height()) // 2
+            painter.drawPixmap(x, y, pix)
+        else:
+            # サムネイルが取れなかったファイルもバッジは見えるよう、暗い下地を描いておく
+            painter.fillRect(8, 8, size - 16, size - 16, QColor("#2A2A2A"))
+            painter.setPen(QColor("#777777"))
+            painter.drawText(canvas.rect(), Qt.AlignmentFlag.AlignCenter.value, "No preview")
+
+        # --- 右上のバッジ（角丸の色付きラベル） ---
+        label, color = GPS_BADGES[state]
+        font = QFont()
+        font.setBold(True)
+        font.setPixelSize(max(11, size // 13))
+        painter.setFont(font)
+        fm = QFontMetrics(font)
+        pad_x, pad_y, margin = 7, 3, 6
+        bw = fm.horizontalAdvance(label) + pad_x * 2
+        bh = fm.height() + pad_y * 2
+        bx, by = size - bw - margin, margin
+        painter.setPen(QColor(255, 255, 255, 200))   # 暗い写真・明るい写真どちらでも目立つよう白い縁取り
+        painter.setBrush(QColor(color))
+        painter.drawRoundedRect(bx, by, bw, bh, bh / 2, bh / 2)
+        painter.setPen(QColor("#FFFFFF"))
+        # PyQt6 の drawText はフラグを int で受け取るため .value を渡す
+        painter.drawText(bx, by, bw, bh, Qt.AlignmentFlag.AlignCenter.value, label)
+        painter.end()
+        return QIcon(canvas)
 
     def start_writing(self):
         # 選択がない、または地図上でまだ座標が選ばれていなければ何もしない
@@ -548,9 +657,10 @@ class NefGpsTool(QMainWindow):
         self.pbar.setMaximum(len(selected))
         self.pbar.setValue(0)
         # 選択中の各アイテムから (ファイルパス, アイテム) のタプルを作りWriteWorkerへ渡す
-        items_data = [(i.data(Qt.ItemDataRole.UserRole), i) for i in selected]
+        items_data = [(i.data(ROLE_PATH), i) for i in selected]
         self.writer = WriteWorker(items_data, *self.selected_coords)
         self.writer.progress.connect(self.on_write_progress)
+        self.writer.file_done.connect(self.on_write_file_done)
         self.writer.finished.connect(self.on_write_finished)
         # 書き込み中の二重実行を防ぐためボタンを無効化する
         self.btn_save.setEnabled(False)
@@ -560,14 +670,30 @@ class NefGpsTool(QMainWindow):
         self.pbar.setValue(current)
         self.status_lbl.setText(f"書込中 ({current}/{total}): {name}")
 
-    def on_write_finished(self):
-        # 書き込み対象だった各アイテムの表示名に完了マーク（絵文字）を付け直す
-        for item in self.list_widget.selectedItems():
-            fname = os.path.basename(item.data(Qt.ItemDataRole.UserRole))
-            item.setText(f"🚩 {fname}")
-        self.status_lbl.setText("書き込み完了")
+    def on_write_file_done(self, path, ok):
+        # 書き込みに成功したファイルだけ「GPSあり」に更新する。
+        # （以前は完了時点で選択中のアイテムに一律で🚩を付けていたため、
+        #   書き込み中に選択を変えたり、失敗したファイルがあると表示がずれていた）
+        if not ok:
+            return
+        item = self.items_by_path.get(path)
+        if item is not None:
+            written_coords = (self.writer.lat, self.writer.lng) if self.writer else None
+            self.apply_gps_state(item, GPS_YES, written_coords)
+
+    def on_write_finished(self, success, total):
+        failed = total - success
         self.btn_save.setEnabled(True)
-        QMessageBox.information(self, "完了", "書き込み完了。")
+        if failed:
+            self.status_lbl.setText(f"書き込み完了: 成功 {success} / 失敗 {failed}")
+            QMessageBox.warning(
+                self, "一部失敗",
+                f"{total}枚中 {failed}枚の書き込みに失敗しました。\n"
+                "失敗したファイルは「GPSなし」のままです。詳細はログを確認してください。"
+            )
+        else:
+            self.status_lbl.setText(f"書き込み完了: {success}枚")
+            QMessageBox.information(self, "完了", f"{success}枚に書き込みました。")
 
     def on_selection_changed(self):
         # 一覧の選択が変わるたびに、その写真の既存GPS情報を地図上に反映する
@@ -576,8 +702,15 @@ class NefGpsTool(QMainWindow):
             # 選択が空になったらマーカーを消す
             self.browser.page().runJavaScript("clearMarker();")
             return
-        path = sel[0].data(Qt.ItemDataRole.UserRole)
-        lat, lng = self.get_gps_fast(path)
+        item = sel[0]
+        state = item.data(ROLE_GPS)
+        if state == GPS_YES and item.data(ROLE_COORDS):
+            # 読み込み時（または書き込み時）に取得済みの座標を使い、exiftoolの再実行を省く
+            lat, lng = item.data(ROLE_COORDS)
+        elif state == GPS_NO:
+            lat, lng = None, None
+        else:
+            lat, lng = self.get_gps_fast(item.data(ROLE_PATH))
         if lat is not None:
             # 既存のGPS座標があれば、それを選択座標として扱い地図上にマーカー表示する
             # （第3引数falseはJS側からのnotifyを抑制し、Python→JSの一方向更新にするため）
@@ -589,7 +722,7 @@ class NefGpsTool(QMainWindow):
 
     def on_item_double_clicked(self, item):
         # ダブルクリックで詳細プレビューダイアログをモーダル表示する
-        path = item.data(Qt.ItemDataRole.UserRole)
+        path = item.data(ROLE_PATH)
         PreviewDialog(path, self).exec()
 
     def on_map_clicked(self, lat, lng):

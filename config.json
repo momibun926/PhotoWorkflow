@@ -26,8 +26,14 @@
   },
   "gps": {
     "_comment": "GPSログ同期に関する設定。",
-    "_comment_sync_timezone": "カメラ時計とGPSログ(UTC)のタイムゾーン差を補正する値（例: 日本時間なら+09:00）",
-    "sync_timezone": "+09:00"
+    "_comment_camera_clock_offset": "カメラ時計のずれ補正（exiftool -geosync）。値は『GPS時刻−カメラ時刻』を [+|-]時:分:秒 で指定（例: カメラが1分30秒遅れているなら +00:01:30）。空なら補正なし。タイムゾーンの指定ではない（+09:00 などを入れると位置がずれる）",
+    "camera_clock_offset": "",
+    "_comment_skip_existing_gps": "true なら既にGPS情報を持つ写真は書き換えない（スマホ連携や手動付与した位置を保護）。false にするとGPXの位置で上書きする",
+    "skip_existing_gps": false,
+    "_comment_max_interpolation_seconds": "GPXの記録点の間隔がこの秒数を超える区間（GPSが途切れていた区間）では位置を補間しない。null なら exiftool の既定値 1800秒",
+    "max_interpolation_seconds": null,
+    "_comment_max_extrapolation_seconds": "GPXの記録開始前・終了後この秒数以内に撮った写真には、記録の最初/最後の位置を使う。null なら exiftool の既定値 1800秒",
+    "max_extrapolation_seconds": null
   },
   "file_types": {
     "_comment": "対象ファイルの拡張子一覧。ここに追加すればphoto_copier.py等で自動的に対象へ含まれる。",

@@ -141,6 +141,7 @@ def copy_and_organize_photos(
     # RAW ファイルコピー
     # RAWファイルは撮影日ごとのフォルダ（年/月/年月日）に振り分けてコピーする
     total_nef = len(nef_files)
+    unknown_date_files: List[Path] = []  # 撮影日が取得できず unknown フォルダへ入れたRAW
     logger.info("RAW ファイル (%d 件) のコピーを開始", total_nef)
     
     if total_nef > 0:
@@ -158,9 +159,11 @@ def copy_and_organize_photos(
                     month = date_str[4:6]
                     target_dir = base_dir / year / month / date_str
                 else:
-                    # 撮影日が取得できない場合はunknownフォルダにまとめる
+                    # 撮影日が取得できない場合は、推測の日付で振り分けずunknownフォルダにまとめる
+                    # （ファイルの更新日時・作成日時は、GPS書き込みやコピーをした日に変わるため使わない）
                     logger.warning("RAW ファイルの撮影日が取得できません: %s", nef.name)
                     target_dir = base_dir / "unknown"
+                    unknown_date_files.append(nef)
                 
                 # コピー先ディレクトリ（年/月/日、またはunknown）を必要に応じて作成してからコピー
                 target_dir.mkdir(parents=True, exist_ok=True)
@@ -203,6 +206,14 @@ def copy_and_organize_photos(
     print(" 【処理のサマリー】")
     print(f"    ・JPEG コピー完了 : {total_jpeg} 件")
     print(f"    ・RAW コピー完了  : {total_nef} 件")
+    if unknown_date_files:
+        # 撮影日不明のRAWは手動で振り分けが必要なため、件数と置き場所・ファイル名を示す
+        print(f"    ・撮影日不明      : {len(unknown_date_files)} 件 → {base_dir / 'unknown'} に保存（手動で振り分けてください）")
+        names = sorted(p.name for p in unknown_date_files)
+        for name in names[:20]:
+            print(f"         - {name}")
+        if len(names) > 20:
+            print(f"         ...ほか {len(names) - 20} 件（全件はログに記録）")
     print(f"    ・ゴミ箱移動完了 : {trashed_count}/{len(files_to_trash)} 件")
     print("\n")
     print("==================================================")
