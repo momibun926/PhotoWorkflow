@@ -102,6 +102,7 @@ STEP 3 のフレームは `config.json` の `external_tools.flame_config` で指
 | | `position` | `left` / `center` / `right` / `text_left` / `text_right`（文字の隣） |
 | | `vertical` | `bottom` / `center` / `top` / `text`（文字ブロックの中央） |
 | | `offset_x` / `offset_y` / `gap` / `opacity` | 位置の微調整、文字との間隔、不透明度 |
+| | `left` / `top` | キャンバス左上からの座標で直接指定（`position` / `vertical` より優先。片方だけでも可） |
 
 `layout.lines` を書いた場合は `layout.top` / `layout.bottom` と `fonts.main_size` / `sub_size` は不要です。
 テンプレートに存在しない項目（例: `{unknown}`）は空文字になり、処理は止まりません。

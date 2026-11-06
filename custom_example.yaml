@@ -96,6 +96,10 @@ logo:
   offset_y: 0                    # 縦方向のずれ（bottom のときは下端から上へ）
   gap: 0.01                      # text_left / text_right のときの文字との間隔
   opacity: 1.0                   # 不透明度（0.0〜1.0）
+  # 座標で直接指定する場合（キャンバス左上からロゴ左上までの距離。比率 or "px"）
+  # 指定すると position / vertical / offset より優先。片方だけの指定も可
+  # left: "120px"
+  # top: 0.02
 
 # 出力設定
 output:
