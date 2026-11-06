@@ -327,8 +327,16 @@ class ImageProcessor:
             else:  # bottom（既定）: 文字エリア下端から off_y 上
                 y = area_bottom - logo_h - off_y
 
+            # 座標の直接指定: logo.left / logo.top があれば、キャンバス左上(0,0)から
+            # ロゴ左上までの距離として使う（position / vertical / offset より優先）。
+            # 片方だけ指定した場合、もう片方は position / vertical の計算結果を使う。
+            if self._opt(cfg, "left") is not None:
+                x = self._to_px(self._opt(cfg, "left"), long_side)
+            if self._opt(cfg, "top") is not None:
+                y = self._to_px(self._opt(cfg, "top"), long_side)
+
             canvas.paste(logo, (x, y), logo)
-            logger.debug("ロゴ描画完了: position=%s vertical=%s", position, vertical)
+            logger.debug("ロゴ描画完了: x=%d y=%d (position=%s vertical=%s)", x, y, position, vertical)
         except Exception as e:
             # ロゴ描画に失敗しても致命的ではないため、警告のみでフレーム処理自体は継続する
             logger.warning("ロゴ描画失敗: %s", e)
