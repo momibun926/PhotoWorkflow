@@ -376,14 +376,28 @@ class YamlConfigManager:
     """YAML形式の設定ファイル（フレームレイアウト設定）を管理するクラス。"""
 
     #: frame_processor.py が参照する必須キー。欠落時は起動時に検出できるよう検証する。
-    REQUIRED_TOP_KEYS = ("fonts", "colors", "ratios", "layout", "output")
-    # トップレベルキーごとに、その中でさらに必須となるサブキーの一覧
+    #: （layout.lines / canvas.margins を使う新形式では一部が不要になるため、
+    #:   条件付きの検証は _validate_config() 内で行う）
+    REQUIRED_TOP_KEYS = ("fonts", "colors", "layout", "output")
     REQUIRED_KEYS = {
-        "fonts": ("size_type", "main_size", "sub_size", "bold", "regular"),
-        "colors": ("bg", "main", "sub"),
-        "ratios": ("bottom_margin", "side_margin"),
-        "layout": ("top", "bottom"),
+        "colors": ("bg",),
         "output": ("prefix", "dir_name"),
+    }
+    #: layout.lines を使わない旧形式（top/bottom の2行）で必須となるキー
+    LEGACY_LINE_KEYS = {
+        "fonts": ("main_size", "sub_size", "bold", "regular"),
+        "colors": ("main", "sub"),
+        "layout": ("top", "bottom"),
+    }
+    #: 選択肢が決まっている設定値
+    CHOICES = {
+        ("layout", "align"): ("left", "center", "right"),
+        ("layout", "align_to"): ("image", "canvas"),
+        ("layout", "text_area"): ("bottom", "top"),
+        ("layout", "vertical_align"): ("padding", "center"),
+        ("canvas", "aspect_fill"): ("center", "bottom", "top"),
+        ("logo", "position"): ("left", "center", "right", "text_left", "text_right"),
+        ("logo", "vertical"): ("bottom", "center", "top", "text"),
     }
 
     def __init__(self, config_path: Path):
@@ -431,20 +445,70 @@ class YamlConfigManager:
         self.namespace = self._dict_to_namespace(self.config)
 
     def _validate_config(self) -> None:
-        """必須キーの検証。frame_processor.py実行中のAttributeErrorを未然に防ぐ。"""
-        # トップレベルキー（fonts/colors/ratios/layout/output）の存在チェック
+        """必須キーと値の検証。frame_processor.py実行中のAttributeErrorを未然に防ぐ。"""
+        name = self.config_path.name
+
+        def require(section_name: str, keys) -> None:
+            section = self.config.get(section_name) or {}
+            for sub_key in keys:
+                if sub_key not in section:
+                    raise ValueError(f"{name} の '{section_name}' に必須キー '{sub_key}' がありません")
+
+        # トップレベルキーの存在チェック
         for top_key in self.REQUIRED_TOP_KEYS:
             if top_key not in self.config:
-                raise ValueError(f"{self.config_path.name} に必須キー '{top_key}' がありません")
-
-        # 各トップレベルキーの中身（サブキー）についても存在チェックする
+                raise ValueError(f"{name} に必須キー '{top_key}' がありません")
         for top_key, sub_keys in self.REQUIRED_KEYS.items():
-            section = self.config.get(top_key, {}) or {}
-            for sub_key in sub_keys:
-                if sub_key not in section:
+            require(top_key, sub_keys)
+
+        layout = self.config.get("layout") or {}
+        lines = layout.get("lines")
+        if lines is None:
+            # 旧形式: top/bottom の2行構成
+            for top_key, sub_keys in self.LEGACY_LINE_KEYS.items():
+                require(top_key, sub_keys)
+        else:
+            if not isinstance(lines, list) or not lines:
+                raise ValueError(f"{name} の 'layout.lines' は1行以上のリストで指定してください")
+            for i, line in enumerate(lines, 1):
+                if not isinstance(line, dict) or "text" not in line:
+                    raise ValueError(f"{name} の 'layout.lines' の{i}行目に 'text' がありません")
+                if line.get("align") not in (None, "left", "center", "right"):
                     raise ValueError(
-                        f"{self.config_path.name} の '{top_key}' に必須キー '{sub_key}' がありません"
+                        f"{name} の 'layout.lines' の{i}行目の align は left / center / right のいずれかです"
                     )
+
+        # 余白は ratios（旧形式）か canvas.margins のどちらかで指定されている必要がある
+        canvas = self.config.get("canvas") or {}
+        if "ratios" not in self.config and "margins" not in canvas:
+            raise ValueError(f"{name} に 'ratios' または 'canvas.margins' のどちらかが必要です")
+        if "ratios" in self.config and "margins" not in canvas:
+            require("ratios", ("bottom_margin", "side_margin"))
+
+        # 選択肢の検証
+        for (section_name, key), choices in self.CHOICES.items():
+            value = (self.config.get(section_name) or {}).get(key)
+            if value is not None and value not in choices:
+                raise ValueError(
+                    f"{name} の '{section_name}.{key}' は {' / '.join(choices)} のいずれかです（指定値: {value}）"
+                )
+
+        # アスペクト比の書式チェック（"4:5" / 1.25 など）
+        for key in ("aspect_ratio", "aspect_ratio_portrait"):
+            value = canvas.get(key)
+            if value in (None, "", "none", "None", False):
+                continue
+            try:
+                text = str(value)
+                if ":" in text:
+                    a, b = text.split(":", 1)
+                    ok = float(a) > 0 and float(b) > 0
+                else:
+                    ok = float(text) > 0
+            except ValueError:
+                ok = False
+            if not ok:
+                raise ValueError(f"{name} の 'canvas.{key}' は \"4:5\" のような形式で指定してください（指定値: {value}）")
 
     @staticmethod
     def _dict_to_namespace(data: Any) -> Any:
