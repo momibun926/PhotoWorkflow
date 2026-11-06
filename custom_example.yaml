@@ -1,0 +1,104 @@
+# フレーム付与処理（modules/frame_processor.py）の拡張設定サンプル。
+# standard.yaml / black.yaml の書き方はそのまま使えます。このファイルは
+# 新しく追加した「余白・キャンバス」「文字のレイアウト」「ロゴ」の設定例です。
+#
+# 長さの指定ルール（canvas.margins / layout.line_spacing / logo.offset_x など共通）:
+#   - 数値（例: 0.02）   … 写真の長辺に対する比率（画像サイズが変わっても見た目が揃う）
+#   - 文字列（例: "80px"）… ピクセル数で直接指定
+
+# フォント設定（各行の font: で "bold" / "regular" のようにキー名で参照できる。
+# 好きな名前のリストを追加してもよい: 例 mono: ["fonts/xxx.ttf"]）
+fonts:
+  size_type: "ratio"
+  bold:
+    - "fonts/SofiaSans-Regular.ttf"
+    - "arialbd.ttf"
+  regular:
+    - "fonts/SofiaSans-Light.ttf"
+    - "arial.ttf"
+
+# 色設定（各行の color: で "main" / "sub" のようにキー名で参照できる。HEX直接指定も可）
+colors:
+  bg: "#FFFFFF"
+  main: "#1A1A1A"
+  sub: "#777777"
+  accent: "#B08D57"
+
+# 余白・キャンバス
+canvas:
+  # 上下左右の余白を個別に指定（ratios.side_margin / bottom_margin より優先）
+  margins:
+    top: 0.03
+    bottom: 0.11
+    left: 0.03
+    right: 0.03
+  # キャンバス全体の比率（"幅:高さ"）。足りない分の余白が自動で追加される。不要なら削除か null
+  aspect_ratio: "1:1"
+  # 縦長写真だけ別の比率にしたい場合（省略すると aspect_ratio を使用）
+  aspect_ratio_portrait: "4:5"
+  # 高さを足すときの配分: center（上下均等）/ bottom（すべて下へ＝文字エリアが広がる）/ top
+  aspect_fill: "center"
+
+# 文字のレイアウト
+layout:
+  # 文字を置くエリア: bottom（下余白、既定）/ top（上余白）
+  text_area: "bottom"
+  # 全行共通の揃え: left / center / right（各行の align: で個別に上書き可）
+  align: "left"
+  # 揃えの基準: image（写真の左右端、既定）/ canvas（キャンバスの左右端）
+  align_to: "image"
+  # left / right 揃えのときの基準端からの距離
+  padding_x: 0
+  # 縦位置: padding（top_padding_ratio で指定、既定）/ center（文字ブロックを文字エリアの中央に）
+  vertical_align: "center"
+  top_padding_ratio: 0.20     # vertical_align: padding のときに使用
+  y_offset: 0                 # 文字ブロック全体を上下にずらす（+で下へ）
+  # 行の上端から次の行の上端までの距離（比率 or "px"）。旧来の line_spacing_px も引き続き使用可
+  line_spacing: 0.028
+
+  # 行の定義（何行でも可）。lines を書いた場合は top / bottom は使われない
+  #   text    : テンプレート（{camera} {lens} {focal_length} {f_number} {shutter} {iso}
+  #             {exposure_bias} {exposure_mode} {picture_control} {white_balance} {color_temperature}）
+  #   font    : fonts のキー名、フォントのパス、またはパスのリスト
+  #   size    : 比率（size_type: ratio のとき）または "40px"
+  #   color   : colors のキー名、または "#RRGGBB"
+  #   align   : この行だけ揃えを変える（省略時は layout.align）
+  #   spacing : 前の行の上端からの距離（省略時は layout.line_spacing）
+  lines:
+    - text: "{camera}"
+      font: "bold"
+      size: 0.022
+      color: "main"
+    - text: "{lens}"
+      font: "regular"
+      size: 0.014
+      color: "accent"
+      spacing: 0.030
+    - text: "{focal_length}mm   f/{f_number}   {shutter}s   ISO {iso}"
+      font: "regular"
+      size: 0.012
+      color: "sub"
+      spacing: 0.022
+
+# ロゴ
+logo:
+  enabled: true
+  path: "nikon_logo.png"        # カレントディレクトリ → このYAMLのフォルダの順に探す
+  # 大きさ: height（比率 or "px"）を書くとそれを優先。なければ「1行目の文字サイズ × height_font_ratio」
+  height_font_ratio: 2.3
+  # height: 0.04
+  # 横位置: left / center / right（写真の端が基準）/ text_left / text_right（文字ブロックの隣）
+  position: "right"
+  # 縦位置（文字エリア内）: bottom / center / top / text（文字ブロックの中央）
+  # 省略時は left/center/right なら bottom、text_left/text_right なら text
+  vertical: "center"
+  offset_x: 0                    # 基準からの横方向のずれ（right のときは右端から内側へ）
+  offset_y: 0                    # 縦方向のずれ（bottom のときは下端から上へ）
+  gap: 0.01                      # text_left / text_right のときの文字との間隔
+  opacity: 1.0                   # 不透明度（0.0〜1.0）
+
+# 出力設定
+output:
+  prefix: "Frame_"
+  dir_name: "processed_photos_custom"
+  quality: 100
