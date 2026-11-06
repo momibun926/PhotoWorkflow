@@ -1,51 +1,108 @@
-# フレーム付与処理（modules/frame_processor.py）用のレイアウト設定ファイル。
-# 「標準」テーマ（明るい背景・黒文字）用の設定。
-# YamlConfigManagerが読み込み、フォント・色・余白・レイアウト・出力の各設定を提供する。
+# フレーム付与処理（modules/frame_processor.py）の拡張設定サンプル。
+# standard.yaml / black.yaml の書き方はそのまま使えます。このファイルは
+# 新しく追加した「余白・キャンバス」「文字のレイアウト」「ロゴ」の設定例です。
+#
+# 長さの指定ルール（canvas.margins / layout.line_spacing / logo.offset_x など共通）:
+#   - 数値（例: 0.02）   … 写真の長辺に対する比率（画像サイズが変わっても見た目が揃う）
+#   - 文字列（例: "80px"）… ピクセル数で直接指定
 
-# フォント設定
+# フォント設定（各行の font: で "bold" / "regular" のようにキー名で参照できる。
+# 好きな名前のリストを追加してもよい: 例 mono: ["fonts/xxx.ttf"]）
 fonts:
-  # システムにインストールされているフォント名、またはパスを指定
-  # "ratio"（画像長辺に対する比率でサイズ指定）または "px"（ピクセル数で直接指定）
   size_type: "ratio"
-  # メイン行（カメラ名・レンズ名）のフォントサイズ比率
-  main_size: 0.022
-  # サブ行（焦点距離・絞り等の撮影情報）のフォントサイズ比率
-  sub_size: 0.015
   bold:
-    - "fonts/Rubik-Regular.ttf"      # 相対パスで指定
-    - "arialbd.ttf"                      # 見つからない場合のフォールバック（システムフォント名）
-  # サブ行用フォントの候補リスト
+    - "fonts/SofiaSans-Regular.ttf"
+    - "arialbd.ttf"
   regular:
-    - "fonts/Rubik-Light.ttf"        # 相対パスで指定
+    - "fonts/SofiaSans-Light.ttf"
     - "arial.ttf"
 
-# 色設定 (HEX形式)
+# 色設定（各行の color: で "main" / "sub" のようにキー名で参照できる。HEX直接指定も可）
 colors:
-  bg: "#FEFEFE"    # フレーム背景色（生成するキャンバスの地色）
-  main: "#1A1A15"  # メイン行（カメラ名・レンズ名）の文字色
-  sub: "#5D5B4F"   # サブ行（撮影情報）の文字色
+  bg: "#FFFFFF"
+  main: "#1A1A1A"
+  sub: "#777777"
+  accent: "#B08D57"
 
-# 余白設定（画像長辺に対する割合）
-ratios:
-  bottom_margin: 0.080  # 下部に確保する余白（文字を配置するスペース）の高さ比率
-  side_margin: 0.010    # 左右・上部に確保する余白の幅比率
+# 余白・キャンバス
+canvas:
+  # 上下左右の余白を個別に指定（ratios.side_margin / bottom_margin より優先）
+  margins:
+    top: 0.01
+    bottom: 0.10
+    left: 0.01
+    right: 0.01
+  # キャンバス全体の比率（"幅:高さ"）。足りない分の余白が自動で追加される。不要なら削除か null
+  aspect_ratio: null
+  # 縦長写真だけ別の比率にしたい場合（省略すると aspect_ratio を使用）
+  aspect_ratio_portrait: null
+  # 高さを足すときの配分: center（上下均等）/ bottom（すべて下へ＝文字エリアが広がる）/ top
+  aspect_fill: "center"
 
-# レイアウトテンプレート
-# {変数名} の部分はメタデータから自動置換されます
+# 文字のレイアウト
 layout:
-  # メイン行のテンプレート。{camera}=カメラ名, {lens}=レンズ名
-  top: "{camera}   {lens}"
-  # サブ行のテンプレート。焦点距離・絞り・シャッター速度・ISO・露出補正・露出モード・
-  # ピクチャーコントロール・ホワイトバランス・色温度を並べて表示する
-  bottom: "{focal_length}mm f{f_number}  {shutter}  ISO {iso}  {exposure_bias}EV  |  {exposure_mode}  {white_balance}  | {picture_control} {color_temperature}"
-  # 下部余白の上端から 1行目(top) までの距離の割合（値を小さくすると上に移動します）
-  # 例: 0.35 -> 0.20 や 0.25 に変更することで位置が上になります
-  top_padding_ratio: 0.18
-  # 行間のピクセル数 (size_typeに関わらずpxで指定すると微調整しやすいです)
-  line_spacing_px: 180
+  # 文字を置くエリア: bottom（下余白、既定）/ top（上余白）
+  text_area: "bottom"
+  # 全行共通の揃え: left / center / right（各行の align: で個別に上書き可）
+  align: "left"
+  # 揃えの基準: image（写真の左右端、既定）/ canvas（キャンバスの左右端）
+  align_to: "image"
+  # left / right 揃えのときの基準端からの距離
+  padding_x: 0.1
+  # 縦位置: padding（top_padding_ratio で指定、既定）/ center（文字ブロックを文字エリアの中央に）
+  vertical_align: "center"
+  top_padding_ratio: 0.20     # vertical_align: padding のときに使用
+  y_offset: 0                 # 文字ブロック全体を上下にずらす（+で下へ）
+  # 行の上端から次の行の上端までの距離（比率 or "px"）。旧来の line_spacing_px も引き続き使用可
+  line_spacing: 0.028
+
+  # 行の定義（何行でも可）。lines を書いた場合は top / bottom は使われない
+  #   text    : テンプレート（{camera} {lens} {focal_length} {f_number} {shutter} {iso}
+  #             {exposure_bias} {exposure_mode} {picture_control} {white_balance} {color_temperature}）
+  #   font    : fonts のキー名、フォントのパス、またはパスのリスト
+  #   size    : 比率（size_type: ratio のとき）または "40px"
+  #   color   : colors のキー名、または "#RRGGBB"
+  #   align   : この行だけ揃えを変える（省略時は layout.align）
+  #   spacing : 前の行の上端からの距離（省略時は layout.line_spacing）
+  lines:
+    - text: "{camera}  {lens}"
+      font: "bold"
+      size: 0.023
+      color: "main"
+    - text: "{focal_length}mm     f/{f_number}     {shutter}s     ISO {iso}     {exposure_bias}EV"
+      font: "regular"
+      size: 0.016
+      color: "sub"
+      spacing: 0.030
+    - text: "MODE: {exposure_mode}   WB: {white_balance}    Imaging Recipe: {picture_control}"
+      font: "regular"
+      size: 0.015
+      color: "sub"
+      spacing: 0.022
+
+# ロゴ
+logo:
+  enabled: true
+  path: "nikon_logo.png"        # カレントディレクトリ → このYAMLのフォルダの順に探す
+  # 大きさ: height（比率 or "px"）を書くとそれを優先。なければ「1行目の文字サイズ × height_font_ratio」
+  height_font_ratio: 2.3
+  # height: 0.04
+  # 横位置: left / center / right（写真の端が基準）/ text_left / text_right（文字ブロックの隣）
+  position: "left"
+  # 縦位置（文字エリア内）: bottom / center / top / text（文字ブロックの中央）
+  # 省略時は left/center/right なら bottom、text_left/text_right なら text
+  vertical: "center"
+  offset_x: 0                    # 基準からの横方向のずれ（right のときは右端から内側へ）
+  offset_y: 0                    # 縦方向のずれ（bottom のときは下端から上へ）
+  gap: 0.01                      # text_left / text_right のときの文字との間隔
+  opacity: 1.0                   # 不透明度（0.0〜1.0）
+  # 座標で直接指定する場合（キャンバス左上からロゴ左上までの距離。比率 or "px"）
+  # 指定すると position / vertical / offset より優先。片方だけの指定も可
+  left: "300px"
+  top: 0.02
 
 # 出力設定
 output:
-  prefix: "Frame_"                            # 出力ファイル名の接頭辞（Frame_元のファイル名.jpg）
-  dir_name: "processed_photos_standard"       # 出力先サブディレクトリ名（元画像と同じ場所の下に作成）
-  quality: 100                                # JPEG保存時の画質（0-100）。frame_processor.pyのデフォルト値より優先される
+  prefix: "Frame_"
+  dir_name: "processed_photos_standard"
+  quality: 100
