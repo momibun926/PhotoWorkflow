@@ -11,10 +11,10 @@
 fonts:
   size_type: "ratio"
   bold:
-    - "fonts/SofiaSans-Regular.ttf"
+    - "fonts/Rubik-Regular.ttf"
     - "arialbd.ttf"
   regular:
-    - "fonts/SofiaSans-Light.ttf"
+    - "fonts/Rubik-Light.ttf"
     - "arial.ttf"
 
 # 色設定（各行の color: で "main" / "sub" のようにキー名で参照できる。HEX直接指定も可）
@@ -29,7 +29,7 @@ canvas:
   # 上下左右の余白を個別に指定（ratios.side_margin / bottom_margin より優先）
   margins:
     top: 0.01
-    bottom: 0.10
+    bottom: 0.14
     left: 0.01
     right: 0.01
   # キャンバス全体の比率（"幅:高さ"）。足りない分の余白が自動で追加される。不要なら削除か null
@@ -48,7 +48,7 @@ layout:
   # 揃えの基準: image（写真の左右端、既定）/ canvas（キャンバスの左右端）
   align_to: "image"
   # left / right 揃えのときの基準端からの距離
-  padding_x: 0.1
+  padding_x: 0.10
   # 縦位置: padding（top_padding_ratio で指定、既定）/ center（文字ブロックを文字エリアの中央に）
   vertical_align: "center"
   top_padding_ratio: 0.20     # vertical_align: padding のときに使用
@@ -74,7 +74,7 @@ layout:
       size: 0.016
       color: "sub"
       spacing: 0.030
-    - text: "MODE: {exposure_mode}   WB: {white_balance}    Imaging Recipe: {picture_control}"
+    - text: "MODE: {exposure_mode}     WB: {white_balance}      Picture Control: {picture_control}"
       font: "regular"
       size: 0.015
       color: "sub"
@@ -92,14 +92,14 @@ logo:
   # 縦位置（文字エリア内）: bottom / center / top / text（文字ブロックの中央）
   # 省略時は left/center/right なら bottom、text_left/text_right なら text
   vertical: "center"
-  offset_x: 0                    # 基準からの横方向のずれ（right のときは右端から内側へ）
+  offset_x: 0.02                    # 基準からの横方向のずれ（right のときは右端から内側へ）
   offset_y: 0                    # 縦方向のずれ（bottom のときは下端から上へ）
   gap: 0.01                      # text_left / text_right のときの文字との間隔
   opacity: 1.0                   # 不透明度（0.0〜1.0）
   # 座標で直接指定する場合（キャンバス左上からロゴ左上までの距離。比率 or "px"）
   # 指定すると position / vertical / offset より優先。片方だけの指定も可
-  left: "300px"
-  top: 0.02
+  # left: 
+  # top: 0.02
 
 # 出力設定
 output:
