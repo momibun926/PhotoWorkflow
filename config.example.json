@@ -1,0 +1,53 @@
+{
+  "_comment": "config.json の雛形。このファイルを config.json という名前でコピーし、パスを自分の環境に合わせて書き換える（config.json は Git の管理対象外）。Windows のパスは \\\\ と2つ重ねて書く。",
+  "directories": {
+    "_comment": "base: RAW を 年\\月\\年月日 に振り分けて保存する場所 / from_camera: カメラから取り込んだファイルの置き場所（GPS位置情報の書き込み〜写真整理・コピーの入力）/ to_note: 写真整理・コピーでの JPEG のコピー先（EXIF抽出・書き出しとフレーム付与の対象）",
+    "base": "C:\\Photo",
+    "from_camera": "C:\\Photo\\from_camera",
+    "to_note": "C:\\Photo\\to_note"
+  },
+  "_comment_copy_targets": "JPEG の追加コピー先（Amazon Photos 用フォルダなど）。何件でも書ける。不要なら空のリスト []",
+  "copy_targets": [
+    {
+      "name": "to_amazon_jpeg",
+      "path": "C:\\Photo\\to_amazon\\jpeg"
+    }
+  ],
+  "external_tools": {
+    "_comment_flame_config": "フレーム付与のレイアウト設定（standard.yaml / black.yaml など）。相対パスは config.json のあるフォルダ → main.py のあるフォルダの順に探す",
+    "flame_config": "standard.yaml",
+    "_comment_exiftool": "exiftool の実行ファイルのフルパス",
+    "exiftool": "C:\\Tools\\exiftool\\exiftool.exe"
+  },
+  "gps": {
+    "_comment_camera_clock_offset": "カメラ時計のずれ補正。値は『GPS時刻 − カメラ時刻』を [+|-]時:分:秒 で書く（例: カメラが1分30秒遅れているなら +00:01:30）。空なら補正なし。タイムゾーンではない（+09:00 などを入れると位置がずれる）",
+    "camera_clock_offset": "",
+    "_comment_skip_existing_gps": "true なら、既に位置情報がある写真は書き換えない（スマホ連携や手動で付けた位置を守る）",
+    "skip_existing_gps": true,
+    "_comment_max_seconds": "GPS の記録が途切れた区間で位置を補間しない秒数 / 記録の前後で端の位置を使う秒数。null なら exiftool の既定値（1800秒）",
+    "max_interpolation_seconds": null,
+    "max_extrapolation_seconds": null
+  },
+  "file_types": {
+    "_comment": "対象にする拡張子。使っているカメラの RAW 形式（.cr3 / .raf など）はここに追加する",
+    "jpeg_extensions": [".jpg", ".jpeg"],
+    "raw_extensions": [".nef", ".arw", ".dng"],
+    "gpx_extensions": [".gpx"]
+  },
+  "frame": {
+    "_comment_overwrite_existing": "true にすると、フレーム付き画像が作成済みの写真もすべて作り直す。false なら作成済みのものは飛ばす（レイアウトの YAML を書き換えた後は自動で作り直す）",
+    "overwrite_existing": false
+  },
+  "display": {
+    "_comment_per_file": "処理中の表示。false なら1行を上書き（進み具合のバーと今のファイル名）、true なら写真1枚ごとに1行",
+    "per_file": false
+  },
+  "steps": {
+    "_comment": "false にしたステップは、メニューからも全ステップ実行でも実行しない",
+    "gps_tag": true,
+    "manual_gps": true,
+    "copy": true,
+    "exif_export": true,
+    "frame": true
+  }
+}

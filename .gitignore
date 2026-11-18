@@ -1,0 +1,23 @@
+# Python のキャッシュフォルダ・ファイルをすべて除外
+**/__pycache__/
+*.pyc
+
+# ログファイル
+*.log
+# サイズ上限で切り替えた古いログ（photo_organizer.log.1 など）
+*.log.*
+
+# 個人環境の設定（config.example.json をコピーして作る）
+config.json
+
+# STEP 2.5 / STEP 3 の出力（テストなどで作られた場合）
+exif_data/
+
+# pytest
+.pytest_cache/
+
+# メーカーのロゴ画像（商標のため公開リポジトリには含めない。各自で用意して main.py と同じフォルダに置く）
+nikon_logo.png
+
+# 変更を受け渡すためのパッチファイル
+*.patch

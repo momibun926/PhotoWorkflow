@@ -1,0 +1,15 @@
+# 写真整理ワークフローの実行に必要なパッケージ
+#   pip install -r requirements.txt
+# exiftool 本体（https://exiftool.org/）は別途インストールし、config.json の external_tools.exiftool にパスを書く。
+
+# 全ステップ共通
+Pillow>=9.1          # フレーム付与（Image.Resampling を使うため 9.1 以上）
+PyYAML>=6.0          # フレームのレイアウト設定（standard.yaml など）
+PyExifTool>=0.5      # exiftool の常駐プロセス（メタデータの一括取得）
+Send2Trash>=1.8      # 写真整理・コピー: コピー済みの元ファイルをゴミ箱へ移動
+pywin32>=306; sys_platform == "win32"   # Windows で Send2Trash が新しい方式（IFileOperation）を使い、移動に失敗しにくくなる
+
+# 手動GPS情報付与（GUI）
+PyQt6>=6.5
+PyQt6-WebEngine>=6.5
+rawpy>=0.19          # RAW のサムネイル抽出（exiftool で取れない場合の予備）

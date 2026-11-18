@@ -1,0 +1,23 @@
+# プロジェクト情報とツールの設定。
+# パッケージとして配布はしていないため、インストールは requirements.txt を使う。
+[project]
+name = "photo-workflow"
+version = "1.0.0"
+description = "カメラからの取り込み・GPS付与・フレーム付与までをまとめて行う写真整理ワークフロー"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "Pillow>=9.1",
+    "PyYAML>=6.0",
+    "PyExifTool>=0.5",
+    "Send2Trash>=1.8",
+    "pywin32>=306; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+gui = ["PyQt6>=6.5", "PyQt6-WebEngine>=6.5", "rawpy>=0.19"]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

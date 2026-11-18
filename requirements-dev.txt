@@ -1,0 +1,5 @@
+# 開発・テスト用（実行に必要なパッケージに加えて入れる）
+#   pip install -r requirements-dev.txt
+#   pytest
+-r requirements.txt
+pytest>=8.0
