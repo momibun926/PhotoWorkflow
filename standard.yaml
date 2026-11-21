@@ -29,8 +29,8 @@ scaling:
   # long_side: 写真の長辺に対する比率（従来）
   # display  : note などに貼ったとき、縦写真の文字・ロゴ・余白が横写真と同じ大きさに見えるよう自動調整
   basis: "display"
-  # display のときの表示枠（幅:高さ）。note は縦長の画像を 4:5 の枠に収めて表示する。null なら幅だけで合わせる
-  display_box: "4:5"
+  # display のときの表示枠（幅:高さ）。note は縦長の画像を 18:25 の枠に収めて表示する。null なら幅だけで合わせる
+  display_box: "18:28"
 
 # 余白・キャンバス
 canvas:
@@ -108,10 +108,7 @@ logo:
   # 指定すると position / vertical / offset より優先。片方だけの指定も可
   # left: 
   # top: 0.02
-scaling:
-  basis: "display"
-  # 縦写真も横写真と同じ幅で表示される前提で合わせる（note の記事・スマホ）
-  display_box: "18:28"
+
 # 出力設定
 output:
   prefix: "Frame_"
