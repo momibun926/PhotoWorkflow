@@ -108,7 +108,10 @@ logo:
   # 指定すると position / vertical / offset より優先。片方だけの指定も可
   # left: 
   # top: 0.02
-
+scaling:
+  basis: "display"
+  # 縦写真も横写真と同じ幅で表示される前提で合わせる（note の記事・スマホ）
+  display_box: "18:28"
 # 出力設定
 output:
   prefix: "Frame_"
