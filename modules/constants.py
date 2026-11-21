@@ -82,6 +82,8 @@ DEFAULT_TOP_PADDING_RATIO: float = 0.20  # 文字エリアの上端から1行目
 DEFAULT_LINE_SPACING_PX: int = 40        # 行の上端から次の行の上端までの距離
 DEFAULT_LOGO_LEFT_OFFSET: int = 70       # ロゴの横位置の補正（px）
 DEFAULT_LOGO_TOP_OFFSET: int = 70        # ロゴの縦位置の補正（px）
+# scaling.basis: display のときの表示枠（幅:高さ）。note は縦長の画像を記事幅 × 1.25 の高さまでに縮小して表示する
+DEFAULT_DISPLAY_BOX: str = "4:5"
 JPEG_QUALITY: int = 95
 JPEG_SUBSAMPLING: int = 0  # 4:4:4。文字の縁に色にじみが出ないよう色情報を間引かない
 

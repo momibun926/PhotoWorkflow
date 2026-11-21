@@ -204,12 +204,55 @@ class ImageProcessor:
     # ------------------------------------------------------------------
     # レイアウト計算
     # ------------------------------------------------------------------
-    def _compute_margins(self, w: int, h: int, long_side: int) -> Dict[str, int]:
+    #: scaling.basis: display で、収束しないときに打ち切る繰り返し回数
+    _SCALE_MAX_ITER = 30
+
+    def _scale_reference(self, w: int, h: int) -> int:
+        """比率で書いた長さ（文字サイズ・余白・行間・ロゴなど）の基準にする長さ（px）。
+
+        - scaling.basis: long_side（既定）… 写真の長辺。従来どおり
+        - scaling.basis: display … 表示先（note など）で横写真と同じ大きさに見えるように決める
+
+        display の考え方:
+            note などは画像を「記事の幅」に合わせて縮小し、縦長の画像は さらに
+            scaling.display_box（note は 幅:高さ = 4:5）の枠に収まるよう小さく表示する。
+            そこで、出来上がるキャンバスの「表示上の大きさ」
+                D = max(キャンバス幅, キャンバス高さ × display_box)
+            が、「写真の幅が基準の長さと同じ横写真」のキャンバス幅と同じになるよう基準を決める。
+            横写真ではこれは写真の幅（= 長辺）になるので、横写真の見た目は従来と変わらない。
+            余白も基準に比例して変わるため、少しずつ近づけて求める。
+        """
+        long_side = max(w, h)
+        scaling = self._section("scaling")
+        if self._opt(scaling, "basis", "long_side") != "display":
+            return long_side
+
+        box = self._parse_aspect(self._opt(scaling, "display_box", constants.DEFAULT_DISPLAY_BOX))
+        ref = float(w)
+        for _ in range(self._SCALE_MAX_ITER):
+            m = self._compute_margins(w, h, ref)
+            canvas_w = w + m["left"] + m["right"]
+            canvas_h = h + m["top"] + m["bottom"]
+            shown = max(canvas_w, canvas_h * box) if box else canvas_w
+            # aspect_ratio で足す分を除いた、左右の余白だけのキャンバス幅
+            base = self._compute_margins(w, h, ref, apply_aspect=False)
+            plain_w = ref + base["left"] + base["right"]
+            new_ref = shown * ref / plain_w
+            if abs(new_ref - ref) < 0.5:
+                ref = new_ref
+                break
+            ref = new_ref
+        return max(1, int(round(ref)))
+
+    def _compute_margins(self, w: int, h: int, long_side, apply_aspect: bool = True) -> Dict[str, int]:
         """上下左右の余白（px）。
 
         1. 旧形式の ratios.side_margin（上・左・右）/ ratios.bottom_margin（下）を基準にする
         2. canvas.margins.top/bottom/left/right があれば上書きする
-        3. canvas.aspect_ratio があれば、その比率になるよう余白を足す
+        3. canvas.aspect_ratio があれば、その比率になるよう余白を足す（apply_aspect=False なら足さない）
+
+        Args:
+            long_side: 比率で書いた余白の基準の長さ（_scale_reference の値）
         """
         ratios = self._section("ratios")
         side = self._to_px(self._opt(ratios, "side_margin", 0), long_side)
@@ -226,7 +269,7 @@ class ImageProcessor:
         aspect = self._opt(canvas, "aspect_ratio")
         if h > w and self._opt(canvas, "aspect_ratio_portrait") is not None:
             aspect = self._opt(canvas, "aspect_ratio_portrait")
-        target = self._parse_aspect(aspect)
+        target = self._parse_aspect(aspect) if apply_aspect else None
         if target:
             cw = w + m["left"] + m["right"]
             ch = h + m["top"] + m["bottom"]
@@ -371,7 +414,10 @@ class ImageProcessor:
 
         meta_dict = _SafeDict(asdict(meta))
         w, h = img.size
-        long_side = max(w, h)
+        # 比率で書いた長さの基準。scaling.basis が既定（long_side）なら写真の長辺
+        long_side = self._scale_reference(w, h)
+        if long_side != max(w, h):
+            logger.debug("基準の長さ: %d px（長辺 %d px、%s）", long_side, max(w, h), path.name)
 
         # ---- キャンバス（余白） ----
         m = self._compute_margins(w, h, long_side)

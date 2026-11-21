@@ -365,6 +365,7 @@ class YamlConfigManager(_ConfigFile):
         ("canvas", "aspect_fill"): ("center", "bottom", "top"),
         ("logo", "position"): ("left", "center", "right", "text_left", "text_right"),
         ("logo", "vertical"): ("bottom", "center", "top", "text"),
+        ("scaling", "basis"): ("long_side", "display"),
     }
 
     def _parse(self, f: IO[str]) -> Any:
@@ -426,8 +427,11 @@ class YamlConfigManager(_ConfigFile):
                 )
 
         # アスペクト比は "4:5" か 1.25 のような正の数
-        for key in ("aspect_ratio", "aspect_ratio_portrait"):
-            value = canvas.get(key)
+        scaling = self.config.get("scaling") or {}
+        for section_name, section, key in (("canvas", canvas, "aspect_ratio"),
+                                           ("canvas", canvas, "aspect_ratio_portrait"),
+                                           ("scaling", scaling, "display_box")):
+            value = section.get(key)
             if value in (None, "", "none", "None", False):
                 continue
             try:
@@ -440,4 +444,6 @@ class YamlConfigManager(_ConfigFile):
             except ValueError:
                 ok = False
             if not ok:
-                raise ValueError(f"{name} の 'canvas.{key}' は \"4:5\" のような形式で指定してください（指定値: {value}）")
+                raise ValueError(
+                    f"{name} の '{section_name}.{key}' は \"4:5\" のような形式で指定してください（指定値: {value}）"
+                )
