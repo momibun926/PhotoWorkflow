@@ -334,6 +334,39 @@ class ImageProcessor:
         return bool(make_l) and any(str(m).lower() in make_l for m in makers)
 
     @staticmethod
+    def _crop_factor(meta: PhotoMetadata) -> Optional[float]:
+        """換算値 ÷ 実焦点距離（Nikon DX なら約1.5、FX なら1.0）。どちらかが無ければ None。"""
+        try:
+            real = float(meta.focal_length)
+            equiv = float(meta.focal_length_35mm)
+        except (TypeError, ValueError):
+            return None
+        return equiv / real if real > 0 and equiv > 0 else None
+
+    def _focal_length_text(self, meta: PhotoMetadata) -> str:
+        """{focal_length_text}: 単位付きの焦点距離。必要なら35mm換算を付ける。
+
+        - focal_length.equivalent_35mm のメーカー（スマホなど）: 換算値だけ（"24mm"）
+        - focal_length.show_equivalent:
+            crop（既定）: 35mmより小さいセンサー（Nikon DX など）だけ "35mm (52.5mm)"。FX は "35mm"
+            always: 換算値があれば常に付ける / never: 付けない
+        書き方は focal_length.equivalent_format（既定 "{focal_length}mm ({focal_length_35mm}mm)"）
+        """
+        cfg = self._section("focal_length")
+        if meta.focal_length_35mm and self._use_35mm_focal_length(meta.make):
+            return f"{meta.focal_length_35mm}mm"
+        plain = f"{meta.focal_length}mm"
+        mode = self._opt(cfg, "show_equivalent", constants.FOCAL_LENGTH_SHOW_EQUIVALENT)
+        if not meta.focal_length_35mm or mode == "never":
+            return plain
+        if mode != "always":
+            factor = self._crop_factor(meta)
+            if factor is None or factor < constants.CROP_FACTOR_THRESHOLD:
+                return plain
+        fmt = self._opt(cfg, "equivalent_format", constants.FOCAL_LENGTH_EQUIVALENT_FORMAT)
+        return str(fmt).format_map(_SafeDict(focal_length=meta.focal_length, focal_length_35mm=meta.focal_length_35mm))
+
+    @staticmethod
     def _maker_slug(make: str) -> str:
         """EXIF の Make からファイル名用の短い名前を作る（"NIKON CORPORATION" → "nikon"、"Google" → "google"）。"""
         words = "".join(c if c.isalnum() else " " for c in make.lower()).split()
@@ -497,6 +530,7 @@ class ImageProcessor:
             img = ImageOps.exif_transpose(img).convert("RGB")
 
         meta_dict = _SafeDict(asdict(meta))
+        meta_dict["focal_length_text"] = self._focal_length_text(meta)
         # focal_length.equivalent_35mm に書いたメーカー（スマホなど）は、{focal_length} を35mm換算にする
         if meta.focal_length_35mm and self._use_35mm_focal_length(meta.make):
             meta_dict["focal_length"] = meta.focal_length_35mm

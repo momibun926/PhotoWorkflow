@@ -366,6 +366,7 @@ class YamlConfigManager(_ConfigFile):
         ("logo", "position"): ("left", "center", "right", "text_left", "text_right"),
         ("logo", "vertical"): ("bottom", "center", "top", "text"),
         ("scaling", "basis"): ("long_side", "display"),
+        ("focal_length", "show_equivalent"): ("crop", "always", "never"),
     }
 
     def _parse(self, f: IO[str]) -> Any:

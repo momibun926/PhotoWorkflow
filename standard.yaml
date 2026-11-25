@@ -26,8 +26,13 @@ colors:
 
 # 焦点距離
 focal_length:
-  # このメーカー名を含む写真は {focal_length} を35mm換算で表示する（スマホなど、実焦点距離ではわかりにくい機種）
-  # どの写真でも換算値を出したいときは、文字の行に {focal_length_35mm} と書く
+  # 文字の行の {focal_length_text} は「35mm」「35mm (52.5mm)」のような単位付きの焦点距離になる
+  # 実焦点距離のあとに35mm換算を ( ) で付けるか:
+  #   crop  : 35mmより小さいセンサー（Nikon DX など）のときだけ付ける。FX は付けない（換算値 ÷ 実焦点距離で自動判定）
+  #   always: 換算値があれば常に付ける / never: 付けない
+  show_equivalent: "crop"
+  equivalent_format: "{focal_length}mm ({focal_length_35mm}mm)"
+  # このメーカー名を含む写真は、換算値だけを表示する（スマホなど、実焦点距離ではわかりにくい機種）
   equivalent_35mm: ["google"]
 
 # 文字・ロゴ・余白の大きさの基準
@@ -74,7 +79,7 @@ layout:
   #   text    : テンプレート（{camera} {lens} {focal_length} {f_number} {shutter} {iso}
   #             {exposure_bias} {exposure_mode} {picture_control} {white_balance} {color_temperature}
   #             {style}（仕上げの設定。Nikon はピクチャーコントロール、それ以外は「撮影シーン (撮影処理)」例: Standard (HDR+)）
-  #             {scene} {processing} {make} {focal_length_35mm}）
+  #             {scene} {processing} {make} {focal_length_35mm} {focal_length_text}）
   #   font    : fonts のキー名、フォントのパス、またはパスのリスト
   #   size    : 比率（size_type: ratio のとき）または "40px"
   #   color   : colors のキー名、または "#RRGGBB"
@@ -85,7 +90,7 @@ layout:
       font: "bold"
       size: 0.023
       color: "main"
-    - text: "{focal_length}mm     f/{f_number}     {shutter}s     ISO {iso}     {exposure_bias}EV"
+    - text: "{focal_length_text}     f/{f_number}     {shutter}s     ISO {iso}     {exposure_bias}EV"
       font: "regular"
       size: 0.016
       color: "sub"

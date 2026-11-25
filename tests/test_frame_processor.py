@@ -475,3 +475,60 @@ def test_focal_length_validation(tmp_path):
     path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
     with pytest.raises(ValueError, match="focal_length.equivalent_35mm"):
         ImageProcessor(path)
+
+
+# ----------------------------------------------------------------------
+# {focal_length_text}（DX は換算を付ける、FX は付けない）
+# ----------------------------------------------------------------------
+def _focal_meta(focal, equiv, make):
+    from modules.exif_utils import PhotoMetadata
+
+    return PhotoMetadata(camera="C", lens="L", focal_length=focal, iso="100", f_number="1.7", shutter="1/500",
+                         exposure_bias="0.0", exposure_mode="A", picture_control="-", white_balance="Auto",
+                         color_temperature="", focal_length_35mm=equiv, make=make)
+
+
+@pytest.mark.parametrize("focal, equiv, make, text", [
+    ("35", "52.5", "NIKON CORPORATION", "35mm (52.5mm)"),   # DX
+    ("35", "35", "NIKON CORPORATION", "35mm"),              # FX
+    ("50", "", "NIKON CORPORATION", "50mm"),                # 換算値なし
+    ("4.53", "24", "Google", "24mm"),                        # equivalent_35mm のメーカーは換算値だけ
+])
+def test_focal_length_text_crop(processor, focal, equiv, make, text):
+    assert processor._focal_length_text(_focal_meta(focal, equiv, make)) == text
+
+
+@pytest.mark.parametrize("mode, focal, equiv, text", [
+    ("always", "35", "35", "35mm (35mm)"),
+    ("never", "35", "52.5", "35mm"),
+])
+def test_focal_length_text_modes(tmp_path, mode, focal, equiv, text):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"show_equivalent": mode}
+    path = tmp_path / "f.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    p = ImageProcessor(path)
+    assert p._focal_length_text(_focal_meta(focal, equiv, "NIKON CORPORATION")) == text
+
+
+def test_focal_length_text_format(tmp_path):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"equivalent_format": "{focal_length}mm ( {focal_length_35mm}mm )"}
+    path = tmp_path / "f.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    assert ImageProcessor(path)._focal_length_text(_focal_meta("35", "52.2", "NIKON")) == "35mm ( 52.2mm )"
+
+
+def test_focal_length_show_equivalent_validation(tmp_path):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"show_equivalent": "dx"}
+    path = tmp_path / "f.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(ValueError, match="focal_length.show_equivalent"):
+        ImageProcessor(path)

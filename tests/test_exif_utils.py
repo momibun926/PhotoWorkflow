@@ -179,6 +179,16 @@ def test_to_style(pc, scene, proc, style):
     assert ExifConverter.to_style(pc, scene, proc) == style
 
 
-@pytest.mark.parametrize("value, text", [(24, "24"), (24.0, "24"), ("26 mm", "26"), (0, ""), (None, ""), ("abc", "")])
+@pytest.mark.parametrize("value, text", [(24, "24"), (24.0, "24"), ("26 mm", "26"), (52.24, "52.2"), (52.5, "52.5"), (0, ""), (None, ""), ("abc", "")])
 def test_to_focal_length_35mm(value, text):
     assert ExifConverter.to_focal_length_35mm(value) == text
+
+
+def test_parse_focal_length_35mm_prefers_composite():
+    meta = ExifReader._parse_metadata_result({
+        "SourceFile": "a.jpg", "EXIF:FocalLength": 35, "EXIF:FocalLengthIn35mmFormat": 52,
+        "Composite:FocalLength35efl": 52.24,
+    })
+    assert meta.focal_length_35mm == "52.2"
+    meta = ExifReader._parse_metadata_result({"SourceFile": "a.jpg", "EXIF:FocalLengthIn35mmFormat": 52})
+    assert meta.focal_length_35mm == "52"

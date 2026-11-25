@@ -69,6 +69,14 @@ EXPOSURE_MODE_MAP: Dict[int, str] = {
     4: "S",
 }
 
+# 焦点距離の表示（YAML の focal_length に書かれていない場合の既定値）
+#: 換算値 ÷ 実焦点距離 がこれ以上なら「35mmより小さいセンサー」（Nikon DX など）とみなす。FX は 1.0
+CROP_FACTOR_THRESHOLD: float = 1.1
+#: 実焦点距離のあとに換算値を付けるときの書き方
+FOCAL_LENGTH_EQUIVALENT_FORMAT: str = "{focal_length}mm ({focal_length_35mm}mm)"
+#: focal_length.show_equivalent の既定値（crop / always / never）
+FOCAL_LENGTH_SHOW_EQUIVALENT: str = "crop"
+
 # EXIF の WhiteBalance（-n の数値）→ 表示名。メーカーノートの値が無いときに使う
 WHITE_BALANCE_MAP: Dict[int, str] = {
     0: "Auto",
