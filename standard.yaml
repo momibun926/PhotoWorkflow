@@ -82,7 +82,7 @@ layout:
       size: 0.016
       color: "sub"
       spacing: 0.030
-    - text: "MODE: {exposure_mode}     WB: {white_balance}      Picture Control: {picture_control}"
+    - text: "MODE: {exposure_mode}     WB: {white_balance}      Style: {picture_control}"
       font: "regular"
       size: 0.015
       color: "sub"
