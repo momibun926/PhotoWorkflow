@@ -338,3 +338,95 @@ def test_render_display_portrait_text_smaller(tmp_path):
 def test_scaling_validation(tmp_path, scaling, message):
     with pytest.raises(ValueError, match=message):
         _scaling_processor(tmp_path, scaling)
+
+
+# ----------------------------------------------------------------------
+# メーカーごとのロゴの切り替え（logo.dir / logo.makers / logo.fallback）
+# ----------------------------------------------------------------------
+def _logo_processor(tmp_path, logo_cfg, files=("nikon.png", "google.png")):
+    import yaml
+
+    logos = tmp_path / "logos"
+    logos.mkdir(exist_ok=True)
+    for f in files:
+        Image.new("RGBA", (100, 50), "red").save(logos / f)
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["logo"] = {"enabled": True, **logo_cfg}
+    path = tmp_path / "logo.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    return ImageProcessor(path)
+
+
+@pytest.mark.parametrize("make, slug", [
+    ("NIKON CORPORATION", "nikon"), ("Google", "google"), ("FUJIFILM", "fujifilm"),
+    ("OM Digital Solutions", "om"), ("RICOH IMAGING COMPANY, LTD.", "ricoh"), ("", ""),
+])
+def test_maker_slug(make, slug):
+    assert ImageProcessor._maker_slug(make) == slug
+
+
+def test_select_logo_by_makers(tmp_path):
+    p = _logo_processor(tmp_path, {"dir": "logos", "makers": {"nikon": "nikon.png", "google": "google.png"}})
+    cfg = p._section("logo")
+    assert p._select_logo(cfg, "NIKON CORPORATION")[0].name == "nikon.png"
+    assert p._select_logo(cfg, "Google")[0].name == "google.png"
+
+
+def test_select_logo_auto_filename(tmp_path):
+    """makers に無いメーカーは「メーカー名.png」を自動で探す。"""
+    p = _logo_processor(tmp_path, {"dir": "logos"}, files=("fujifilm.png",))
+    assert p._select_logo(p._section("logo"), "FUJIFILM")[0].name == "fujifilm.png"
+
+
+def test_select_logo_missing_and_fallback(tmp_path):
+    p = _logo_processor(tmp_path, {"dir": "logos"})
+    assert p._select_logo(p._section("logo"), "Canon")[0] is None
+    assert p._select_logo(p._section("logo"), "")[0] is None
+    p = _logo_processor(tmp_path, {"dir": "logos", "fallback": "nikon.png"})
+    assert p._select_logo(p._section("logo"), "Canon")[0].name == "nikon.png"
+
+
+def test_select_logo_per_maker_override(tmp_path):
+    p = _logo_processor(tmp_path, {
+        "dir": "logos", "height_font_ratio": 2.3,
+        "makers": {"google": {"file": "google.png", "height_font_ratio": 1.5}},
+    })
+    path, cfg = p._select_logo(p._section("logo"), "Google")
+    assert path.name == "google.png" and cfg.height_font_ratio == 1.5
+    _, cfg = p._select_logo(p._section("logo"), "NIKON CORPORATION")
+    assert cfg.height_font_ratio == 2.3
+
+
+def test_select_logo_legacy_path(tmp_path):
+    """dir が無ければ、従来どおり path の1枚をメーカーに関係なく使う。"""
+    p = _logo_processor(tmp_path, {"path": "logos/nikon.png"})
+    assert p._select_logo(p._section("logo"), "Google")[0].name == "nikon.png"
+
+
+def test_render_switches_logo_by_make(tmp_path):
+    """メーカーによってロゴが入る・入らないが変わる（ロゴの赤い画素で判定）。"""
+    from modules.exif_utils import PhotoMetadata
+
+    p = _logo_processor(tmp_path, {"dir": "logos", "makers": {"nikon": "nikon.png"}}, files=("nikon.png",))
+    src = tmp_path / "land.jpg"
+    Image.new("RGB", (600, 400), "gray").save(src)
+
+    def red_pixels(make):
+        meta = PhotoMetadata("Z50II", "LENS", "35", "100", "1.7", "1/500", "0.0", "A", "NEUTRAL", "AUTO", "", make)
+        with Image.open(p.render(src, meta)) as out:
+            rgb = out.convert("RGB")
+            return sum(1 for x in range(rgb.width) for y in range(rgb.height)
+                       if (lambda c: c[0] > 200 and c[1] < 60 and c[2] < 60)(rgb.getpixel((x, y))))
+
+    assert red_pixels("NIKON CORPORATION") > 0
+    assert red_pixels("Canon") == 0
+
+
+@pytest.mark.parametrize("logo_cfg, message", [
+    ({"dir": "logos", "makers": ["nikon"]}, "logo.makers"),
+    ({"dir": "logos", "makers": {"nikon": {"file": "n.png", "size": 3}}}, "logo.makers.nikon"),
+    ({"makers": {"nikon": "nikon.png"}}, "logo.dir"),
+])
+def test_logo_makers_validation(tmp_path, logo_cfg, message):
+    with pytest.raises(ValueError, match=message):
+        _logo_processor(tmp_path, logo_cfg)

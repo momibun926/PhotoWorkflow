@@ -426,6 +426,26 @@ class YamlConfigManager(_ConfigFile):
                     f"{name} の '{section_name}.{key}' は {' / '.join(choices)} のいずれかです（指定値: {value}）"
                 )
 
+        # logo.makers: {"nikon": "nikon.png"} か {"google": {"file": "google.png", "height_font_ratio": 1.8}}
+        logo = self.config.get("logo") or {}
+        makers = logo.get("makers")
+        if makers is not None:
+            if not isinstance(makers, dict):
+                raise ValueError(f"{name} の 'logo.makers' は「メーカー名: ファイル名」の形で指定してください")
+            allowed = {"file", *constants.LOGO_MAKER_OVERRIDE_KEYS}
+            for key, entry in makers.items():
+                if isinstance(entry, dict):
+                    unknown = set(entry) - allowed
+                    if unknown:
+                        raise ValueError(
+                            f"{name} の 'logo.makers.{key}' に使えない項目があります: {', '.join(sorted(unknown))}"
+                            f"（使えるのは {' / '.join(sorted(allowed))}）"
+                        )
+                elif not isinstance(entry, str) or not entry:
+                    raise ValueError(f"{name} の 'logo.makers.{key}' にはロゴのファイル名を指定してください")
+            if not logo.get("dir"):
+                raise ValueError(f"{name} の 'logo.makers' を使うときは 'logo.dir'（ロゴのフォルダ）も指定してください")
+
         # アスペクト比は "4:5" か 1.25 のような正の数
         scaling = self.config.get("scaling") or {}
         for section_name, section, key in (("canvas", canvas, "aspect_ratio"),

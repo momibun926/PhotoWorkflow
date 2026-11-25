@@ -18,6 +18,9 @@ exif_data/
 
 # メーカーのロゴ画像（商標のため公開リポジトリには含めない。各自で用意して main.py と同じフォルダに置く）
 nikon_logo.png
+# メーカー別ロゴのフォルダ（説明の README.md だけ含める）
+logos/*
+!logos/README.md
 
 # 変更を受け渡すためのパッチファイル
 *.patch

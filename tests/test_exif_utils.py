@@ -74,8 +74,10 @@ def test_parse_metadata_result():
         "EXIF:ExposureProgram": 3,
         "MakerNotes:WhiteBalance": " Auto ",
         "MakerNotes:ColorTemperature": 5500.0,
+        "EXIF:Make": "NIKON CORPORATION ",
     }
     meta = ExifReader._parse_metadata_result(result)
+    assert meta.make == "NIKON CORPORATION"
     assert (meta.camera, meta.lens, meta.focal_length) == ("Z 6III", "Z 24-70mm f/4 S", "35.0")
     assert (meta.shutter, meta.exposure_bias, meta.exposure_mode) == ("1/250", "+0.3", "A")
     assert (meta.white_balance, meta.color_temperature) == ("Auto", "(5500K)")
@@ -86,6 +88,7 @@ def test_parse_metadata_result_defaults():
     assert meta.exposure_bias == "0.0"
     assert meta.white_balance == "-"
     assert meta.color_temperature == ""
+    assert meta.make == ""
 
 
 def test_path_key_ignores_separator_and_dots():

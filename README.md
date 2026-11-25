@@ -60,8 +60,9 @@ graph TD
 
 3. `config.example.json` を `config.json` という名前でコピーし、フォルダや exiftool のパスを自分の環境に合わせて書き換える。
    `config.json` は個人の環境に合わせたファイルなので Git の管理対象外（`.gitignore`）にしてある。
-4. （任意）フレームにカメラメーカーなどのロゴを入れる場合は、ロゴ画像（背景が透明な PNG）を `main.py` と同じフォルダに `nikon_logo.png` という名前で置く。
-   別の名前・場所にする場合は、レイアウトの YAML の `logo.path` で指定する。
+4. （任意）フレームにカメラメーカーのロゴを入れる場合は、ロゴ画像（背景が透明な PNG）を `logos` フォルダに置く。
+   写真のメーカーに合わせて自動で切り替わる（Nikon → `logos/nikon.png`、Google Pixel → `logos/google.png`。ほかのメーカーは「メーカー名.png」）。
+   詳しくは `logos/README.md` と、下の「メーカーごとにロゴを切り替える」を参照。
    ロゴ画像は各社の商標のため、このリポジトリには含めていない。置かなければ、ロゴなしでフレームを作る。
 
 ---
@@ -186,12 +187,46 @@ YAML 内のフォント・ロゴの相対パスは、YAML のあるフォルダ 
 | | `text_area` | 文字を置く余白: `bottom` / `top` |
 | | `vertical_align` | `padding`（従来どおり `top_padding_ratio`）/ `center`（余白の中央） |
 | | `line_spacing` / `y_offset` | 行の間隔・全体の上下位置（比率でも指定でき、画像サイズに合わせて変わる） |
-| `logo` | `enabled` / `path` | ロゴの表示有無と画像ファイル（画像は同梱していない。「セットアップ」の4を参照） |
+| `logo` | `enabled` | ロゴの表示有無 |
+| | `dir` / `makers` / `fallback` | メーカーごとのロゴの切り替え（下の「メーカーごとにロゴを切り替える」を参照） |
+| | `path` | `dir` を書かないときに全写真に使うロゴ1枚（従来の方式） |
 | | `height` / `height_font_ratio` | ロゴの高さ（直接指定、または1行目の文字サイズ×倍率） |
 | | `position` | `left` / `center` / `right` / `text_left` / `text_right`（文字の隣） |
 | | `vertical` | `bottom` / `center` / `top` / `text`（文字ブロックの中央） |
 | | `offset_x` / `offset_y` / `gap` / `opacity` | 位置の微調整、文字との間隔、不透明度 |
 | | `left` / `top` | キャンバス左上からの座標で直接指定（`position` / `vertical` より優先。片方だけでも可） |
+
+### メーカーごとにロゴを切り替える（`logo.dir` / `logo.makers`）
+
+`logo.dir` にロゴのフォルダを書くと、写真の EXIF のメーカー名（Make）を見て、使うロゴを自動で選びます。
+
+```yaml
+logo:
+  dir: "logos"
+  makers:
+    nikon: "nikon.png"        # Make に "nikon" が含まれる（NIKON CORPORATION）
+    google: "google.png"      # Make に "google" が含まれる（Pixel）
+  # fallback: "default.png"   # どれにも当たらないとき（省略するとロゴなし）
+```
+
+選び方は次の順です。
+
+1. `makers` のキーが メーカー名に含まれていれば（大文字小文字は区別しない）、そのファイル
+2. 無ければ、`dir` の中の「メーカー名の最初の単語.png」（`FUJIFILM` → `fujifilm.png`、`Canon` → `canon.png`）。`.webp` / `.jpg` も探す
+3. それも無ければ `fallback`。未指定ならロゴなし（ログに「ロゴがありません」と1回だけ出る）
+
+新しいメーカーに対応するときは、ふつうは `logos` にファイルを置くだけで済みます。
+ロゴによって縦横比が違い大きさがそろわないときは、そのメーカーだけ大きさや位置を変えられます。
+
+```yaml
+  makers:
+    google:
+      file: "google.png"
+      height_font_ratio: 1.8   # height / offset_x / offset_y / gap / opacity / position / vertical / left / top も書ける
+```
+
+文字の行には `{make}` でメーカー名（EXIF の値そのまま）を入れることもできます。
+`dir` を書かない場合は、従来どおり `logo.path` の1枚をすべての写真に使います。
 
 ### 縦写真の文字の大きさを横写真にそろえる（`scaling`）
 

@@ -38,6 +38,7 @@ class PhotoMetadata:
     picture_control: str     # ピクチャーコントロール名（Nikon独自のメーカーノート）
     white_balance: str       # ホワイトバランス設定
     color_temperature: str   # 色温度（例: "(5500K)"）
+    make: str = ""           # メーカー名（EXIF の Make そのまま。例: "NIKON CORPORATION", "Google"）。ロゴの切り替えに使う
 
 
 class ExifConverter:
@@ -264,4 +265,5 @@ class ExifReader:
             picture_control=result.get("MakerNotes:PictureControlName", "-"),
             white_balance=str(wb_val),
             color_temperature=ct_str,
+            make=str(result.get("EXIF:Make") or result.get("IFD0:Make") or "").strip(),
         )

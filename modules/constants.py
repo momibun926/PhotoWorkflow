@@ -77,6 +77,11 @@ CAMERA_CLOCK_OFFSET: str = ""
 
 # ===== フレーム付与。YAML に書かれていない場合の既定値 =====
 LOGO_FILENAME: str = "nikon_logo.png"
+#: logo.dir を指定したときに、メーカー名から自動で探すロゴの拡張子
+LOGO_EXTENSIONS: tuple = (".png", ".webp", ".jpg", ".jpeg")
+#: logo.makers の1件で上書きできる項目（ロゴごとに大きさや位置を変えるため）
+LOGO_MAKER_OVERRIDE_KEYS: tuple = ("height", "height_font_ratio", "offset_x", "offset_y", "gap", "opacity",
+                                   "position", "vertical", "left", "top")
 LOGO_SIZE_RATIO: float = 2.3            # ロゴの高さ = 1行目の文字サイズ × この倍率
 DEFAULT_TOP_PADDING_RATIO: float = 0.20  # 文字エリアの上端から1行目までの距離（文字エリアの高さに対する比率）
 DEFAULT_LINE_SPACING_PX: int = 40        # 行の上端から次の行の上端までの距離

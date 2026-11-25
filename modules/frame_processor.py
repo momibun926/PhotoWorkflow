@@ -15,6 +15,7 @@ from concurrent.futures.process import BrokenProcessPool
 from dataclasses import asdict
 from functools import lru_cache
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -326,8 +327,85 @@ class ImageProcessor:
             return self._to_px(val, long_side)
         return int(self._opt(layout, "line_spacing_px", constants.DEFAULT_LINE_SPACING_PX))
 
+    @staticmethod
+    def _maker_slug(make: str) -> str:
+        """EXIF の Make からファイル名用の短い名前を作る（"NIKON CORPORATION" → "nikon"、"Google" → "google"）。"""
+        words = "".join(c if c.isalnum() else " " for c in make.lower()).split()
+        return words[0] if words else ""
+
+    def _select_logo(self, cfg, make: str) -> Tuple[Optional[Path], Any]:
+        """使うロゴのファイルと、そのロゴ用の設定を決める。
+
+        - logo.dir が無い: 従来どおり logo.path の1枚を全写真に使う
+        - logo.dir がある: メーカーで切り替える
+            1. logo.makers のキー（"nikon" など）が Make に含まれていれば、そのファイル
+               （値に file と大きさ・位置を書けば、そのロゴだけ設定を上書きできる）
+            2. 無ければ logo.dir の中の「メーカー名.png」（"NIKON CORPORATION" → nikon.png、"Google" → google.png）
+            3. それも無ければ logo.fallback（未指定ならロゴなし）
+
+        Returns:
+            (ロゴのパス or None, ロゴの設定)。None ならロゴを描かない
+        """
+        logo_dir = self._opt(cfg, "dir")
+        if not logo_dir:
+            path = self._resolve_path(self._opt(cfg, "path", constants.LOGO_FILENAME))
+            if not path.exists():
+                logger.debug("ロゴファイルが見つかりません: %s", path)
+                return None, cfg
+            return path, cfg
+
+        base = self._resolve_path(logo_dir)
+        make_l = make.lower()
+        slug = self._maker_slug(make)
+
+        # 1. logo.makers（長いキーから順に照合して、"om" が別の名前の一部に当たるのを避ける）
+        makers = self._opt(cfg, "makers")
+        entries = vars(makers) if isinstance(makers, SimpleNamespace) else {}
+        for key in sorted(entries, key=len, reverse=True):
+            if not make_l or str(key).lower() not in make_l:
+                continue
+            entry = entries[key]
+            if isinstance(entry, SimpleNamespace):
+                overrides = {k: v for k, v in vars(entry).items() if k in constants.LOGO_MAKER_OVERRIDE_KEYS}
+                cfg = SimpleNamespace(**{**vars(cfg), **overrides})
+                file = getattr(entry, "file", None) or f"{slug}.png"
+            else:
+                file = str(entry)
+            path = base / file
+            if path.is_file():
+                return path, cfg
+            self._warn_logo_once(make, f"logo.makers.{key} のロゴファイルが見つかりません: {path}")
+            break
+
+        # 2. メーカー名から自動で探す
+        if slug:
+            for ext in constants.LOGO_EXTENSIONS:
+                path = base / f"{slug}{ext}"
+                if path.is_file():
+                    return path, cfg
+
+        # 3. どれにも当たらないとき
+        fallback = self._opt(cfg, "fallback")
+        if fallback:
+            path = base / str(fallback)
+            if path.is_file():
+                return path, cfg
+            self._warn_logo_once("__fallback__", f"logo.fallback のロゴファイルが見つかりません: {path}")
+        self._warn_logo_once(
+            make, f"メーカー「{make or '不明'}」のロゴがありません（{base / (slug or '?')}.png を置くとロゴが入ります）"
+        )
+        return None, cfg
+
+    def _warn_logo_once(self, key: str, message: str) -> None:
+        """ロゴが見つからないことを、同じメーカーについて1回だけ知らせる。"""
+        warned = self.__dict__.setdefault("_logo_warned", set())
+        if key in warned:
+            return
+        warned.add(key)
+        logger.info(message)
+
     def _draw_logo(self, canvas: Image.Image, main_fs: int, long_side: int,
-                   img_box: tuple, area: tuple, text_box: Optional[tuple]) -> None:
+                   img_box: tuple, area: tuple, text_box: Optional[tuple], make: str = "") -> None:
         """ロゴを描く。ロゴが無い・描けない場合もフレーム処理は続ける。
 
         Args:
@@ -335,13 +413,13 @@ class ImageProcessor:
             img_box: 写真の (left, top, right, bottom)
             area: 文字エリアの (top, bottom)
             text_box: 文字全体の (left, top, right, bottom)。text_left / text_right 配置に使う
+            make: EXIF のメーカー名（logo.dir を指定したときのロゴの切り替えに使う）
         """
         cfg = self._section("logo")
         if not self._opt(cfg, "enabled", True):
             return
-        logo_path = self._resolve_path(self._opt(cfg, "path", constants.LOGO_FILENAME))
-        if not logo_path.exists():
-            logger.debug("ロゴファイルが見つかりません: %s", logo_path)
+        logo_path, cfg = self._select_logo(cfg, make)
+        if logo_path is None:
             return
         try:
             logo = Image.open(logo_path).convert("RGBA")
@@ -491,7 +569,7 @@ class ImageProcessor:
 
         # ロゴを先に描き、文字が前面に来るようにする
         main_fs = rows[0]["fs"] if rows else 0
-        self._draw_logo(canvas, main_fs, long_side, img_box, area, text_box)
+        self._draw_logo(canvas, main_fs, long_side, img_box, area, text_box, meta.make)
         for r in rows:
             draw.text((r["x"], r["y"]), r["text"], fill=r["color"], font=r["font"])
 

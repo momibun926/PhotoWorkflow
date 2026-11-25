@@ -91,7 +91,19 @@ layout:
 # ロゴ
 logo:
   enabled: true
-  path: "nikon_logo.png"        # このYAMLのフォルダ → main.py のフォルダの順に探す（ロゴ画像は同梱していない。無ければロゴなし）
+  # メーカーごとに自動で切り替える。ロゴは dir のフォルダに置く（このYAMLのフォルダ → main.py のフォルダの順に探す）
+  # makers の「キー」が EXIF のメーカー名（Make）に含まれていれば、そのファイルを使う
+  # makers に無いメーカーは「メーカー名の最初の単語.png」を自動で探す（"FUJIFILM" → fujifilm.png）
+  dir: "logos"
+  makers:
+    nikon: "nikon.png"            # NIKON CORPORATION
+    google: "google.png"          # Google（Pixel）
+    # ロゴごとに大きさや位置を変えたいときは、file と一緒に書く（その項目だけ下の設定より優先）
+    # google:
+    #   file: "google.png"
+    #   height_font_ratio: 1.8
+  # fallback: "default.png"       # どのメーカーにも当たらないときのロゴ（省略するとロゴなし）
+  # path: "nikon_logo.png"        # dir を書かない場合は、この1枚を全写真に使う（従来の方式）
   # 大きさ: height（比率 or "px"）を書くとそれを優先。なければ「1行目の文字サイズ × height_font_ratio」
   height_font_ratio: 2.3
   # height: 0.04

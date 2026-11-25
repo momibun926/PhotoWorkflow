@@ -11,6 +11,7 @@
 
 ### 追加
 
+- **フレーム付与処理**: 写真のメーカー（EXIF の Make）に合わせてロゴを自動で切り替えられるようにした（`logo.dir` / `logo.makers` / `logo.fallback`）。ロゴは `logos` フォルダに置く。まずは Nikon と Google Pixel を `standard.yaml` / `custom_example.yaml` に設定した。
 - **フレーム付与処理**: `scaling.basis: display` で、note などに貼ったときに縦写真の文字・ロゴ・余白が横写真と同じ大きさに見えるよう自動で調整できるようにした（表示枠は `scaling.display_box`、既定 `"4:5"`）。`standard.yaml` と `custom_example.yaml` で有効にした。
 
 ## [1.0.0] - 2026-11-18
