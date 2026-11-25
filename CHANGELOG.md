@@ -9,6 +9,10 @@
 
 <!-- 次のバージョンに入れる変更を、ここに「追加」「変更」「修正」「削除」に分けて書き足していく -->
 
+## [1.1.0] - 2026-11-25
+
+フレーム付与処理を、Nikon 以外のカメラ（まずは Google Pixel）にも対応させた版。今までの YAML はそのまま使える。
+
 ### 追加
 
 - **フレーム付与処理**: 文字の行で `{focal_length_text}` を使えるようにした。Nikon DX のように35mmより小さいセンサーの写真は「35mm (52.5mm)」と換算値を付け、FX は「35mm」のまま（換算値 ÷ 実焦点距離で自動判定。`focal_length.show_equivalent` / `equivalent_format` で変更可）。`standard.yaml` / `custom_example.yaml` / `black.yaml` の焦点距離をこれに変えた。Google Pixel も同じく「4.53mm (24mm)」と表示する（`equivalent_35mm` は空にした）。
@@ -16,6 +20,10 @@
 - **フレーム付与処理**: メーカー共通の「仕上げの設定」`{style}` を追加した。Nikon はピクチャーコントロール、それが無い機種（Pixel など）は「撮影シーン (撮影処理)」（例: `Standard (HDR+)`）を表示する。あわせて `{scene}`（SceneCaptureType）と `{processing}`（Software から取り出した撮影処理名）も使えるようにした。`standard.yaml` は「Picture Control」を「Style」に変えた。
 - **フレーム付与処理**: 写真のメーカー（EXIF の Make）に合わせてロゴを自動で切り替えられるようにした（`logo.dir` / `logo.makers` / `logo.fallback`）。ロゴは `logos` フォルダに置く。まずは Nikon と Google Pixel を `standard.yaml` / `custom_example.yaml` に設定した。
 - **フレーム付与処理**: `scaling.basis: display` で、note などに貼ったときに縦写真の文字・ロゴ・余白が横写真と同じ大きさに見えるよう自動で調整できるようにした（表示枠は `scaling.display_box`、既定 `"4:5"`）。`standard.yaml` と `custom_example.yaml` で有効にした。
+
+### 変更
+
+- **フレーム付与処理**: 同梱の `standard.yaml` の表示を変えた。焦点距離は `{focal_length_text}`（DX・スマホは換算値付き）、3行目の「Picture Control」は「Style」、ロゴは `logos` フォルダからメーカーごとに選ぶ。今までどおり `nikon_logo.png` を使う場合は、`logo.dir` を消して `logo.path` を書く。
 
 ### 修正
 
@@ -48,5 +56,6 @@
 - **地図ライブラリの更新スクリプト**: `tools/update_map_libs.py`。版番号とハッシュ値（integrity）をまとめて更新する。
 - **テスト**: `tests/` に pytest のテスト一式。
 
-[未リリース]: https://github.com/momibun926/PhotoWorkflow/compare/v1.0.0...HEAD
+[未リリース]: https://github.com/momibun926/PhotoWorkflow/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/momibun926/PhotoWorkflow/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/momibun926/PhotoWorkflow/releases/tag/v1.0.0
