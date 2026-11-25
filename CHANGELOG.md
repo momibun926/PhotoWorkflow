@@ -11,8 +11,13 @@
 
 ### 追加
 
+- **フレーム付与処理**: メーカー共通の「仕上げの設定」`{style}` を追加した。Nikon はピクチャーコントロール、それが無い機種（Pixel など）は「撮影シーン (撮影処理)」（例: `Standard (HDR+)`）を表示する。あわせて `{scene}`（SceneCaptureType）と `{processing}`（Software から取り出した撮影処理名）も使えるようにした。`standard.yaml` は「Picture Control」を「Style」に変えた。
 - **フレーム付与処理**: 写真のメーカー（EXIF の Make）に合わせてロゴを自動で切り替えられるようにした（`logo.dir` / `logo.makers` / `logo.fallback`）。ロゴは `logos` フォルダに置く。まずは Nikon と Google Pixel を `standard.yaml` / `custom_example.yaml` に設定した。
 - **フレーム付与処理**: `scaling.basis: display` で、note などに貼ったときに縦写真の文字・ロゴ・余白が横写真と同じ大きさに見えるよう自動で調整できるようにした（表示枠は `scaling.display_box`、既定 `"4:5"`）。`standard.yaml` と `custom_example.yaml` で有効にした。
+
+### 修正
+
+- **フレーム付与処理**: 標準 EXIF のホワイトバランスが 0（Auto）のとき「-」と表示されていたのを、「Auto」と表示するようにした（Pixel など、メーカー独自の WB 情報が無い機種で起きていた）。Nikon のようにメーカー独自の値がある場合は、そちらを優先する。
 
 ## [1.0.0] - 2026-11-18
 

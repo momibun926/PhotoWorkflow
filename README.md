@@ -226,6 +226,17 @@ logo:
 ```
 
 文字の行には `{make}` でメーカー名（EXIF の値そのまま）を入れることもできます。
+
+文字の行で使える撮影情報のうち、メーカーによって中身が変わるものは次のとおりです。
+
+| 書き方 | 内容 | 例 |
+|---|---|---|
+| `{style}` | 仕上げの設定（メーカー共通）。ピクチャーコントロールがあればそれ、無ければ「撮影シーン (撮影処理)」 | Nikon: `Nega_Sun`、Pixel: `Standard (HDR+)` |
+| `{white_balance}` | ホワイトバランス。メーカー独自の値を優先し、無ければ標準 EXIF の Auto / Manual | Nikon: `NATURAL AUTO`、Pixel: `Auto` |
+| `{picture_control}` | Nikon のピクチャーコントロール（無い機種は `-`） | `NEUTRAL` |
+| `{scene}` | 撮影シーン（EXIF の SceneCaptureType） | `Standard` / `Landscape` / `Portrait` / `Night` |
+| `{processing}` | 撮影処理（EXIF の Software から取り出したもの。知っている名前だけ） | `HDR+` |
+| `{make}` | メーカー名（EXIF の値そのまま） | `Google` |
 `dir` を書かない場合は、従来どおり `logo.path` の1枚をすべての写真に使います。
 
 ### 縦写真の文字の大きさを横写真にそろえる（`scaling`）

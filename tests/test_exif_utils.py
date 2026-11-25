@@ -122,3 +122,58 @@ def test_get_exif_dates_batch(tmp_path, make_config):
     dates = ExifReader(config=config).get_exif_dates_batch([dated, undated])
     assert dates == {dated: "20261101"}
     assert constants.EXIF_DATE_FORMAT == "%Y%m%d"
+
+
+def test_parse_metadata_result_pixel():
+    """Pixel 10a の EXIF（exiftool -n の値）。WB 0 は Auto、style は 撮影シーン (撮影処理)。"""
+    result = {
+        "SourceFile": "PXL.jpg",
+        "EXIF:Make": "Google",
+        "EXIF:Model": "Pixel 10a",
+        "EXIF:Software": "HDR+ 1.0.936816820zd",
+        "EXIF:WhiteBalance": 0,
+        "EXIF:SceneCaptureType": 0,
+        "EXIF:ExposureProgram": 2,
+    }
+    meta = ExifReader._parse_metadata_result(result)
+    assert meta.make == "Google"
+    assert meta.white_balance == "Auto"
+    assert (meta.scene, meta.processing, meta.style) == ("Standard", "HDR+", "Standard (HDR+)")
+    assert meta.picture_control == "-"
+
+
+def test_parse_metadata_result_nikon_style_and_wb():
+    """Nikon はメーカーノートの WB とピクチャーコントロールを優先する。"""
+    result = {
+        "SourceFile": "a.jpg",
+        "EXIF:Make": "NIKON CORPORATION",
+        "EXIF:Software": "Ver.01.10",
+        "EXIF:WhiteBalance": 0,
+        "EXIF:SceneCaptureType": 0,
+        "MakerNotes:WhiteBalance": "NATURAL AUTO",
+        "MakerNotes:PictureControlName": "Nega_Sun",
+    }
+    meta = ExifReader._parse_metadata_result(result)
+    assert meta.white_balance == "NATURAL AUTO"
+    assert meta.processing == ""
+    assert meta.style == "Nega_Sun"
+
+
+@pytest.mark.parametrize("code, text", [(0, "Auto"), (1, "Manual"), (None, "-"), ("", "-"), ("Daylight", "Daylight")])
+def test_to_white_balance(code, text):
+    assert ExifConverter.to_white_balance(code) == text
+
+
+@pytest.mark.parametrize("code, text", [(0, "Standard"), (3, "Night"), (None, ""), (9, "(9)")])
+def test_to_scene(code, text):
+    assert ExifConverter.to_scene(code) == text
+
+
+@pytest.mark.parametrize("pc, scene, proc, style", [
+    ("NEUTRAL", "Standard", "", "NEUTRAL"),
+    ("-", "Night", "HDR+", "Night (HDR+)"),
+    ("-", "Standard", "", "Standard"),
+    ("-", "", "", "-"),
+])
+def test_to_style(pc, scene, proc, style):
+    assert ExifConverter.to_style(pc, scene, proc) == style

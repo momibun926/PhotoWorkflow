@@ -412,7 +412,7 @@ def test_render_switches_logo_by_make(tmp_path):
     Image.new("RGB", (600, 400), "gray").save(src)
 
     def red_pixels(make):
-        meta = PhotoMetadata("Z50II", "LENS", "35", "100", "1.7", "1/500", "0.0", "A", "NEUTRAL", "AUTO", "", make)
+        meta = PhotoMetadata("Z50II", "LENS", "35", "100", "1.7", "1/500", "0.0", "A", "NEUTRAL", "AUTO", "", make=make)
         with Image.open(p.render(src, meta)) as out:
             rgb = out.convert("RGB")
             return sum(1 for x in range(rgb.width) for y in range(rgb.height)

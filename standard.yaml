@@ -66,7 +66,9 @@ layout:
 
   # 行の定義（何行でも可）。lines を書いた場合は top / bottom は使われない
   #   text    : テンプレート（{camera} {lens} {focal_length} {f_number} {shutter} {iso}
-  #             {exposure_bias} {exposure_mode} {picture_control} {white_balance} {color_temperature}）
+  #             {exposure_bias} {exposure_mode} {picture_control} {white_balance} {color_temperature}
+  #             {style}（仕上げの設定。Nikon はピクチャーコントロール、それ以外は「撮影シーン (撮影処理)」例: Standard (HDR+)）
+  #             {scene} {processing} {make}）
   #   font    : fonts のキー名、フォントのパス、またはパスのリスト
   #   size    : 比率（size_type: ratio のとき）または "40px"
   #   color   : colors のキー名、または "#RRGGBB"
@@ -82,7 +84,7 @@ layout:
       size: 0.016
       color: "sub"
       spacing: 0.030
-    - text: "MODE: {exposure_mode}     WB: {white_balance}      Style: {picture_control}"
+    - text: "MODE: {exposure_mode}     WB: {white_balance}      Style: {style}"
       font: "regular"
       size: 0.015
       color: "sub"

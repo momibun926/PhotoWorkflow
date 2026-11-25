@@ -4,7 +4,7 @@ config.json / YAML に書かれていない項目はここの値を使う。
 設定ファイル側に同じ内容を書き写す必要はない（書いた項目だけが上書きされる）。
 """
 
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 # ===== 対象ファイルの拡張子（config.json の file_types で上書きできる） =====
 JPEG_EXTENSIONS: Set[str] = {".jpg", ".jpeg"}
@@ -68,6 +68,27 @@ EXPOSURE_MODE_MAP: Dict[int, str] = {
     3: "A",
     4: "S",
 }
+
+# EXIF の WhiteBalance（-n の数値）→ 表示名。メーカーノートの値が無いときに使う
+WHITE_BALANCE_MAP: Dict[int, str] = {
+    0: "Auto",
+    1: "Manual",
+}
+
+# EXIF の SceneCaptureType（-n の数値）→ 表示名
+SCENE_CAPTURE_TYPE_MAP: Dict[int, str] = {
+    0: "Standard",
+    1: "Landscape",
+    2: "Portrait",
+    3: "Night",
+    4: "Other",
+}
+
+# EXIF の Software から取り出す撮影処理の名前（正規表現, 表示名）。上から順に照合する。
+# カメラのファームウェア（"Ver.1.00" など）は表示しないよう、知っている処理名だけを並べる
+PROCESSING_PATTERNS: List[Tuple[str, str]] = [
+    (r"^HDR\+", "HDR+"),   # Google Pixel（"HDR+ 1.0.936816820zd"）
+]
 
 # ===== GPS =====
 # カメラ時計のずれ補正（exiftool の -geosync、"GPS時刻 − カメラ時刻"）の既定値。空なら補正なし。
