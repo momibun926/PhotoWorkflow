@@ -43,6 +43,7 @@ class PhotoMetadata:
     processing: str = ""     # 撮影処理（EXIF の Software から取り出したもの。例: "HDR+"）。無ければ ""
     style: str = "-"         # 仕上げの設定（メーカー共通）。Nikon はピクチャーコントロール、
                              # それが無い機種は「撮影シーン (撮影処理)」（例: "Standard (HDR+)"）
+    focal_length_35mm: str = ""  # 35mm換算の焦点距離（EXIF の FocalLengthIn35mmFormat。例: "24"）。無ければ ""
     make: str = ""           # メーカー名（EXIF の Make そのまま。例: "NIKON CORPORATION", "Google"）。ロゴの切り替えに使う
 
 
@@ -109,6 +110,18 @@ class ExifConverter:
         except (ValueError, TypeError) as e:
             logger.warning("露出モード変換失敗: %s, 元値: %s", e, code)
             return f"({code})"
+
+    @staticmethod
+    def to_focal_length_35mm(value: Any) -> str:
+        """35mm換算の焦点距離を数値の文字列に（24 → "24"、"24 mm" → "24"）。無い・0 なら ""。"""
+        text = str(value or "").replace("mm", "").strip()
+        try:
+            num = float(text)
+        except ValueError:
+            return ""
+        if num <= 0:
+            return ""
+        return str(int(num)) if num.is_integer() else f"{num:g}"
 
     @staticmethod
     def to_white_balance(code: Any) -> str:
@@ -301,6 +314,7 @@ class ExifReader:
             camera=ExifConverter.format_camera_name(result.get("EXIF:Model"), camera_rules),
             lens=ExifConverter.format_camera_name(result.get("EXIF:LensModel"), camera_rules),
             focal_length=str(result.get("EXIF:FocalLength", "-")).replace(" mm", ""),
+            focal_length_35mm=ExifConverter.to_focal_length_35mm(result.get("EXIF:FocalLengthIn35mmFormat")),
             iso=str(result.get("EXIF:ISO", "-")),
             f_number=str(result.get("EXIF:FNumber", "-")),
             shutter=ExifConverter.to_shutter_speed(result.get("EXIF:ExposureTime")),

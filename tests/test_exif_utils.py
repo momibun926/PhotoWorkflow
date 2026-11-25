@@ -177,3 +177,8 @@ def test_to_scene(code, text):
 ])
 def test_to_style(pc, scene, proc, style):
     assert ExifConverter.to_style(pc, scene, proc) == style
+
+
+@pytest.mark.parametrize("value, text", [(24, "24"), (24.0, "24"), ("26 mm", "26"), (0, ""), (None, ""), ("abc", "")])
+def test_to_focal_length_35mm(value, text):
+    assert ExifConverter.to_focal_length_35mm(value) == text

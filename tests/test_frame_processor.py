@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from PIL import Image, ImageCms
+from PIL import Image, ImageCms, ImageDraw
 
 from conftest import ROOT, requires_exiftool, write_jpeg
 from modules.exiftool_client import path_key
@@ -430,3 +430,48 @@ def test_render_switches_logo_by_make(tmp_path):
 def test_logo_makers_validation(tmp_path, logo_cfg, message):
     with pytest.raises(ValueError, match=message):
         _logo_processor(tmp_path, logo_cfg)
+
+
+# ----------------------------------------------------------------------
+# focal_length.equivalent_35mm（スマホは35mm換算で表示）
+# ----------------------------------------------------------------------
+def test_use_35mm_focal_length(processor):
+    """standard.yaml では google だけ換算表示。"""
+    assert processor._use_35mm_focal_length("Google")
+    assert not processor._use_35mm_focal_length("NIKON CORPORATION")
+    assert not processor._use_35mm_focal_length("")
+
+
+def test_render_focal_length_35mm_text(processor, tmp_path, monkeypatch):
+    """Google の写真は {focal_length} が換算値になり、Nikon は実焦点距離のまま。"""
+    from modules.exif_utils import PhotoMetadata
+
+    src = tmp_path / "a.jpg"
+    Image.new("RGB", (600, 400), "gray").save(src)
+    texts = []
+    real_text = ImageDraw.ImageDraw.text
+
+    def spy(self, xy, text, *args, **kwargs):
+        texts.append(text)
+        return real_text(self, xy, text, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", spy)
+    base = dict(camera="C", lens="L", focal_length="4.53", iso="28", f_number="1.7", shutter="1/280",
+                exposure_bias="0.0", exposure_mode="P", picture_control="-", white_balance="Auto",
+                color_temperature="", focal_length_35mm="24")
+    processor.render(src, PhotoMetadata(**base, make="Google"))
+    assert any(t.startswith("24mm") for t in texts)
+    texts.clear()
+    processor.render(src, PhotoMetadata(**base, make="NIKON CORPORATION"))
+    assert any(t.startswith("4.53mm") for t in texts)
+
+
+def test_focal_length_validation(tmp_path):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"equivalent_35mm": "google"}
+    path = tmp_path / "f.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(ValueError, match="focal_length.equivalent_35mm"):
+        ImageProcessor(path)

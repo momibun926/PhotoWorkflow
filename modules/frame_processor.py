@@ -327,6 +327,12 @@ class ImageProcessor:
             return self._to_px(val, long_side)
         return int(self._opt(layout, "line_spacing_px", constants.DEFAULT_LINE_SPACING_PX))
 
+    def _use_35mm_focal_length(self, make: str) -> bool:
+        """focal_length.equivalent_35mm のどれかが メーカー名に含まれていれば True（大文字小文字は区別しない）。"""
+        makers = self._opt(self._section("focal_length"), "equivalent_35mm") or []
+        make_l = make.lower()
+        return bool(make_l) and any(str(m).lower() in make_l for m in makers)
+
     @staticmethod
     def _maker_slug(make: str) -> str:
         """EXIF の Make からファイル名用の短い名前を作る（"NIKON CORPORATION" → "nikon"、"Google" → "google"）。"""
@@ -491,6 +497,9 @@ class ImageProcessor:
             img = ImageOps.exif_transpose(img).convert("RGB")
 
         meta_dict = _SafeDict(asdict(meta))
+        # focal_length.equivalent_35mm に書いたメーカー（スマホなど）は、{focal_length} を35mm換算にする
+        if meta.focal_length_35mm and self._use_35mm_focal_length(meta.make):
+            meta_dict["focal_length"] = meta.focal_length_35mm
         w, h = img.size
         # 比率で書いた長さの基準。scaling.basis が既定（long_side）なら写真の長辺
         long_side = self._scale_reference(w, h)

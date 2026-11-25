@@ -237,6 +237,15 @@ logo:
 | `{scene}` | 撮影シーン（EXIF の SceneCaptureType） | `Standard` / `Landscape` / `Portrait` / `Night` |
 | `{processing}` | 撮影処理（EXIF の Software から取り出したもの。知っている名前だけ） | `HDR+` |
 | `{make}` | メーカー名（EXIF の値そのまま） | `Google` |
+| `{focal_length}` | 焦点距離。`focal_length.equivalent_35mm` に書いたメーカーは35mm換算 | Nikon: `35`、Pixel: `24` |
+| `{focal_length_35mm}` | 35mm換算の焦点距離（EXIF の FocalLengthIn35mmFormat。無ければ空） | `24` |
+
+スマホのように実焦点距離（Pixel 10a なら 4.53mm）ではわかりにくい機種は、`{focal_length}` を35mm換算で表示できます。
+
+```yaml
+focal_length:
+  equivalent_35mm: ["google"]   # メーカー名にこの文字を含む写真は換算値（大文字小文字は区別しない）
+```
 `dir` を書かない場合は、従来どおり `logo.path` の1枚をすべての写真に使います。
 
 ### 縦写真の文字の大きさを横写真にそろえる（`scaling`）

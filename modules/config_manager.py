@@ -446,6 +446,11 @@ class YamlConfigManager(_ConfigFile):
             if not logo.get("dir"):
                 raise ValueError(f"{name} の 'logo.makers' を使うときは 'logo.dir'（ロゴのフォルダ）も指定してください")
 
+        focal = self.config.get("focal_length") or {}
+        equiv = focal.get("equivalent_35mm")
+        if equiv is not None and not (isinstance(equiv, list) and all(isinstance(m, str) and m for m in equiv)):
+            raise ValueError(f"{name} の 'focal_length.equivalent_35mm' はメーカー名のリスト（例: [\"google\"]）で指定してください")
+
         # アスペクト比は "4:5" か 1.25 のような正の数
         scaling = self.config.get("scaling") or {}
         for section_name, section, key in (("canvas", canvas, "aspect_ratio"),

@@ -24,6 +24,12 @@ colors:
   sub: "#777777"
   accent: "#B08D57"
 
+# 焦点距離
+focal_length:
+  # このメーカー名を含む写真は {focal_length} を35mm換算で表示する（スマホなど、実焦点距離ではわかりにくい機種）
+  # どの写真でも換算値を出したいときは、文字の行に {focal_length_35mm} と書く
+  equivalent_35mm: ["google"]
+
 # 文字・ロゴ・余白の大きさの基準
 scaling:
   # long_side: 写真の長辺に対する比率（従来）
@@ -68,7 +74,7 @@ layout:
   #   text    : テンプレート（{camera} {lens} {focal_length} {f_number} {shutter} {iso}
   #             {exposure_bias} {exposure_mode} {picture_control} {white_balance} {color_temperature}
   #             {style}（仕上げの設定。Nikon はピクチャーコントロール、それ以外は「撮影シーン (撮影処理)」例: Standard (HDR+)）
-  #             {scene} {processing} {make}）
+  #             {scene} {processing} {make} {focal_length_35mm}）
   #   font    : fonts のキー名、フォントのパス、またはパスのリスト
   #   size    : 比率（size_type: ratio のとき）または "40px"
   #   color   : colors のキー名、または "#RRGGBB"
