@@ -11,8 +11,8 @@
 
 ### 追加
 
-- **フレーム付与処理**: 文字の行で `{focal_length_text}` を使えるようにした。Nikon DX のように35mmより小さいセンサーの写真は「35mm (52.5mm)」と換算値を付け、FX は「35mm」のまま（換算値 ÷ 実焦点距離で自動判定。`focal_length.show_equivalent` / `equivalent_format` で変更可）。`standard.yaml` / `custom_example.yaml` / `black.yaml` の焦点距離をこれに変えた。
-- **フレーム付与処理**: `focal_length.equivalent_35mm` に書いたメーカー（`standard.yaml` では Google）の写真は、`{focal_length}` を35mm換算で表示するようにした。換算値はどの写真でも `{focal_length_35mm}` で使える。
+- **フレーム付与処理**: 文字の行で `{focal_length_text}` を使えるようにした。Nikon DX のように35mmより小さいセンサーの写真は「35mm (52.5mm)」と換算値を付け、FX は「35mm」のまま（換算値 ÷ 実焦点距離で自動判定。`focal_length.show_equivalent` / `equivalent_format` で変更可）。`standard.yaml` / `custom_example.yaml` / `black.yaml` の焦点距離をこれに変えた。Google Pixel も同じく「4.53mm (24mm)」と表示する（`equivalent_35mm` は空にした）。
+- **フレーム付与処理**: `focal_length.equivalent_35mm` に書いたメーカーの写真は、`{focal_length}` を35mm換算で表示するようにした。換算値はどの写真でも `{focal_length_35mm}` で使える。
 - **フレーム付与処理**: メーカー共通の「仕上げの設定」`{style}` を追加した。Nikon はピクチャーコントロール、それが無い機種（Pixel など）は「撮影シーン (撮影処理)」（例: `Standard (HDR+)`）を表示する。あわせて `{scene}`（SceneCaptureType）と `{processing}`（Software から取り出した撮影処理名）も使えるようにした。`standard.yaml` は「Picture Control」を「Style」に変えた。
 - **フレーム付与処理**: 写真のメーカー（EXIF の Make）に合わせてロゴを自動で切り替えられるようにした（`logo.dir` / `logo.makers` / `logo.fallback`）。ロゴは `logos` フォルダに置く。まずは Nikon と Google Pixel を `standard.yaml` / `custom_example.yaml` に設定した。
 - **フレーム付与処理**: `scaling.basis: display` で、note などに貼ったときに縦写真の文字・ロゴ・余白が横写真と同じ大きさに見えるよう自動で調整できるようにした（表示枠は `scaling.display_box`、既定 `"4:5"`）。`standard.yaml` と `custom_example.yaml` で有効にした。

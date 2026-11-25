@@ -435,16 +435,29 @@ def test_logo_makers_validation(tmp_path, logo_cfg, message):
 # ----------------------------------------------------------------------
 # focal_length.equivalent_35mm（スマホは35mm換算で表示）
 # ----------------------------------------------------------------------
-def test_use_35mm_focal_length(processor):
-    """standard.yaml では google だけ換算表示。"""
-    assert processor._use_35mm_focal_length("Google")
-    assert not processor._use_35mm_focal_length("NIKON CORPORATION")
-    assert not processor._use_35mm_focal_length("")
+def _equiv_processor(tmp_path, makers):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"equivalent_35mm": makers}
+    path = tmp_path / "eq.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    return ImageProcessor(path)
 
 
-def test_render_focal_length_35mm_text(processor, tmp_path, monkeypatch):
-    """Google の写真は {focal_length} が換算値になり、Nikon は実焦点距離のまま。"""
+def test_use_35mm_focal_length(tmp_path):
+    p = _equiv_processor(tmp_path, ["google"])
+    assert p._use_35mm_focal_length("Google")
+    assert not p._use_35mm_focal_length("NIKON CORPORATION")
+    assert not p._use_35mm_focal_length("")
+    assert not _equiv_processor(tmp_path, [])._use_35mm_focal_length("Google")
+
+
+def test_render_focal_length_35mm_text(tmp_path, monkeypatch):
+    """equivalent_35mm のメーカーは {focal_length} が換算値になり、それ以外は実焦点距離のまま。"""
     from modules.exif_utils import PhotoMetadata
+
+    processor = _equiv_processor(tmp_path, ["google"])
 
     src = tmp_path / "a.jpg"
     Image.new("RGB", (600, 400), "gray").save(src)
@@ -492,10 +505,16 @@ def _focal_meta(focal, equiv, make):
     ("35", "52.5", "NIKON CORPORATION", "35mm (52.5mm)"),   # DX
     ("35", "35", "NIKON CORPORATION", "35mm"),              # FX
     ("50", "", "NIKON CORPORATION", "50mm"),                # 換算値なし
-    ("4.53", "24", "Google", "24mm"),                        # equivalent_35mm のメーカーは換算値だけ
+    ("4.53", "24", "Google", "4.53mm (24mm)"),               # Pixel も DX と同じく換算を付ける
 ])
 def test_focal_length_text_crop(processor, focal, equiv, make, text):
     assert processor._focal_length_text(_focal_meta(focal, equiv, make)) == text
+
+
+def test_focal_length_text_equivalent_only(tmp_path):
+    """equivalent_35mm に書いたメーカーは換算値だけ。"""
+    p = _equiv_processor(tmp_path, ["google"])
+    assert p._focal_length_text(_focal_meta("4.53", "24", "Google")) == "24mm"
 
 
 @pytest.mark.parametrize("mode, focal, equiv, text", [

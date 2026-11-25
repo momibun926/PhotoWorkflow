@@ -32,8 +32,9 @@ focal_length:
   #   always: 換算値があれば常に付ける / never: 付けない
   show_equivalent: "crop"
   equivalent_format: "{focal_length}mm ({focal_length_35mm}mm)"
-  # このメーカー名を含む写真は、換算値だけを表示する（スマホなど、実焦点距離ではわかりにくい機種）
-  equivalent_35mm: ["google"]
+  # このメーカー名を含む写真は、換算値だけを表示する（例: ["google"] にすると Pixel は「24mm」だけ）
+  # 空なら、スマホも Nikon DX と同じく「4.53mm (24mm)」になる
+  equivalent_35mm: []
 
 # 文字・ロゴ・余白の大きさの基準
 scaling:
