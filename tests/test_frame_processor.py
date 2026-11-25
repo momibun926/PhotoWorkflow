@@ -266,3 +266,75 @@ def test_step_succeeds_when_everything_is_already_framed(tmp_path, sample_meta, 
     out = capsys.readouterr().out
     assert "フレーム付き画像が作成済みの 3 枚は飛ばします。" in out
     assert "作成済みのため飛ばした写真: 3 枚" in out
+
+
+# ----------------------------------------------------------------------
+# scaling.basis: display（note などで縦・横の文字の見た目をそろえる）
+# ----------------------------------------------------------------------
+def _scaling_processor(tmp_path, scaling, canvas=None):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["canvas"] = canvas or {"margins": {"top": 0.01, "bottom": 0.14, "left": 0.01, "right": 0.01}}
+    data["scaling"] = scaling
+    path = tmp_path / "s.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    return ImageProcessor(path)
+
+
+def _shown_scale(p, w, h, box=0.8):
+    """note の表示: キャンバスを幅 1 に縮小し、縦長は 幅:高さ = box の枠に収める。そのときの倍率。"""
+    ref = p._scale_reference(w, h)
+    m = p._compute_margins(w, h, ref)
+    cw, ch = w + m["left"] + m["right"], h + m["top"] + m["bottom"]
+    return ref, min(1 / cw, 1 / (box * ch)) if box else 1 / cw
+
+
+def test_scale_reference_default_is_long_side():
+    """scaling を書いていない YAML（black.yaml）は従来どおり長辺が基準。"""
+    p = ImageProcessor(ROOT / "black.yaml")
+    assert p._scale_reference(4000, 6000) == 6000
+    assert p._scale_reference(6000, 4000) == 6000
+
+
+def test_scale_reference_display_keeps_landscape(tmp_path):
+    p = _scaling_processor(tmp_path, {"basis": "display"})
+    assert p._scale_reference(6000, 4000) == 6000
+
+
+@pytest.mark.parametrize("box, canvas", [
+    ("4:5", None),
+    (None, None),
+    ("4:5", {"margins": {"top": 0.01, "bottom": 0.14, "left": 0.01, "right": 0.01}, "aspect_ratio_portrait": "4:5"}),
+])
+def test_scale_reference_display_matches_landscape_on_screen(tmp_path, box, canvas):
+    """表示したときの文字の大きさ（基準 × 表示倍率）が、縦写真でも横写真と同じになる。"""
+    p = _scaling_processor(tmp_path, {"basis": "display", "display_box": box}, canvas)
+    ref_l, s_l = _shown_scale(p, 6000, 4000, p._parse_aspect(box))
+    ref_p, s_p = _shown_scale(p, 4000, 6000, p._parse_aspect(box))
+    assert ref_p < 6000
+    assert ref_p * s_p == pytest.approx(ref_l * s_l, rel=0.01)
+
+
+def test_render_display_portrait_text_smaller(tmp_path):
+    """縦写真の下余白（＝文字エリア）が長辺基準より小さくなる。"""
+    from modules.exif_utils import PhotoMetadata
+
+    meta = PhotoMetadata("Z50II", "LENS", "35", "100", "1.7", "1/500", "0.0", "A", "NEUTRAL", "AUTO", "")
+    src = tmp_path / "port.jpg"
+    Image.new("RGB", (400, 600), "gray").save(src)
+    heights = {}
+    for basis in ("long_side", "display"):
+        p = _scaling_processor(tmp_path, {"basis": basis})
+        with Image.open(p.render(src, meta)) as out:
+            heights[basis] = out.height
+    assert heights["display"] < heights["long_side"]
+
+
+@pytest.mark.parametrize("scaling, message", [
+    ({"basis": "width"}, "scaling.basis"),
+    ({"basis": "display", "display_box": "abc"}, "scaling.display_box"),
+])
+def test_scaling_validation(tmp_path, scaling, message):
+    with pytest.raises(ValueError, match=message):
+        _scaling_processor(tmp_path, scaling)
