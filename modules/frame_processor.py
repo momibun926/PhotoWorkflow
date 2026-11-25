@@ -15,6 +15,7 @@ from concurrent.futures.process import BrokenProcessPool
 from dataclasses import asdict
 from functools import lru_cache
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -326,8 +327,124 @@ class ImageProcessor:
             return self._to_px(val, long_side)
         return int(self._opt(layout, "line_spacing_px", constants.DEFAULT_LINE_SPACING_PX))
 
+    def _use_35mm_focal_length(self, make: str) -> bool:
+        """focal_length.equivalent_35mm のどれかが メーカー名に含まれていれば True（大文字小文字は区別しない）。"""
+        makers = self._opt(self._section("focal_length"), "equivalent_35mm") or []
+        make_l = make.lower()
+        return bool(make_l) and any(str(m).lower() in make_l for m in makers)
+
+    @staticmethod
+    def _crop_factor(meta: PhotoMetadata) -> Optional[float]:
+        """換算値 ÷ 実焦点距離（Nikon DX なら約1.5、FX なら1.0）。どちらかが無ければ None。"""
+        try:
+            real = float(meta.focal_length)
+            equiv = float(meta.focal_length_35mm)
+        except (TypeError, ValueError):
+            return None
+        return equiv / real if real > 0 and equiv > 0 else None
+
+    def _focal_length_text(self, meta: PhotoMetadata) -> str:
+        """{focal_length_text}: 単位付きの焦点距離。必要なら35mm換算を付ける。
+
+        - focal_length.equivalent_35mm のメーカー（スマホなど）: 換算値だけ（"24mm"）
+        - focal_length.show_equivalent:
+            crop（既定）: 35mmより小さいセンサー（Nikon DX など）だけ "35mm (52.5mm)"。FX は "35mm"
+            always: 換算値があれば常に付ける / never: 付けない
+        書き方は focal_length.equivalent_format（既定 "{focal_length}mm ({focal_length_35mm}mm)"）
+        """
+        cfg = self._section("focal_length")
+        if meta.focal_length_35mm and self._use_35mm_focal_length(meta.make):
+            return f"{meta.focal_length_35mm}mm"
+        plain = f"{meta.focal_length}mm"
+        mode = self._opt(cfg, "show_equivalent", constants.FOCAL_LENGTH_SHOW_EQUIVALENT)
+        if not meta.focal_length_35mm or mode == "never":
+            return plain
+        if mode != "always":
+            factor = self._crop_factor(meta)
+            if factor is None or factor < constants.CROP_FACTOR_THRESHOLD:
+                return plain
+        fmt = self._opt(cfg, "equivalent_format", constants.FOCAL_LENGTH_EQUIVALENT_FORMAT)
+        return str(fmt).format_map(_SafeDict(focal_length=meta.focal_length, focal_length_35mm=meta.focal_length_35mm))
+
+    @staticmethod
+    def _maker_slug(make: str) -> str:
+        """EXIF の Make からファイル名用の短い名前を作る（"NIKON CORPORATION" → "nikon"、"Google" → "google"）。"""
+        words = "".join(c if c.isalnum() else " " for c in make.lower()).split()
+        return words[0] if words else ""
+
+    def _select_logo(self, cfg, make: str) -> Tuple[Optional[Path], Any]:
+        """使うロゴのファイルと、そのロゴ用の設定を決める。
+
+        - logo.dir が無い: 従来どおり logo.path の1枚を全写真に使う
+        - logo.dir がある: メーカーで切り替える
+            1. logo.makers のキー（"nikon" など）が Make に含まれていれば、そのファイル
+               （値に file と大きさ・位置を書けば、そのロゴだけ設定を上書きできる）
+            2. 無ければ logo.dir の中の「メーカー名.png」（"NIKON CORPORATION" → nikon.png、"Google" → google.png）
+            3. それも無ければ logo.fallback（未指定ならロゴなし）
+
+        Returns:
+            (ロゴのパス or None, ロゴの設定)。None ならロゴを描かない
+        """
+        logo_dir = self._opt(cfg, "dir")
+        if not logo_dir:
+            path = self._resolve_path(self._opt(cfg, "path", constants.LOGO_FILENAME))
+            if not path.exists():
+                logger.debug("ロゴファイルが見つかりません: %s", path)
+                return None, cfg
+            return path, cfg
+
+        base = self._resolve_path(logo_dir)
+        make_l = make.lower()
+        slug = self._maker_slug(make)
+
+        # 1. logo.makers（長いキーから順に照合して、"om" が別の名前の一部に当たるのを避ける）
+        makers = self._opt(cfg, "makers")
+        entries = vars(makers) if isinstance(makers, SimpleNamespace) else {}
+        for key in sorted(entries, key=len, reverse=True):
+            if not make_l or str(key).lower() not in make_l:
+                continue
+            entry = entries[key]
+            if isinstance(entry, SimpleNamespace):
+                overrides = {k: v for k, v in vars(entry).items() if k in constants.LOGO_MAKER_OVERRIDE_KEYS}
+                cfg = SimpleNamespace(**{**vars(cfg), **overrides})
+                file = getattr(entry, "file", None) or f"{slug}.png"
+            else:
+                file = str(entry)
+            path = base / file
+            if path.is_file():
+                return path, cfg
+            self._warn_logo_once(make, f"logo.makers.{key} のロゴファイルが見つかりません: {path}")
+            break
+
+        # 2. メーカー名から自動で探す
+        if slug:
+            for ext in constants.LOGO_EXTENSIONS:
+                path = base / f"{slug}{ext}"
+                if path.is_file():
+                    return path, cfg
+
+        # 3. どれにも当たらないとき
+        fallback = self._opt(cfg, "fallback")
+        if fallback:
+            path = base / str(fallback)
+            if path.is_file():
+                return path, cfg
+            self._warn_logo_once("__fallback__", f"logo.fallback のロゴファイルが見つかりません: {path}")
+        self._warn_logo_once(
+            make, f"メーカー「{make or '不明'}」のロゴがありません（{base / (slug or '?')}.png を置くとロゴが入ります）"
+        )
+        return None, cfg
+
+    def _warn_logo_once(self, key: str, message: str) -> None:
+        """ロゴが見つからないことを、同じメーカーについて1回だけ知らせる。"""
+        warned = self.__dict__.setdefault("_logo_warned", set())
+        if key in warned:
+            return
+        warned.add(key)
+        logger.info(message)
+
     def _draw_logo(self, canvas: Image.Image, main_fs: int, long_side: int,
-                   img_box: tuple, area: tuple, text_box: Optional[tuple]) -> None:
+                   img_box: tuple, area: tuple, text_box: Optional[tuple], make: str = "") -> None:
         """ロゴを描く。ロゴが無い・描けない場合もフレーム処理は続ける。
 
         Args:
@@ -335,13 +452,13 @@ class ImageProcessor:
             img_box: 写真の (left, top, right, bottom)
             area: 文字エリアの (top, bottom)
             text_box: 文字全体の (left, top, right, bottom)。text_left / text_right 配置に使う
+            make: EXIF のメーカー名（logo.dir を指定したときのロゴの切り替えに使う）
         """
         cfg = self._section("logo")
         if not self._opt(cfg, "enabled", True):
             return
-        logo_path = self._resolve_path(self._opt(cfg, "path", constants.LOGO_FILENAME))
-        if not logo_path.exists():
-            logger.debug("ロゴファイルが見つかりません: %s", logo_path)
+        logo_path, cfg = self._select_logo(cfg, make)
+        if logo_path is None:
             return
         try:
             logo = Image.open(logo_path).convert("RGBA")
@@ -413,6 +530,10 @@ class ImageProcessor:
             img = ImageOps.exif_transpose(img).convert("RGB")
 
         meta_dict = _SafeDict(asdict(meta))
+        meta_dict["focal_length_text"] = self._focal_length_text(meta)
+        # focal_length.equivalent_35mm に書いたメーカー（スマホなど）は、{focal_length} を35mm換算にする
+        if meta.focal_length_35mm and self._use_35mm_focal_length(meta.make):
+            meta_dict["focal_length"] = meta.focal_length_35mm
         w, h = img.size
         # 比率で書いた長さの基準。scaling.basis が既定（long_side）なら写真の長辺
         long_side = self._scale_reference(w, h)
@@ -491,7 +612,7 @@ class ImageProcessor:
 
         # ロゴを先に描き、文字が前面に来るようにする
         main_fs = rows[0]["fs"] if rows else 0
-        self._draw_logo(canvas, main_fs, long_side, img_box, area, text_box)
+        self._draw_logo(canvas, main_fs, long_side, img_box, area, text_box, meta.make)
         for r in rows:
             draw.text((r["x"], r["y"]), r["text"], fill=r["color"], font=r["font"])
 

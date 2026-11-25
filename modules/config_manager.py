@@ -366,6 +366,7 @@ class YamlConfigManager(_ConfigFile):
         ("logo", "position"): ("left", "center", "right", "text_left", "text_right"),
         ("logo", "vertical"): ("bottom", "center", "top", "text"),
         ("scaling", "basis"): ("long_side", "display"),
+        ("focal_length", "show_equivalent"): ("crop", "always", "never"),
     }
 
     def _parse(self, f: IO[str]) -> Any:
@@ -425,6 +426,31 @@ class YamlConfigManager(_ConfigFile):
                 raise ValueError(
                     f"{name} の '{section_name}.{key}' は {' / '.join(choices)} のいずれかです（指定値: {value}）"
                 )
+
+        # logo.makers: {"nikon": "nikon.png"} か {"google": {"file": "google.png", "height_font_ratio": 1.8}}
+        logo = self.config.get("logo") or {}
+        makers = logo.get("makers")
+        if makers is not None:
+            if not isinstance(makers, dict):
+                raise ValueError(f"{name} の 'logo.makers' は「メーカー名: ファイル名」の形で指定してください")
+            allowed = {"file", *constants.LOGO_MAKER_OVERRIDE_KEYS}
+            for key, entry in makers.items():
+                if isinstance(entry, dict):
+                    unknown = set(entry) - allowed
+                    if unknown:
+                        raise ValueError(
+                            f"{name} の 'logo.makers.{key}' に使えない項目があります: {', '.join(sorted(unknown))}"
+                            f"（使えるのは {' / '.join(sorted(allowed))}）"
+                        )
+                elif not isinstance(entry, str) or not entry:
+                    raise ValueError(f"{name} の 'logo.makers.{key}' にはロゴのファイル名を指定してください")
+            if not logo.get("dir"):
+                raise ValueError(f"{name} の 'logo.makers' を使うときは 'logo.dir'（ロゴのフォルダ）も指定してください")
+
+        focal = self.config.get("focal_length") or {}
+        equiv = focal.get("equivalent_35mm")
+        if equiv is not None and not (isinstance(equiv, list) and all(isinstance(m, str) and m for m in equiv)):
+            raise ValueError(f"{name} の 'focal_length.equivalent_35mm' はメーカー名のリスト（例: [\"google\"]）で指定してください")
 
         # アスペクト比は "4:5" か 1.25 のような正の数
         scaling = self.config.get("scaling") or {}

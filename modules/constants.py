@@ -4,7 +4,7 @@ config.json / YAML に書かれていない項目はここの値を使う。
 設定ファイル側に同じ内容を書き写す必要はない（書いた項目だけが上書きされる）。
 """
 
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 # ===== 対象ファイルの拡張子（config.json の file_types で上書きできる） =====
 JPEG_EXTENSIONS: Set[str] = {".jpg", ".jpeg"}
@@ -69,6 +69,35 @@ EXPOSURE_MODE_MAP: Dict[int, str] = {
     4: "S",
 }
 
+# 焦点距離の表示（YAML の focal_length に書かれていない場合の既定値）
+#: 換算値 ÷ 実焦点距離 がこれ以上なら「35mmより小さいセンサー」（Nikon DX など）とみなす。FX は 1.0
+CROP_FACTOR_THRESHOLD: float = 1.1
+#: 実焦点距離のあとに換算値を付けるときの書き方
+FOCAL_LENGTH_EQUIVALENT_FORMAT: str = "{focal_length}mm ({focal_length_35mm}mm)"
+#: focal_length.show_equivalent の既定値（crop / always / never）
+FOCAL_LENGTH_SHOW_EQUIVALENT: str = "crop"
+
+# EXIF の WhiteBalance（-n の数値）→ 表示名。メーカーノートの値が無いときに使う
+WHITE_BALANCE_MAP: Dict[int, str] = {
+    0: "Auto",
+    1: "Manual",
+}
+
+# EXIF の SceneCaptureType（-n の数値）→ 表示名
+SCENE_CAPTURE_TYPE_MAP: Dict[int, str] = {
+    0: "Standard",
+    1: "Landscape",
+    2: "Portrait",
+    3: "Night",
+    4: "Other",
+}
+
+# EXIF の Software から取り出す撮影処理の名前（正規表現, 表示名）。上から順に照合する。
+# カメラのファームウェア（"Ver.1.00" など）は表示しないよう、知っている処理名だけを並べる
+PROCESSING_PATTERNS: List[Tuple[str, str]] = [
+    (r"^HDR\+", "HDR+"),   # Google Pixel（"HDR+ 1.0.936816820zd"）
+]
+
 # ===== GPS =====
 # カメラ時計のずれ補正（exiftool の -geosync、"GPS時刻 − カメラ時刻"）の既定値。空なら補正なし。
 # タイムゾーンではない点に注意。以前 "+09:00" を指定していたが、exiftool はこれを
@@ -77,6 +106,11 @@ CAMERA_CLOCK_OFFSET: str = ""
 
 # ===== フレーム付与。YAML に書かれていない場合の既定値 =====
 LOGO_FILENAME: str = "nikon_logo.png"
+#: logo.dir を指定したときに、メーカー名から自動で探すロゴの拡張子
+LOGO_EXTENSIONS: tuple = (".png", ".webp", ".jpg", ".jpeg")
+#: logo.makers の1件で上書きできる項目（ロゴごとに大きさや位置を変えるため）
+LOGO_MAKER_OVERRIDE_KEYS: tuple = ("height", "height_font_ratio", "offset_x", "offset_y", "gap", "opacity",
+                                   "position", "vertical", "left", "top")
 LOGO_SIZE_RATIO: float = 2.3            # ロゴの高さ = 1行目の文字サイズ × この倍率
 DEFAULT_TOP_PADDING_RATIO: float = 0.20  # 文字エリアの上端から1行目までの距離（文字エリアの高さに対する比率）
 DEFAULT_LINE_SPACING_PX: int = 40        # 行の上端から次の行の上端までの距離

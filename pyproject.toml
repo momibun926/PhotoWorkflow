@@ -2,7 +2,7 @@
 # パッケージとして配布はしていないため、インストールは requirements.txt を使う。
 [project]
 name = "photo-workflow"
-version = "1.0.0"
+version = "1.1.0"
 description = "カメラからの取り込み・GPS付与・フレーム付与までをまとめて行う写真整理ワークフロー"
 readme = "README.md"
 requires-python = ">=3.9"

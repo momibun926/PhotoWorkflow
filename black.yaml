@@ -38,7 +38,7 @@ layout:
   top: "{camera}   {lens}"
   # サブ行のテンプレート。焦点距離・絞り・シャッター速度・ISO・露出補正・露出モード・
   # ピクチャーコントロール・ホワイトバランス・色温度を並べて表示する
-  bottom: "{focal_length}mm  |  f{f_number}  {shutter}  ISO {iso}  |  {exposure_bias}EV  |  {exposure_mode}  |  {picture_control}  |  {white_balance} {color_temperature}"
+  bottom: "{focal_length_text}  |  f{f_number}  {shutter}  ISO {iso}  |  {exposure_bias}EV  |  {exposure_mode}  |  {style}  |  {white_balance} {color_temperature}"
   # 下部余白の上端から 1行目(top) までの距離の割合（値を小さくすると上に移動します）
   # 例: 0.35 -> 0.20 や 0.25 に変更することで位置が上になります
   top_padding_ratio: 0.20

@@ -4,7 +4,7 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
-from PIL import Image, ImageCms
+from PIL import Image, ImageCms, ImageDraw
 
 from conftest import ROOT, requires_exiftool, write_jpeg
 from modules.exiftool_client import path_key
@@ -338,3 +338,216 @@ def test_render_display_portrait_text_smaller(tmp_path):
 def test_scaling_validation(tmp_path, scaling, message):
     with pytest.raises(ValueError, match=message):
         _scaling_processor(tmp_path, scaling)
+
+
+# ----------------------------------------------------------------------
+# メーカーごとのロゴの切り替え（logo.dir / logo.makers / logo.fallback）
+# ----------------------------------------------------------------------
+def _logo_processor(tmp_path, logo_cfg, files=("nikon.png", "google.png")):
+    import yaml
+
+    logos = tmp_path / "logos"
+    logos.mkdir(exist_ok=True)
+    for f in files:
+        Image.new("RGBA", (100, 50), "red").save(logos / f)
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["logo"] = {"enabled": True, **logo_cfg}
+    path = tmp_path / "logo.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    return ImageProcessor(path)
+
+
+@pytest.mark.parametrize("make, slug", [
+    ("NIKON CORPORATION", "nikon"), ("Google", "google"), ("FUJIFILM", "fujifilm"),
+    ("OM Digital Solutions", "om"), ("RICOH IMAGING COMPANY, LTD.", "ricoh"), ("", ""),
+])
+def test_maker_slug(make, slug):
+    assert ImageProcessor._maker_slug(make) == slug
+
+
+def test_select_logo_by_makers(tmp_path):
+    p = _logo_processor(tmp_path, {"dir": "logos", "makers": {"nikon": "nikon.png", "google": "google.png"}})
+    cfg = p._section("logo")
+    assert p._select_logo(cfg, "NIKON CORPORATION")[0].name == "nikon.png"
+    assert p._select_logo(cfg, "Google")[0].name == "google.png"
+
+
+def test_select_logo_auto_filename(tmp_path):
+    """makers に無いメーカーは「メーカー名.png」を自動で探す。"""
+    p = _logo_processor(tmp_path, {"dir": "logos"}, files=("fujifilm.png",))
+    assert p._select_logo(p._section("logo"), "FUJIFILM")[0].name == "fujifilm.png"
+
+
+def test_select_logo_missing_and_fallback(tmp_path):
+    p = _logo_processor(tmp_path, {"dir": "logos"})
+    assert p._select_logo(p._section("logo"), "Canon")[0] is None
+    assert p._select_logo(p._section("logo"), "")[0] is None
+    p = _logo_processor(tmp_path, {"dir": "logos", "fallback": "nikon.png"})
+    assert p._select_logo(p._section("logo"), "Canon")[0].name == "nikon.png"
+
+
+def test_select_logo_per_maker_override(tmp_path):
+    p = _logo_processor(tmp_path, {
+        "dir": "logos", "height_font_ratio": 2.3,
+        "makers": {"google": {"file": "google.png", "height_font_ratio": 1.5}},
+    })
+    path, cfg = p._select_logo(p._section("logo"), "Google")
+    assert path.name == "google.png" and cfg.height_font_ratio == 1.5
+    _, cfg = p._select_logo(p._section("logo"), "NIKON CORPORATION")
+    assert cfg.height_font_ratio == 2.3
+
+
+def test_select_logo_legacy_path(tmp_path):
+    """dir が無ければ、従来どおり path の1枚をメーカーに関係なく使う。"""
+    p = _logo_processor(tmp_path, {"path": "logos/nikon.png"})
+    assert p._select_logo(p._section("logo"), "Google")[0].name == "nikon.png"
+
+
+def test_render_switches_logo_by_make(tmp_path):
+    """メーカーによってロゴが入る・入らないが変わる（ロゴの赤い画素で判定）。"""
+    from modules.exif_utils import PhotoMetadata
+
+    p = _logo_processor(tmp_path, {"dir": "logos", "makers": {"nikon": "nikon.png"}}, files=("nikon.png",))
+    src = tmp_path / "land.jpg"
+    Image.new("RGB", (600, 400), "gray").save(src)
+
+    def red_pixels(make):
+        meta = PhotoMetadata("Z50II", "LENS", "35", "100", "1.7", "1/500", "0.0", "A", "NEUTRAL", "AUTO", "", make=make)
+        with Image.open(p.render(src, meta)) as out:
+            rgb = out.convert("RGB")
+            return sum(1 for x in range(rgb.width) for y in range(rgb.height)
+                       if (lambda c: c[0] > 200 and c[1] < 60 and c[2] < 60)(rgb.getpixel((x, y))))
+
+    assert red_pixels("NIKON CORPORATION") > 0
+    assert red_pixels("Canon") == 0
+
+
+@pytest.mark.parametrize("logo_cfg, message", [
+    ({"dir": "logos", "makers": ["nikon"]}, "logo.makers"),
+    ({"dir": "logos", "makers": {"nikon": {"file": "n.png", "size": 3}}}, "logo.makers.nikon"),
+    ({"makers": {"nikon": "nikon.png"}}, "logo.dir"),
+])
+def test_logo_makers_validation(tmp_path, logo_cfg, message):
+    with pytest.raises(ValueError, match=message):
+        _logo_processor(tmp_path, logo_cfg)
+
+
+# ----------------------------------------------------------------------
+# focal_length.equivalent_35mm（スマホは35mm換算で表示）
+# ----------------------------------------------------------------------
+def _equiv_processor(tmp_path, makers):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"equivalent_35mm": makers}
+    path = tmp_path / "eq.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    return ImageProcessor(path)
+
+
+def test_use_35mm_focal_length(tmp_path):
+    p = _equiv_processor(tmp_path, ["google"])
+    assert p._use_35mm_focal_length("Google")
+    assert not p._use_35mm_focal_length("NIKON CORPORATION")
+    assert not p._use_35mm_focal_length("")
+    assert not _equiv_processor(tmp_path, [])._use_35mm_focal_length("Google")
+
+
+def test_render_focal_length_35mm_text(tmp_path, monkeypatch):
+    """equivalent_35mm のメーカーは {focal_length} が換算値になり、それ以外は実焦点距離のまま。"""
+    from modules.exif_utils import PhotoMetadata
+
+    processor = _equiv_processor(tmp_path, ["google"])
+
+    src = tmp_path / "a.jpg"
+    Image.new("RGB", (600, 400), "gray").save(src)
+    texts = []
+    real_text = ImageDraw.ImageDraw.text
+
+    def spy(self, xy, text, *args, **kwargs):
+        texts.append(text)
+        return real_text(self, xy, text, *args, **kwargs)
+
+    monkeypatch.setattr(ImageDraw.ImageDraw, "text", spy)
+    base = dict(camera="C", lens="L", focal_length="4.53", iso="28", f_number="1.7", shutter="1/280",
+                exposure_bias="0.0", exposure_mode="P", picture_control="-", white_balance="Auto",
+                color_temperature="", focal_length_35mm="24")
+    processor.render(src, PhotoMetadata(**base, make="Google"))
+    assert any(t.startswith("24mm") for t in texts)
+    texts.clear()
+    processor.render(src, PhotoMetadata(**base, make="NIKON CORPORATION"))
+    assert any(t.startswith("4.53mm") for t in texts)
+
+
+def test_focal_length_validation(tmp_path):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"equivalent_35mm": "google"}
+    path = tmp_path / "f.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(ValueError, match="focal_length.equivalent_35mm"):
+        ImageProcessor(path)
+
+
+# ----------------------------------------------------------------------
+# {focal_length_text}（DX は換算を付ける、FX は付けない）
+# ----------------------------------------------------------------------
+def _focal_meta(focal, equiv, make):
+    from modules.exif_utils import PhotoMetadata
+
+    return PhotoMetadata(camera="C", lens="L", focal_length=focal, iso="100", f_number="1.7", shutter="1/500",
+                         exposure_bias="0.0", exposure_mode="A", picture_control="-", white_balance="Auto",
+                         color_temperature="", focal_length_35mm=equiv, make=make)
+
+
+@pytest.mark.parametrize("focal, equiv, make, text", [
+    ("35", "52.5", "NIKON CORPORATION", "35mm (52.5mm)"),   # DX
+    ("35", "35", "NIKON CORPORATION", "35mm"),              # FX
+    ("50", "", "NIKON CORPORATION", "50mm"),                # 換算値なし
+    ("4.53", "24", "Google", "4.53mm (24mm)"),               # Pixel も DX と同じく換算を付ける
+])
+def test_focal_length_text_crop(processor, focal, equiv, make, text):
+    assert processor._focal_length_text(_focal_meta(focal, equiv, make)) == text
+
+
+def test_focal_length_text_equivalent_only(tmp_path):
+    """equivalent_35mm に書いたメーカーは換算値だけ。"""
+    p = _equiv_processor(tmp_path, ["google"])
+    assert p._focal_length_text(_focal_meta("4.53", "24", "Google")) == "24mm"
+
+
+@pytest.mark.parametrize("mode, focal, equiv, text", [
+    ("always", "35", "35", "35mm (35mm)"),
+    ("never", "35", "52.5", "35mm"),
+])
+def test_focal_length_text_modes(tmp_path, mode, focal, equiv, text):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"show_equivalent": mode}
+    path = tmp_path / "f.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    p = ImageProcessor(path)
+    assert p._focal_length_text(_focal_meta(focal, equiv, "NIKON CORPORATION")) == text
+
+
+def test_focal_length_text_format(tmp_path):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"equivalent_format": "{focal_length}mm ( {focal_length_35mm}mm )"}
+    path = tmp_path / "f.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    assert ImageProcessor(path)._focal_length_text(_focal_meta("35", "52.2", "NIKON")) == "35mm ( 52.2mm )"
+
+
+def test_focal_length_show_equivalent_validation(tmp_path):
+    import yaml
+
+    data = yaml.safe_load(STANDARD.read_text(encoding="utf-8"))
+    data["focal_length"] = {"show_equivalent": "dx"}
+    path = tmp_path / "f.yaml"
+    path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
+    with pytest.raises(ValueError, match="focal_length.show_equivalent"):
+        ImageProcessor(path)

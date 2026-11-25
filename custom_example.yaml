@@ -24,6 +24,18 @@ colors:
   sub: "#777777"
   accent: "#B08D57"
 
+# 焦点距離
+focal_length:
+  # 文字の行の {focal_length_text} は「35mm」「35mm (52.5mm)」のような単位付きの焦点距離になる
+  # 実焦点距離のあとに35mm換算を ( ) で付けるか:
+  #   crop  : 35mmより小さいセンサー（Nikon DX など）のときだけ付ける。FX は付けない（換算値 ÷ 実焦点距離で自動判定）
+  #   always: 換算値があれば常に付ける / never: 付けない
+  show_equivalent: "crop"
+  equivalent_format: "{focal_length}mm ({focal_length_35mm}mm)"
+  # このメーカー名を含む写真は、換算値だけを表示する（例: ["google"] にすると Pixel は「24mm」だけ）
+  # 空なら、スマホも Nikon DX と同じく「4.53mm (24mm)」になる
+  equivalent_35mm: []
+
 # 文字・ロゴ・余白の大きさの基準
 scaling:
   # long_side: 写真の長辺に対する比率（従来）
@@ -66,7 +78,9 @@ layout:
 
   # 行の定義（何行でも可）。lines を書いた場合は top / bottom は使われない
   #   text    : テンプレート（{camera} {lens} {focal_length} {f_number} {shutter} {iso}
-  #             {exposure_bias} {exposure_mode} {picture_control} {white_balance} {color_temperature}）
+  #             {exposure_bias} {exposure_mode} {picture_control} {white_balance} {color_temperature}
+  #             {style}（仕上げの設定。Nikon はピクチャーコントロール、それ以外は「撮影シーン (撮影処理)」例: Standard (HDR+)）
+  #             {scene} {processing} {make} {focal_length_35mm} {focal_length_text}）
   #   font    : fonts のキー名、フォントのパス、またはパスのリスト
   #   size    : 比率（size_type: ratio のとき）または "40px"
   #   color   : colors のキー名、または "#RRGGBB"
@@ -82,7 +96,7 @@ layout:
       size: 0.014
       color: "accent"
       spacing: 0.030
-    - text: "{focal_length}mm   f/{f_number}   {shutter}s   ISO {iso}"
+    - text: "{focal_length_text}   f/{f_number}   {shutter}s   ISO {iso}"
       font: "regular"
       size: 0.012
       color: "sub"
@@ -91,7 +105,19 @@ layout:
 # ロゴ
 logo:
   enabled: true
-  path: "nikon_logo.png"        # このYAMLのフォルダ → main.py のフォルダの順に探す（ロゴ画像は同梱していない。無ければロゴなし）
+  # メーカーごとに自動で切り替える。ロゴは dir のフォルダに置く（このYAMLのフォルダ → main.py のフォルダの順に探す）
+  # makers の「キー」が EXIF のメーカー名（Make）に含まれていれば、そのファイルを使う
+  # makers に無いメーカーは「メーカー名の最初の単語.png」を自動で探す（"FUJIFILM" → fujifilm.png）
+  dir: "logos"
+  makers:
+    nikon: "nikon.png"            # NIKON CORPORATION
+    google: "google.png"          # Google（Pixel）
+    # ロゴごとに大きさや位置を変えたいときは、file と一緒に書く（その項目だけ下の設定より優先）
+    # google:
+    #   file: "google.png"
+    #   height_font_ratio: 1.8
+  # fallback: "default.png"       # どのメーカーにも当たらないときのロゴ（省略するとロゴなし）
+  # path: "nikon_logo.png"        # dir を書かない場合は、この1枚を全写真に使う（従来の方式）
   # 大きさ: height（比率 or "px"）を書くとそれを優先。なければ「1行目の文字サイズ × height_font_ratio」
   height_font_ratio: 2.3
   # height: 0.04

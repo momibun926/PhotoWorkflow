@@ -10,6 +10,7 @@
 
 import logging
 import os
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
@@ -38,6 +39,12 @@ class PhotoMetadata:
     picture_control: str     # ピクチャーコントロール名（Nikon独自のメーカーノート）
     white_balance: str       # ホワイトバランス設定
     color_temperature: str   # 色温度（例: "(5500K)"）
+    scene: str = ""          # 撮影シーン（EXIF の SceneCaptureType。例: "Standard"、"Night"）。無ければ ""
+    processing: str = ""     # 撮影処理（EXIF の Software から取り出したもの。例: "HDR+"）。無ければ ""
+    style: str = "-"         # 仕上げの設定（メーカー共通）。Nikon はピクチャーコントロール、
+                             # それが無い機種は「撮影シーン (撮影処理)」（例: "Standard (HDR+)"）
+    focal_length_35mm: str = ""  # 35mm換算の焦点距離（例: "24"、"52.5"）。無ければ ""
+    make: str = ""           # メーカー名（EXIF の Make そのまま。例: "NIKON CORPORATION", "Google"）。ロゴの切り替えに使う
 
 
 class ExifConverter:
@@ -103,6 +110,56 @@ class ExifConverter:
         except (ValueError, TypeError) as e:
             logger.warning("露出モード変換失敗: %s, 元値: %s", e, code)
             return f"({code})"
+
+    @staticmethod
+    def to_focal_length_35mm(value: Any) -> str:
+        """35mm換算の焦点距離を数値の文字列に（24 → "24"、52.24 → "52.2"、"24 mm" → "24"）。無い・0 なら ""。"""
+        text = str(value or "").replace("mm", "").strip()
+        try:
+            num = round(float(text), 1)
+        except ValueError:
+            return ""
+        if num <= 0:
+            return ""
+        return str(int(num)) if num.is_integer() else f"{num:.1f}"
+
+    @staticmethod
+    def to_white_balance(code: Any) -> str:
+        """標準 EXIF の WhiteBalance（0=Auto, 1=Manual）を文字列に。値が無ければ "-"。"""
+        if code is None or code == "":
+            return "-"
+        try:
+            return constants.WHITE_BALANCE_MAP.get(int(code), str(code))
+        except (ValueError, TypeError):
+            return str(code).strip() or "-"
+
+    @staticmethod
+    def to_scene(code: Any) -> str:
+        """SceneCaptureType（0=Standard, 1=Landscape, 2=Portrait, 3=Night）を文字列に。値が無ければ ""。"""
+        if code is None or code == "":
+            return ""
+        try:
+            return constants.SCENE_CAPTURE_TYPE_MAP.get(int(code), f"({code})")
+        except (ValueError, TypeError):
+            return str(code).strip()
+
+    @staticmethod
+    def to_processing(software: Any) -> str:
+        """Software から撮影処理の名前を取り出す（"HDR+ 1.0.9368..." → "HDR+"）。知らない値なら ""。"""
+        text = str(software or "").strip()
+        for pattern, label in constants.PROCESSING_PATTERNS:
+            if re.search(pattern, text):
+                return label
+        return ""
+
+    @staticmethod
+    def to_style(picture_control: str, scene: str, processing: str) -> str:
+        """メーカー共通の「仕上げの設定」。ピクチャーコントロールを優先し、無ければ 撮影シーン (撮影処理)。"""
+        if picture_control and picture_control != "-":
+            return picture_control
+        if scene and processing:
+            return f"{scene} ({processing})"
+        return scene or processing or "-"
 
     @staticmethod
     def format_camera_name(name: Optional[str], rules: Optional[Dict[str, Any]] = None) -> str:
@@ -227,15 +284,12 @@ class ExifReader:
         bias_val = float(result.get("EXIF:ExposureCompensation", 0))
         bias_str = f"{bias_val:+.1f}" if bias_val != 0 else "0.0"
 
-        # ホワイトバランスはメーカーノート（機種固有タグ）優先、なければ標準EXIFタグ、
-        # どちらもなければ "-" とする
-        wb_val = (
-            result.get("MakerNotes:WhiteBalance")
-            or result.get("EXIF:WhiteBalance")
-            or "-"
-        )
-        if isinstance(wb_val, str):
-            wb_val = wb_val.strip()
+        # ホワイトバランスはメーカーノート（Nikon の "NATURAL AUTO" など）優先、なければ標準EXIFタグ
+        # （0=Auto / 1=Manual。以前は 0 を「値なし」と扱い、Pixel などで "-" になっていた）
+        maker_wb = result.get("MakerNotes:WhiteBalance")
+        if isinstance(maker_wb, str):
+            maker_wb = maker_wb.strip()
+        wb_val = maker_wb if maker_wb not in (None, "") else ExifConverter.to_white_balance(result.get("EXIF:WhiteBalance"))
 
         # 色温度も複数の候補タグを優先順位付きで探す（機種・撮影モードにより存在するタグが異なるため）
         ct_raw = (
@@ -252,16 +306,28 @@ class ExifReader:
         else:
             ct_str = ""
 
+        picture_control = str(result.get("MakerNotes:PictureControlName") or "-").strip() or "-"
+        scene = ExifConverter.to_scene(result.get("EXIF:SceneCaptureType"))
+        processing = ExifConverter.to_processing(result.get("EXIF:Software") or result.get("IFD0:Software"))
+
         return PhotoMetadata(
             camera=ExifConverter.format_camera_name(result.get("EXIF:Model"), camera_rules),
             lens=ExifConverter.format_camera_name(result.get("EXIF:LensModel"), camera_rules),
             focal_length=str(result.get("EXIF:FocalLength", "-")).replace(" mm", ""),
+            # 換算値は exiftool が計算した Composite:FocalLength35efl（小数まで）を優先し、無ければカメラが記録した整数値
+            focal_length_35mm=ExifConverter.to_focal_length_35mm(
+                result.get("Composite:FocalLength35efl") or result.get("EXIF:FocalLengthIn35mmFormat")
+            ),
             iso=str(result.get("EXIF:ISO", "-")),
             f_number=str(result.get("EXIF:FNumber", "-")),
             shutter=ExifConverter.to_shutter_speed(result.get("EXIF:ExposureTime")),
             exposure_bias=bias_str,
             exposure_mode=ExifConverter.to_exposure_mode(result.get("EXIF:ExposureProgram")),
-            picture_control=result.get("MakerNotes:PictureControlName", "-"),
+            picture_control=picture_control,
             white_balance=str(wb_val),
             color_temperature=ct_str,
+            scene=scene,
+            processing=processing,
+            style=ExifConverter.to_style(picture_control, scene, processing),
+            make=str(result.get("EXIF:Make") or result.get("IFD0:Make") or "").strip(),
         )
