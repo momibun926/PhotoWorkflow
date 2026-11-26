@@ -10,8 +10,17 @@
   - 1枚ごとに1行: 処理した写真を1行ずつ表示する（config.json の display.per_file を true）。
 画面ではなくファイルなどに出力しているとき（タスクスケジューラ等）は、上書きができないため
 自動で「1枚ごとに1行」にする。
+
+文字の色（config.json の display.color）:
+  - auto（既定）: 画面（対話端末）に表示しているときだけ色を付ける。ファイルなどに出力しているとき、
+    環境変数 NO_COLOR があるとき、TERM=dumb のときは付けない
+  - always: いつも付ける / never: 付けない
+色は ANSI のエスケープコードで付ける（追加のパッケージは不要）。Windows では Windows 10 以降の
+コンソールの色表示（仮想ターミナル処理）を最初に色を使うときに有効にし、有効にできなければ色なしにする。
 """
 
+import os
+import re
 import shutil
 import sys
 import time
@@ -29,11 +38,103 @@ LABEL_WIDTH = 18
 
 _per_file = False
 
+#: display.color に書ける値
+COLOR_MODES = ("auto", "always", "never")
+_color_mode = "auto"
+#: 色を付けるかどうかの判定結果（最初に色を使うときに決める。configure で色の設定を変えると決め直す）
+_color_enabled: Optional[bool] = None
 
-def configure(per_file: bool = False) -> None:
-    """表示の形を決める。per_file=True なら1枚ごとに1行。"""
-    global _per_file
+# 役割ごとの色（ANSI の SGR コード）。黒背景・白背景のどちらでも読めるよう、標準の8色だけを使う
+_STYLES = {
+    "error": "31",        # 赤: エラー・失敗・中断
+    "warning": "33",      # 黄: 警告・要確認・無効な入力
+    "success": "32",      # 緑: 完了
+    "heading": "1;36",    # シアン（太字）: 見出し
+    "key": "1;36",        # シアン（太字）: メニューの番号
+    "muted": "90",        # 灰色: 区切り線・注記・実行できない項目
+    "bar": "36",          # シアン: 実行中の進み具合のバー
+}
+_RESET = "\033[0m"
+_ANSI_RE = re.compile(r"\033\[[0-9;]*m")
+
+
+def configure(per_file: bool = False, color: Optional[str] = None) -> None:
+    """表示の形を決める。per_file=True なら1枚ごとに1行。
+
+    color は "auto" / "always" / "never"（display.color）。None なら色の設定は変えない
+    （EXIF抽出を単独で実行したときなど、per_file だけを設定し直す呼び出しがあるため）。
+    知らない値は "auto" として扱う（設定の検証は config_manager で行う）。
+    """
+    global _per_file, _color_mode, _color_enabled
     _per_file = bool(per_file)
+    if color is not None:
+        mode = str(color).strip().lower()
+        _color_mode = mode if mode in COLOR_MODES else "auto"
+        _color_enabled = None
+
+
+def color_enabled() -> bool:
+    """文字に色を付けるか。"""
+    global _color_enabled
+    if _color_enabled is None:
+        _color_enabled = _decide_color()
+    return _color_enabled
+
+
+def _decide_color() -> bool:
+    if _color_mode == "never":
+        return False
+    if _color_mode == "auto":
+        if os.environ.get("NO_COLOR") or os.environ.get("TERM") == "dumb":
+            return False
+        try:
+            if not sys.stdout.isatty():
+                return False
+        except (AttributeError, ValueError):
+            return False
+    return _enable_windows_vt()
+
+
+def _enable_windows_vt() -> bool:
+    """Windows のコンソールで ANSI のエスケープコードを使えるようにする。Windows 以外は何もしない。
+
+    Windows Terminal はもともと使えるが、従来のコンソール（conhost）では
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING を立てる必要がある。立てられなければ False（色なし）。
+    """
+    if os.name != "nt":
+        return True
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        handle = kernel32.GetStdHandle(-11)  # STD_OUTPUT_HANDLE
+        mode = wintypes.DWORD()
+        if not kernel32.GetConsoleMode(handle, ctypes.byref(mode)):
+            # コンソールではない（always でファイルに出しているときなど）。色のコードはそのまま出す
+            return _color_mode == "always"
+        enable_vt = 0x0004  # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+        if mode.value & enable_vt:
+            return True
+        return bool(kernel32.SetConsoleMode(handle, mode.value | enable_vt))
+    except Exception:
+        return False
+
+
+def paint(text: str, style: str) -> str:
+    """text に役割（"error" / "warning" / "success" / "heading" / "key" / "muted" / "bar"）の色を付ける。
+
+    色を付けない設定・環境では text をそのまま返す。
+    """
+    code = _STYLES.get(style)
+    if not text or code is None or not color_enabled():
+        return text
+    return f"\033[{code}m{text}{_RESET}"
+
+
+def strip_color(text: str) -> str:
+    """色のコードを取り除く。"""
+    return _ANSI_RE.sub("", text)
 
 
 def per_file_mode() -> bool:
@@ -50,9 +151,9 @@ def per_file_mode() -> bool:
 # ------------------------------------------------------------------
 def step_start(title: str, blank_line_before: bool = True) -> float:
     """ステップの開始の見出し。終了の見出しでかかった時間を出すため、開始時刻を返す。"""
-    print(("\n" if blank_line_before else "") + RULE)
-    print(f" 【開始】{title}")
-    print(RULE)
+    print(("\n" if blank_line_before else "") + paint(RULE, "muted"))
+    print(paint(f" 【開始】{title}", "heading"))
+    print(paint(RULE, "muted"))
     return time.monotonic()
 
 
@@ -60,15 +161,15 @@ def step_end(title: str, started: Optional[float] = None, blank_line_before: boo
     """ステップの終了の見出し。started（step_start の戻り値）があれば、かかった時間を付ける。"""
     if blank_line_before:
         print("\n")
-    print(RULE)
+    print(paint(RULE, "muted"))
     suffix = f"（所要 {format_duration(time.monotonic() - started)}）" if started is not None else ""
-    print(f" 【終了】{title}{suffix}")
-    print(RULE)
+    print(paint(f" 【終了】{title}{suffix}", "heading"))
+    print(paint(RULE, "muted"))
 
 
 def summary_start() -> None:
     print("\n")
-    print(" 【処理のサマリー】")
+    print(paint(" 【処理のサマリー】", "heading"))
 
 
 def item(text: str) -> None:
@@ -87,7 +188,7 @@ def file_names(names: Iterable[str], limit: int = MAX_LIST) -> None:
     for name in names[:limit]:
         print(f"         - {name}")
     if len(names) > limit:
-        print(f"         ...ほか {len(names) - limit} 件（全件はログに記録）")
+        print(paint(f"         ...ほか {len(names) - limit} 件（全件はログに記録）", "muted"))
 
 
 def message(text: str) -> None:
@@ -96,11 +197,11 @@ def message(text: str) -> None:
 
 
 def error(text: str, blank_line_before: bool = False) -> None:
-    _print_line(("\n" if blank_line_before else "") + f" -> [エラー] {text}")
+    _print_line(("\n" if blank_line_before else "") + paint(f" -> [エラー] {text}", "error"))
 
 
 def warning(text: str) -> None:
-    _print_line(f" -> [警告] {text}")
+    _print_line(paint(f" -> [警告] {text}", "warning"))
 
 
 def format_duration(seconds: float) -> str:
@@ -119,7 +220,8 @@ def format_duration(seconds: float) -> str:
 # 写真1枚ごとの進み具合
 # ------------------------------------------------------------------
 def display_width(text: str) -> int:
-    """画面上の幅（全角文字は2として数える）。"""
+    """画面上の幅（全角文字は2として数える。色のコードは数えない）。"""
+    text = strip_color(text)
     return sum(2 if unicodedata.east_asian_width(ch) in ("W", "F") else 1 for ch in text)
 
 
@@ -176,10 +278,11 @@ class Progress:
         if problem:
             self.problems += 1
         if self.per_file:
-            print(self._per_file_line(name, status), flush=True)
+            line = self._per_file_line(name, status)
+            print(paint(line, "warning") if problem else line, flush=True)
             return
         if problem:
-            self.note(f"  [警告] {name}: {status}")
+            self.note(paint(f"  [警告] {name}: {status}", "warning"))
         self._draw()
 
     def note(self, text: str) -> None:
@@ -195,10 +298,12 @@ class Progress:
         done = f"{self.current}/{self.total}"
         # 問題（失敗・スキップなど）があった写真の数も書き、「全部うまくいった」と誤解されないようにする
         detail = f"{elapsed}、うち要確認 {self.problems} 件" if self.problems else elapsed
+        # 要確認の写真があれば黄、なければ緑
+        style = "warning" if self.problems else "success"
         if self.per_file:
-            print(f"  {self.label}: {done} 件 完了（{detail}）", flush=True)
+            print(paint(f"  {self.label}: {done} 件 完了（{detail}）", style), flush=True)
         else:
-            self._draw(final=f"完了（{detail}）")
+            self._draw(final=f"完了（{detail}）", final_style=style)
             print(flush=True)
             self._drawn = 0
         if Progress.active is self:
@@ -208,9 +313,9 @@ class Progress:
         """途中で止まったことを表示する（例外や Ctrl+C のとき）。"""
         elapsed = format_duration(time.monotonic() - self.started)
         if self.per_file:
-            print(f"  {self.label}: {self.current}/{self.total} 件で中断（{elapsed}）", flush=True)
+            print(paint(f"  {self.label}: {self.current}/{self.total} 件で中断（{elapsed}）", "error"), flush=True)
         else:
-            self._draw(final=f"中断（{elapsed}）")
+            self._draw(final=f"中断（{elapsed}）", final_style="error")
             print(flush=True)
             self._drawn = 0
         if Progress.active is self:
@@ -251,11 +356,12 @@ class Progress:
             return ""
         return f"残り 約{format_duration(elapsed / self.current * (self.total - self.current))}"
 
-    def _draw(self, final: str = "") -> None:
+    def _draw(self, final: str = "", final_style: str = "success") -> None:
         filled = int(BAR_WIDTH * self._percent() / 100)
         bar = "#" * filled + "-" * (BAR_WIDTH - filled)
         width = len(str(self.total))
-        parts = [f"  {_pad(self.label, LABEL_WIDTH)}  [{bar}] {self._percent():3d}%  {self.current:>{width}}/{self.total}"]
+        head = f"  {_pad(self.label, LABEL_WIDTH)}  "
+        parts = [f"{head}[{bar}] {self._percent():3d}%  {self.current:>{width}}/{self.total}"]
         if final:
             parts.append(final)
         else:
@@ -263,9 +369,23 @@ class Progress:
             if remaining:
                 parts.append(remaining)
             parts.append(self._last_name)
+        # 幅は色を付ける前の文字で合わせ、はみ出す分を切ってから色を付ける
         line = _fit("  ".join(parts), _terminal_width() - 1)
-        print("\r" + _pad(line, self._drawn), end="", flush=True)
+        shown = _pad(line, self._drawn)
+        if color_enabled():
+            shown = self._colorize(shown, head, bar, final, final_style)
+        print("\r" + shown, end="", flush=True)
         self._drawn = max(display_width(line), self._drawn)
+
+    @staticmethod
+    def _colorize(line: str, head: str, bar: str, final: str, final_style: str) -> str:
+        """進み具合の行に色を付ける。バーは実行中はシアン、終わったら完了・中断の色。"""
+        bar_text = f"[{bar}]"
+        if line.startswith(head + bar_text):
+            line = head + paint(bar_text, final_style if final else "bar") + line[len(head + bar_text):]
+        if final and final in line:
+            line = line.replace(final, paint(final, final_style), 1)
+        return line
 
 
 def _terminal_width() -> int:

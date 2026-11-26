@@ -40,7 +40,9 @@
   },
   "display": {
     "_comment_per_file": "処理中の表示。false なら1行を上書き（進み具合のバーと今のファイル名）、true なら写真1枚ごとに1行",
-    "per_file": false
+    "per_file": false,
+    "_comment_color": "文字の色。auto なら画面に表示しているときだけ色を付ける（ファイルに出力しているときや環境変数 NO_COLOR があるときは付けない）、always ならいつも、never なら付けない",
+    "color": "auto"
   },
   "steps": {
     "_comment": "false にしたステップは、メニューからも全ステップ実行でも実行しない",

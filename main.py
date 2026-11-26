@@ -34,6 +34,7 @@ from modules.photo_copier import categorize_files, copy_and_organize_photos
 from modules.frame_processor import run_frame_processing
 from modules.exif_exporter import export_exif
 from modules import __version__, console
+from modules.console import paint
 from modules.logging_config import ON_SCREEN, setup_logging, DEFAULT_LOG_FILE
 
 logger = logging.getLogger(__name__)
@@ -216,36 +217,37 @@ def prompt_next_action(next_step_name: str) -> str:
     Returns:
         'Y' (次へ進む)、'S' (スキップ)、'A' (中断)のいずれか
     """
-    print("\n\n--------------------------------------------------")
+    print("\n\n" + paint("-" * 50, "muted"))
     while True:
         try:
             choice = (
                 input(
-                    f"次のステップ [{next_step_name}] に進みますか？\n"
-                    "  [Y] 次へ進む / [S] 次をスキップ / [A] 処理を中断 (Y/S/A): "
+                    f"次のステップ [{paint(next_step_name, 'heading')}] に進みますか？\n"
+                    f"  {paint('[Y]', 'key')} 次へ進む / {paint('[S]', 'key')} 次をスキップ / "
+                    f"{paint('[A]', 'key')} 処理を中断 (Y/S/A): "
                 )
                 .strip()
                 .upper()
             )
             if choice in ["Y", "S", "A"]:
-                print("--------------------------------------------------\n\n")
+                print(paint("-" * 50, "muted") + "\n\n")
                 logger.info("ユーザー選択: %s", choice)
                 return choice
-            print(" [!] 無効な入力です。'Y'、'S'、'A' のいずれかを入力してください。")
+            print(paint(" [!] 無効な入力です。'Y'、'S'、'A' のいずれかを入力してください。", "warning"))
         except KeyboardInterrupt:
             logger.warning("ユーザーが Ctrl+C で中断", extra=ON_SCREEN)
-            print("\n[!] 処理が中断されました")
+            print("\n" + paint("[!] 処理が中断されました", "warning"))
             return "A"
         except EOFError:
             # 標準入力が閉じている（対話端末でない）場合は入力を待てないため中断する。
             # ※以前は下の汎用 except で捕まえてループし続け、プログラムが終わらなくなっていた
             logger.warning("標準入力から確認の応答を読めないため中断（無人実行では --yes を指定）", extra=ON_SCREEN)
-            print("\n[!] 確認の入力を受け取れないため中断します（無人で実行する場合は --yes を付けてください）")
+            print("\n" + paint("[!] 確認の入力を受け取れないため中断します（無人で実行する場合は --yes を付けてください）", "warning"))
             return "A"
         except Exception as e:
             # それ以外の予期しない入力エラーはログに残して聞き直す
             logger.error("入力エラー: %s", e, extra=ON_SCREEN)
-            print(f" [!] 入力エラーが発生しました: {e}")
+            print(paint(f" [!] 入力エラーが発生しました: {e}", "warning"))
 
 
 # ==================================================
@@ -260,7 +262,7 @@ def run_manual_gps_tagger() -> None:
     if not script_path.exists():
         # スクリプトが見つからない場合は警告のみでワークフローは継続する（致命的エラーにしない）
         msg = f"手動GPS付与プログラムが見つかりません: {script_path}"
-        print(f"[警告] {msg}\n")
+        print(paint(f"[警告] {msg}", "warning") + "\n")
         logger.warning(msg, extra=ON_SCREEN)
         return
 
@@ -272,6 +274,9 @@ def run_manual_gps_tagger() -> None:
         # main.py のフォルダを import の検索先に加える（config.json の探し方を変えないため）
         env = dict(os.environ)
         env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(app_dir), env.get("PYTHONPATH")]))
+        if not console.color_enabled():
+            # 色を付けない設定（display.color: never など）を、別プロセスの手動GPSツールの画面表示にも伝える
+            env["NO_COLOR"] = "1"
         result = subprocess.run(
             [sys.executable, "-m", "modules.manual_gps_tagger"],
             check=False,
@@ -279,19 +284,19 @@ def run_manual_gps_tagger() -> None:
             env=env,
         )
         if result.returncode == 0:
-            print("手動GPS付与ツールが正常に終了しました。")
+            print(paint("手動GPS付与ツールが正常に終了しました。", "success"))
             logger.info("手動GPS付与ツール終了: 正常")
         else:
             # 0以外の終了コードは異常終了として警告扱い（ワークフロー自体は継続）
             logger.warning("手動GPS付与ツール終了: 終了コード %d", result.returncode, extra=ON_SCREEN)
-            print(f"[警告] 手動GPS付与ツールが異常終了しました (終了コード: {result.returncode})")
+            print(paint(f"[警告] 手動GPS付与ツールが異常終了しました (終了コード: {result.returncode})", "warning"))
     except subprocess.TimeoutExpired:
         msg = "手動GPS付与ツールの実行がタイムアウトしました (1時間)"
-        print(f"\n[エラー] {msg}")
+        print("\n" + paint(f"[エラー] {msg}", "error"))
         logger.error(msg, extra=ON_SCREEN)
     except Exception as e:
         msg = f"手動GPS付与ツールの実行中にエラーが発生しました: {e}"
-        print(f"\n[エラー] {msg}")
+        print("\n" + paint(f"[エラー] {msg}", "error"))
         logger.error(msg, exc_info=True, extra=ON_SCREEN)
 
 
@@ -334,13 +339,13 @@ def refresh_files(ctx: WorkflowContext) -> None:
 def run_single_step(ctx: WorkflowContext, step: WorkflowStep, args: argparse.Namespace) -> bool:
     """1つのステップだけを実行する（メニュー・--step 用）。確認プロンプトは出さない。"""
     if not ctx.config.get_enabled_steps().get(step.key, True):
-        print(f"\n[{step.label}] は config.json の steps 設定で無効になっているため実行できません。")
+        print("\n" + paint(f"[{step.label}] は config.json の steps 設定で無効になっているため実行できません。", "warning"))
         logger.info("%s: config設定により無効", step.key)
         return False
 
     if step.requires_source and not ctx.from_camera_dir.exists():
         msg = f"取り込み元フォルダが存在しないため実行できません: {ctx.from_camera_dir}"
-        print(f"\n[エラー] {msg}")
+        print("\n" + paint(f"[エラー] {msg}", "error"))
         logger.error("%s: %s", step.key, msg, extra=ON_SCREEN)
         return False
 
@@ -353,7 +358,7 @@ def run_single_step(ctx: WorkflowContext, step: WorkflowStep, args: argparse.Nam
         return execute_step(ctx, step, mode="単独実行")
     except KeyboardInterrupt:
         # ステップ実行中の Ctrl+C はそのステップだけを中断し、メニューに戻れるようにする
-        print(f"\n[!] {step.label} を Ctrl+C で中断しました")
+        print("\n" + paint(f"[!] {step.label} を Ctrl+C で中断しました", "warning"))
         logger.warning("%s: ユーザーが Ctrl+C で中断", step.key, extra=ON_SCREEN)
         return False
 
@@ -375,12 +380,12 @@ def execute_step(ctx: WorkflowContext, step: WorkflowStep, mode: str) -> bool:
     try:
         ok = bool(step.action(ctx))
     except Exception as e:
-        print(f"\n[エラー] {step.label} の実行中にエラーが発生しました: {e}")
+        print("\n" + paint(f"[エラー] {step.label} の実行中にエラーが発生しました: {e}", "error"))
         logger.error("%s: 予期しないエラー", step.key, exc_info=True, extra=ON_SCREEN)
         ok = False
 
     status = "完了" if ok else "失敗"
-    print(f"\n>>> {step.label}: {status}")
+    print("\n" + paint(f">>> {step.label}: {status}", "success" if ok else "error"))
     logger.info("%s %s（%s）", step.key, status, mode)
     return ok
 
@@ -388,25 +393,29 @@ def execute_step(ctx: WorkflowContext, step: WorkflowStep, mode: str) -> bool:
 def print_menu(ctx: WorkflowContext, steps: List[WorkflowStep]) -> None:
     """メニューを表示する。"""
     enabled = ctx.config.get_enabled_steps()
-    print("\n==================================================")
-    print("      写真整理ワークフロー  メニュー")
-    print("==================================================")
+    print("\n" + paint("=" * 50, "muted"))
+    print(paint("      写真整理ワークフロー  メニュー", "heading"))
+    print(paint("=" * 50, "muted"))
     if ctx.from_camera_dir.exists():
         print(f"  取り込み元: {ctx.from_camera_dir}")
         print(f"    JPEG {len(ctx.jpeg_files)} 件 / RAW {len(ctx.nef_files)} 件 / GPX {len(ctx.gpx_files)} 件")
     else:
-        print(f"  取り込み元: {ctx.from_camera_dir}（フォルダがありません）")
-    print("--------------------------------------------------")
+        print(f"  取り込み元: {ctx.from_camera_dir}" + paint("（フォルダがありません）", "warning"))
+    print(paint("-" * 50, "muted"))
     for i, step in enumerate(steps, 1):
         note = ""
         if not enabled.get(step.key, True):
             note = "  ※config で無効"
         elif step.requires_source and not ctx.from_camera_dir.exists():
             note = "  ※取り込み元がないため実行不可"
-        print(f"  [{i}] {step.label}{note}")
-    print("  [A] 全ステップを順に実行（各ステップの前に確認あり）")
-    print("  [Q] 終了")
-    print("--------------------------------------------------")
+        if note:
+            # 実行できないステップは番号ごと灰色にして、選べないことが分かるようにする
+            print(paint(f"  [{i}] {step.label}{note}", "muted"))
+        else:
+            print(f"  {paint(f'[{i}]', 'key')} {step.label}")
+    print(f"  {paint('[A]', 'key')} 全ステップを順に実行" + paint("（各ステップの前に確認あり）", "muted"))
+    print(f"  {paint('[Q]', 'key')} 終了")
+    print(paint("-" * 50, "muted"))
 
 
 def run_menu(ctx: WorkflowContext, args: argparse.Namespace) -> None:
@@ -428,13 +437,13 @@ def run_menu(ctx: WorkflowContext, args: argparse.Namespace) -> None:
                 run_workflow(ctx, args)
             except KeyboardInterrupt:
                 # 全ステップ実行中の Ctrl+C は実行を打ち切ってメニューに戻る
-                print("\n[!] 全ステップの実行を Ctrl+C で中断しました")
+                print("\n" + paint("[!] 全ステップの実行を Ctrl+C で中断しました", "warning"))
                 logger.warning("全ステップ実行: ユーザーが Ctrl+C で中断", extra=ON_SCREEN)
             continue
         if choice.isdigit() and 1 <= int(choice) <= len(steps):
             run_single_step(ctx, steps[int(choice) - 1], args)
             continue
-        print(f" [!] 無効な入力です: '{choice}'。1〜{len(steps)}、A、Q のいずれかを入力してください。")
+        print(paint(f" [!] 無効な入力です: '{choice}'。1〜{len(steps)}、A、Q のいずれかを入力してください。", "warning"))
 
 
 def run_workflow(ctx: WorkflowContext, args: argparse.Namespace) -> None:
@@ -447,29 +456,29 @@ def run_workflow(ctx: WorkflowContext, args: argparse.Namespace) -> None:
     if not ctx.from_camera_dir.exists():
         # 取り込み元がなければ先頭のステップから前提が崩れるため、全体実行はしない
         msg = f"取り込み元フォルダが存在しません: {ctx.from_camera_dir}"
-        print(f"\n[エラー] {msg}")
+        print("\n" + paint(f"[エラー] {msg}", "error"))
         logger.error(msg, extra=ON_SCREEN)
         return
 
     for step in build_steps():
         if not enabled_steps.get(step.key, True):
-            print(f"\n[{step.label}] は config.json の設定によりスキップされました。")
+            print("\n" + paint(f"[{step.label}] は config.json の設定によりスキップされました。", "muted"))
             logger.info("%s: config設定によりスキップ", step.key)
             continue
 
         if step.key in skip_from_cli:
-            print(f"\n[{step.label}] は --skip 指定によりスキップされました。")
+            print("\n" + paint(f"[{step.label}] は --skip 指定によりスキップされました。", "muted"))
             logger.info("%s: --skip指定によりスキップ", step.key)
             continue
 
         if step.requires_confirmation and not args.yes:
             choice = prompt_next_action(step.label)
             if choice == "A":
-                print("\nユーザーにより処理が中止されました。")
+                print("\n" + paint("ユーザーにより処理が中止されました。", "warning"))
                 logger.info("ユーザーが %s で中止", step.key)
                 return
             if choice == "S":
-                print(f"\n[{step.label}] をスキップしました。")
+                print("\n" + paint(f"[{step.label}] をスキップしました。", "muted"))
                 logger.info("%s をスキップ", step.key)
                 continue
 
@@ -484,21 +493,21 @@ def run_workflow(ctx: WorkflowContext, args: argparse.Namespace) -> None:
         if not ok and step.abort_on_failure:
             # abort_on_failure=True のステップが失敗した場合はワークフロー全体を中断する
             # （例: GPS位置情報の書き込みが失敗した場合、後続ステップの前提が崩れるため）
-            print(f"\n{step.label} で重大なエラーが発生したため中止します。")
+            print("\n" + paint(f"{step.label} で重大なエラーが発生したため中止します。", "error"))
             logger.error("%s エラーで中止", step.key, extra=ON_SCREEN)
             return
 
-    print("\n==================================================")
+    print("\n" + paint("=" * 50, "muted"))
     if failed_steps:
         # 一部のステップが失敗しても最後まで進んだ場合は、「正常に完了」とは表示しない
-        print(" すべてのワークフロー工程が終了しました（失敗したステップがあります）")
+        print(paint(" すべてのワークフロー工程が終了しました（失敗したステップがあります）", "warning"))
         for label in failed_steps:
-            print(f"   - {label}")
-        print("==================================================")
+            print(paint(f"   - {label}", "error"))
+        print(paint("=" * 50, "muted"))
         logger.warning("ワークフロー終了: 失敗したステップ %s", ", ".join(failed_steps), extra=ON_SCREEN)
     else:
-        print(" すべてのワークフロー工程が終了しました！")
-        print("==================================================")
+        print(paint(" すべてのワークフロー工程が終了しました！", "success"))
+        print(paint("=" * 50, "muted"))
         logger.info("すべてのワークフロー工程が正常に完了しました")
 
 
@@ -513,6 +522,13 @@ def use_menu(args: argparse.Namespace) -> bool:
     return sys.stdin.isatty()
 
 
+def print_banner() -> None:
+    """起動時の見出し（プログラム名とバージョン）。"""
+    print(paint("=" * 50, "muted"))
+    print(paint(f"      写真整理ワークフロープログラム  v{__version__}", "heading"))
+    print(paint("=" * 50, "muted"))
+
+
 def main(args: argparse.Namespace) -> None:
     """メイン実行エントリーポイント。"""
     if args.list_steps:
@@ -522,22 +538,24 @@ def main(args: argparse.Namespace) -> None:
             print(f"  - {step.key:<12} {step.label} ({confirm})")
         return
 
-    print("==================================================")
-    print(f"      写真整理ワークフロープログラム  v{__version__}")
-    print("==================================================")
-
     try:
         # --config 指定があればそのファイルだけを使う（存在しなければエラー）。
         # 指定がなければ main.py のあるフォルダ → カレントディレクトリの順に config.json を探す
         try:
             config = ConfigManager(args.config)
         except (FileNotFoundError, ValueError) as e:
-            print(f"\n[エラー] {e}")
+            print_banner()  # 設定を読めないので、色は既定（auto）のまま
+            print("\n" + paint(f"[エラー] {e}", "error"))
             logger.error("設定読み込みエラー: %s", e, extra=ON_SCREEN)
             return
 
-        # 処理中の表示の形（1行を上書き / 1枚ごとに1行）
-        console.configure(per_file=config.get("display.per_file", False))
+        # 処理中の表示の形（1行を上書き / 1枚ごとに1行）と文字の色（auto / always / never）。
+        # 見出しにも display.color を反映させるため、設定を読んでから見出しを表示する
+        console.configure(
+            per_file=config.get("display.per_file", False),
+            color=config.get("display.color", "auto"),
+        )
+        print_banner()
 
         try:
             from_camera_dir = config.get_directory("from_camera")
@@ -550,7 +568,7 @@ def main(args: argparse.Namespace) -> None:
             flame_yaml = config.resolve_path(flame_config)
             copy_target_dirs = [Path(t["path"]) for t in config.get_copy_targets()]
         except KeyError as e:
-            print(f"\n[エラー] 設定キーが不足しています: {e}")
+            print("\n" + paint(f"[エラー] 設定キーが不足しています: {e}", "error"))
             logger.error("設定キーエラー: %s", e, extra=ON_SCREEN)
             return
 
@@ -577,10 +595,10 @@ def main(args: argparse.Namespace) -> None:
             run_workflow(ctx, args)
 
     except KeyboardInterrupt:
-        print("\n\n[!] ユーザーが Ctrl+C で中断しました")
+        print("\n\n" + paint("[!] ユーザーが Ctrl+C で中断しました", "warning"))
         logger.warning("ユーザーが Ctrl+C で中止", extra=ON_SCREEN)
     except Exception as e:
-        print(f"\n[エラー] 重大なエラーが発生しました: {e}")
+        print("\n" + paint(f"[エラー] 重大なエラーが発生しました: {e}", "error"))
         logger.critical("予期せぬ重大なエラーが発生しました: %s", e, exc_info=True, extra=ON_SCREEN)
 
 
@@ -597,11 +615,11 @@ if __name__ == "__main__":
         logger.info("=" * 50)
         main(cli_args)
     except KeyboardInterrupt:
-        print("\n\n[!] プログラムが Ctrl+C で中断されました")
+        print("\n\n" + paint("[!] プログラムが Ctrl+C で中断されました", "warning"))
         logger.warning("プログラム Ctrl+C で中止されました", extra=ON_SCREEN)
         sys.exit(130)
     except Exception as e:
-        print(f"\n[エラー] 予期しないエラーが発生しました: {e}")
+        print("\n" + paint(f"[エラー] 予期しないエラーが発生しました: {e}", "error"))
         logger.critical("予期しないエラーが発生しました", exc_info=True, extra=ON_SCREEN)
         sys.exit(1)
     finally:

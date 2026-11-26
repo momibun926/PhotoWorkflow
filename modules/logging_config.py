@@ -45,15 +45,26 @@ class _ConsoleHandler(logging.StreamHandler):
 
 
 class _ConsoleFormatter(logging.Formatter):
-    """画面にはエラーの詳細（トレースバック）を出さない。詳細はログファイルに残る。"""
+    """画面にはエラーの詳細（トレースバック）を出さない。詳細はログファイルに残る。
+
+    画面では ERROR 以上を赤、WARNING を黄で表示する（色を付けない設定・環境ではそのまま）。
+    ログファイルは別の Formatter のため、色のコードは入らない。
+    """
 
     def format(self, record: logging.LogRecord) -> str:
+        from .console import paint  # console は logging_config に依存しないため、ここで読み込む
+
         saved = record.exc_info, record.exc_text, record.stack_info
         record.exc_info = record.exc_text = record.stack_info = None
         try:
-            return super().format(record)
+            text = super().format(record)
         finally:
             record.exc_info, record.exc_text, record.stack_info = saved
+        if record.levelno >= logging.ERROR:
+            return paint(text, "error")
+        if record.levelno >= logging.WARNING:
+            return paint(text, "warning")
+        return text
 
 
 class _SafeRotatingFileHandler(logging.handlers.RotatingFileHandler):
