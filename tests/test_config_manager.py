@@ -139,3 +139,14 @@ def test_yaml_validation_errors(tmp_path, patch, message):
     path.write_text(yaml.safe_dump(data, allow_unicode=True), encoding="utf-8")
     with pytest.raises(ValueError, match=message):
         YamlConfigManager(path)
+
+
+@pytest.mark.parametrize("value", ["auto", "always", "never", "Never"])
+def test_display_color_valid(make_config, value):
+    make_config(display={"color": value})
+
+
+@pytest.mark.parametrize("value", ["yes", True, 1])
+def test_display_color_invalid(make_config, value):
+    with pytest.raises(ValueError, match="display.color"):
+        make_config(display={"color": value})

@@ -16,6 +16,7 @@ from types import SimpleNamespace
 from typing import IO, Any, Dict, List, Optional, Set
 
 from . import constants
+from .console import COLOR_MODES
 
 logger = logging.getLogger(__name__)
 
@@ -185,6 +186,13 @@ class ConfigManager(_ConfigFile):
         tools = self.config.get("external_tools") or {}
         if "exiftool" not in tools:
             raise ValueError("external_tools に必須キー 'exiftool' がありません")
+
+        display = self.config.get("display") or {}
+        color = display.get("color", "auto") if isinstance(display, dict) else "auto"
+        if not isinstance(color, str) or color.strip().lower() not in COLOR_MODES:
+            raise ValueError(
+                f"display.color は {' / '.join(COLOR_MODES)} のどれかで指定してください（今の値: {color!r}）"
+            )
 
     def resolve_path(self, value: Any) -> Path:
         """設定値に書かれたパスを解決する。

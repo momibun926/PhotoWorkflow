@@ -166,3 +166,144 @@ def test_log_during_progress_clears_and_redraws(screen):
     lines = final_screen(screen.getvalue())
     assert lines[0] == "[WARNING] 途中の警告"
     assert "2/2  完了" in lines[1]
+
+
+# ------------------------------------------------------------------
+# 文字の色（display.color）
+# ------------------------------------------------------------------
+@pytest.fixture
+def color(monkeypatch):
+    """色の設定を切り替える。テストの後は既定（auto）に戻す。"""
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.delenv("TERM", raising=False)
+    monkeypatch.setattr(console, "_enable_windows_vt", lambda: True)
+
+    def _set(mode):
+        console.configure(per_file=console._per_file, color=mode)
+
+    yield _set
+    console.configure(per_file=False, color="auto")
+
+
+def test_color_auto_is_off_when_not_a_terminal(color):
+    color("auto")  # pytest は出力を横取りしていて対話端末ではない
+    assert console.paint("失敗", "error") == "失敗"
+
+
+def test_color_auto_on_terminal(color, monkeypatch):
+    monkeypatch.setattr(console.sys.stdout, "isatty", lambda: True, raising=False)
+    color("auto")
+    assert console.paint("失敗", "error") == "\033[31m失敗\033[0m"
+
+
+def test_color_auto_respects_no_color(color, monkeypatch):
+    monkeypatch.setattr(console.sys.stdout, "isatty", lambda: True, raising=False)
+    monkeypatch.setenv("NO_COLOR", "1")
+    color("auto")
+    assert console.paint("失敗", "error") == "失敗"
+
+
+def test_color_always_and_never(color):
+    color("always")
+    assert console.paint("完了", "success") == "\033[32m完了\033[0m"
+    color("never")
+    assert console.paint("完了", "success") == "完了"
+
+
+def test_color_off_when_windows_console_cannot_enable(color, monkeypatch):
+    monkeypatch.setattr(console, "_enable_windows_vt", lambda: False)
+    color("always")
+    assert console.paint("失敗", "error") == "失敗"
+
+
+def test_configure_without_color_keeps_color_setting(color):
+    color("always")
+    console.configure(per_file=True)  # EXIF抽出の単独実行などは per_file だけを設定し直す
+    assert console.color_enabled()
+
+
+def test_unknown_style_and_empty_text_are_left_as_is(color):
+    color("always")
+    assert console.paint("文字", "nothing") == "文字"
+    assert console.paint("", "error") == ""
+
+
+def test_display_width_ignores_color_codes(color):
+    color("always")
+    assert console.display_width(console.paint("完了", "success")) == 4
+    assert console.strip_color(console.paint("完了", "success")) == "完了"
+
+
+def test_messages_are_colored(screen, color):
+    color("always")
+    console.error("書き込めません")
+    console.warning("撮影日なし")
+    console.step_start("写真整理・コピー")
+    out = screen.getvalue()
+    assert "\033[31m -> [エラー] 書き込めません\033[0m" in out
+    assert "\033[33m -> [警告] 撮影日なし\033[0m" in out
+    assert "\033[1;36m 【開始】写真整理・コピー\033[0m" in out
+
+
+def test_progress_bar_colors_and_width(screen, color):
+    color("always")
+    p = console.Progress("JPEG をコピー", 2)
+    p.item("a.jpg")
+    # 色のコードの分だけ行の幅を多く数えない（上書きで消す幅が正しい）
+    drawn_line = console.strip_color(screen.getvalue().split("\r")[-1])
+    assert p._drawn == console.display_width(drawn_line.rstrip())
+    p.item("b.jpg", "失敗", problem=True)
+    p.finish()
+    out = screen.getvalue()
+    assert "\033[36m[##########----------]\033[0m" in out          # 実行中はシアン
+    assert "\033[33m  [警告] b.jpg: 失敗\033[0m" in out              # 問題のあった写真は黄
+    assert "\033[33m[####################]\033[0m" in out           # 要確認ありで終わったバーは黄
+    lines = [console.strip_color(line) for line in final_screen(out)]
+    assert lines[-1].startswith("  JPEG をコピー")
+    assert "2/2  完了（0秒、うち要確認 1 件）" in lines[-1]
+
+
+def test_progress_without_problems_finishes_green(screen, color):
+    color("always")
+    with console.Progress("JPEG をコピー", 1) as p:
+        p.item("a.jpg")
+    out = screen.getvalue()
+    assert "\033[32m[####################]\033[0m" in out
+    assert "\033[32m完了（0秒）\033[0m" in out
+
+
+def test_progress_abort_is_red(screen, color):
+    color("always")
+    with pytest.raises(RuntimeError):
+        with console.Progress("JPEG をコピー", 2) as p:
+            p.item("a.jpg")
+            raise RuntimeError
+    assert "\033[31m中断（0秒）\033[0m" in screen.getvalue()
+
+
+def test_per_file_problem_line_is_yellow(screen, color):
+    color("always")
+    console.configure(per_file=True)
+    with console.Progress("RAW をコピー", 1, names=["a.nef"]) as p:
+        p.item("a.nef", "unknown に保存（撮影日なし）", problem=True)
+    out = screen.getvalue()
+    assert "\033[33m  [1/1] 100%  a.nef" in out
+    assert "\033[33m  RAW をコピー: 1/1 件 完了" in out
+
+
+def test_console_log_colors_by_level(screen, color):
+    color("always")
+    lg = _console_logger(screen)
+    lg.warning("警告です")
+    lg.error("エラーです")
+    out = screen.getvalue()
+    assert "\033[33m[WARNING] 警告です\033[0m" in out
+    assert "\033[31m[ERROR] エラーです\033[0m" in out
+
+
+def test_no_color_codes_without_color(screen, color):
+    color("never")
+    console.error("書き込めません")
+    with console.Progress("JPEG をコピー", 1) as p:
+        p.item("a.jpg")
+    assert "\033[" not in screen.getvalue()
