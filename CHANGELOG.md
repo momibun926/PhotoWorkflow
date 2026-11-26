@@ -9,6 +9,10 @@
 
 <!-- 次のバージョンに入れる変更を、ここに「追加」「変更」「修正」「削除」に分けて書き足していく -->
 
+## [1.2.0] - 2026-11-26
+
+画面の文字を色分けして、エラーや警告に気付きやすくした版。今までの config.json はそのまま使える（色は既定で付く）。
+
 ### 追加
 
 - **画面の表示**: 文字を色分けして表示するようにした。エラー・失敗は赤、警告・要確認は黄、完了は緑、見出しとメニューの番号はシアン、区切り線や実行できないステップは灰色。`config.json` の `display.color`（`auto` / `always` / `never`、既定 `auto`）で変えられる。`auto` では、ファイルに出力しているときや環境変数 `NO_COLOR` があるときは色を付けない。ログファイルには色のコードは入らない。追加のパッケージは不要。
@@ -60,6 +64,7 @@
 - **地図ライブラリの更新スクリプト**: `tools/update_map_libs.py`。版番号とハッシュ値（integrity）をまとめて更新する。
 - **テスト**: `tests/` に pytest のテスト一式。
 
-[未リリース]: https://github.com/momibun926/PhotoWorkflow/compare/v1.1.0...HEAD
+[未リリース]: https://github.com/momibun926/PhotoWorkflow/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/momibun926/PhotoWorkflow/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/momibun926/PhotoWorkflow/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/momibun926/PhotoWorkflow/releases/tag/v1.0.0
